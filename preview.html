@@ -89,10 +89,12 @@ button:active {
 
 .table-container {
   overflow-x: auto;
+  overflow-y: auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   padding: 2px;
+  max-height: 90vh;
 }
 
 table {
@@ -113,6 +115,19 @@ th {
   border-bottom: 3px solid #667eea;
   position: sticky;
   top: 0;
+  z-index: 10;
+}
+
+th:nth-child(1), th:nth-child(2) {
+  position: sticky;
+  z-index: 11;
+  left: 0;
+  top: 0;
+}
+
+th:nth-child(2) {
+  left: 80px;
+  top: 0;
 }
 
 td {
@@ -121,6 +136,19 @@ td {
   text-align: center;
   font-size: 15px;
   transition: all 0.2s ease;
+}
+
+td:nth-child(1), td:nth-child(2) {
+  position: sticky;
+  background: white;
+  z-index: 5;
+  left: 0;
+  font-weight: 400;
+  color: #333;
+}
+
+td:nth-child(2) {
+  left: 80px;
 }
 
 tbody tr {
@@ -184,12 +212,41 @@ tbody tr:last-child td {
   }
 
   th, td {
-    padding: 8px 4px;
-    font-size: 11px;
+    padding: 10px 6px;
+    font-size: 13px;
   }
 
   th {
-    padding: 12px 4px;
+    padding: 12px 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .table-container {
+    padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 100%;
+  }
+
+  th:nth-child(1), th:nth-child(2) {
+    z-index: 12;
+  }
+
+  td:nth-child(1), td:nth-child(2) {
+    z-index: 6;
+    min-width: 60px;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
   }
 }
 </style>
