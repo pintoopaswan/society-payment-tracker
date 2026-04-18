@@ -256,7 +256,7 @@ tbody tr:last-child td {
 
 <div class="container">
   <div style="text-align: center; color: #0066cc; margin-bottom: 20px;">
-    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-shadow: none; color: #0066cc;">MIG-I Society, Sector-29</h1>
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-shadow: none; color: #0066cc;">MIG Society, Sector-29</h1>
     <h2 style="font-size: 1.3rem; font-weight: 500; text-shadow: none; margin-bottom: 0; color: #0066cc;">Guard Payment Dashboard</h2>
   </div>
 
@@ -297,86 +297,51 @@ let processedRecords = new Set(); // Track processed records to avoid duplicates
 let allBlocks = new Set(); // Track all unique blocks
 let allFlats = {}; // Track all flats per block
 
-// Fetch data from all month sheets using JSON API
 async function fetchAllMonthData() {
-  // Fetch all months in parallel for faster loading
-  const fetchPromises = monthGids.map((gid, i) => {
-    const SHEET_URL = `http://localhost:8001/proxy-json.php?sheet_id=${SHEET_ID}&gid=${gid}`;
-    return fetch(SHEET_URL)
-      .then(res => res.json())
-      .then(jsonData => {
-        if (jsonData && jsonData.table) {
-          processJsonData(jsonData, i);
-        }
-      })
-      .catch(err => console.error(`Month ${i}:`, err));
+
+  const fetchPromises = monthGids.map((gid, monthIndex) => {
+
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+
+    return fetch(url)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.split("\n").slice(1);
+
+        rows.forEach(r => {
+          let cols = parseCSV(r);
+
+          let block = cols[0];
+          let flat = cols[1];
+          let amount = cols[2];
+          let date = cols[4];
+          let status = cols[5];
+
+          if(!block || !flat) return;
+
+          // track all flats
+          allBlocks.add(block);
+          if(!allFlats[block]) allFlats[block] = new Set();
+          allFlats[block].add(flat);
+
+          // only paid entries
+          if(!amount || status?.toUpperCase().trim() !== "DONE") return;
+
+          processRow(block, flat, amount, date, monthIndex);
+        });
+      });
+
   });
-  
-  // Wait for all fetches to complete
+
   await Promise.all(fetchPromises);
-  
   renderTable();
 }
 
-function processJsonData(data, monthIndex) {
-  // Parse Google Visualization API JSON response
-  const rows = data.table.rows || [];
-  
-  // Find header row (contains "BLOCK")
-  let headerIdx = -1;
-  for (let i = 0; i < rows.length; i++) {
-    const cells = rows[i].c || [];
-    if (cells[0] && cells[0].v === 'BLOCK') {
-      headerIdx = i;
-      break;
-    }
-  }
-  
-  if (headerIdx === -1) {
-    return;
-  }
-  
-  // First pass: collect ALL blocks and flats (even those without payment data)
-  for (let idx = headerIdx + 1; idx < rows.length; idx++) {
-    const row = rows[idx];
-    const cells = row.c || [];
-    
-    const block = cells[0]?.v;
-    const flat = cells[1]?.v;
-    
-    // Track all blocks and flats we see
-    if (block && block !== 'BLOCK' && block !== 'TOTAL' && flat) {
-      allBlocks.add(block);
-      if (!allFlats[block]) {
-        allFlats[block] = new Set();
-      }
-      allFlats[block].add(flat);
-    }
-  }
-  
-  // Second pass: process only rows with payment data
-  for (let idx = headerIdx + 1; idx < rows.length; idx++) {
-    const row = rows[idx];
-    const cells = row.c || [];
-    
-    // Extract values from cells
-    const block = cells[0]?.v;
-    const flat = cells[1]?.v;
-    const amount = cells[2]?.v;
-    const date_formatted = cells[4]?.f;
-    const status = cells[5]?.v;
-    
-    // Skip rows that don't have required data
-    if (!block || block === 'BLOCK' || block === 'TOTAL' || !amount || amount === 0 || isNaN(amount) || !status || String(status).toUpperCase().trim() !== 'DONE' || !date_formatted) {
-      continue;
-    }
-    
-    processRow(String(block), String(flat), amount, date_formatted, monthIndex);
-  }
-}
 
-// Start fetching data from all sheets
-fetchAllMonthData();
+function parseCSV(line) {
+  return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+             ?.map(s => s.replace(/(^"|"$)/g, "")) || [];
+}
 
 // Start fetching data from all sheets
 fetchAllMonthData();
