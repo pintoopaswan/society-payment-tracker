@@ -379,11 +379,11 @@ const AUTH_CREDENTIALS = {
   password: "MigSociety@123"
 };
 
-const months = ["January","February","March","April","May","June",
-"July","August","September","October","November","December"];
+const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+"JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 
-// Gid values for each month sheet
-const monthGids = [39522763, 1601250327, 1191138399, 692630406, 499220736, 253363626, 118278757, 1248178645, 884652075, 408912661, 651523142, 1790347420];
+// Tab names for each month sheet in Google Spreadsheet
+const monthSheetNames = months;
 
 let groupedData = {};
 let monthlyTotals = new Array(12).fill(0);
@@ -429,9 +429,9 @@ function logout() {
 
 async function fetchAllMonthData() {
 
-  const fetchPromises = monthGids.map((gid, monthIndex) => {
+  const fetchPromises = monthSheetNames.map((sheetName, monthIndex) => {
 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
     return fetch(url)
       .then(res => res.text())
