@@ -49,7 +49,7 @@ h2 {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-input {
+input, select {
   padding: 14px 18px;
   width: 360px;
   border: 3px solid #667eea;
@@ -60,7 +60,7 @@ input {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-input:focus {
+input:focus, select:focus {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
@@ -116,6 +116,23 @@ th {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.month-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.month-total {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.95;
+  color: #ffd700;
 }
 
 th:nth-child(1), th:nth-child(2) {
@@ -207,7 +224,7 @@ tbody tr:last-child td {
     align-items: stretch;
   }
 
-  input, button {
+  input, select, button {
     width: 100%;
   }
 
@@ -220,7 +237,7 @@ tbody tr:last-child td {
     padding: 12px 6px;
   }
 
-  input {
+  input, select {
     width: 100%;
     padding: 12px 14px;
     font-size: 14px;
@@ -261,8 +278,11 @@ tbody tr:last-child td {
   </div>
 
   <div class="top-bar">
-    <input type="text" id="search" placeholder="🔍 Search by Block or Flat number..." />
+    <select id="blockFilter">
+      <option value="">All Blocks</option>
+    </select>
     <button onclick="downloadReport()">📥 Download Report</button>
+    <input type="text" id="search" placeholder="🔍 Filter by Flat number..." />
   </div>
 
   <div class="table-container">
@@ -271,9 +291,18 @@ tbody tr:last-child td {
   <tr>
     <th>Block</th>
     <th>Flat</th>
-    <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
-    <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
-    <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+    <th data-month-index="0"><div class="month-head"><span>Jan</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="1"><div class="month-head"><span>Feb</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="2"><div class="month-head"><span>Mar</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="3"><div class="month-head"><span>Apr</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="4"><div class="month-head"><span>May</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="5"><div class="month-head"><span>Jun</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="6"><div class="month-head"><span>Jul</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="7"><div class="month-head"><span>Aug</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="8"><div class="month-head"><span>Sep</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="9"><div class="month-head"><span>Oct</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="10"><div class="month-head"><span>Nov</span><span class="month-total">₹0</span></div></th>
+    <th data-month-index="11"><div class="month-head"><span>Dec</span><span class="month-total">₹0</span></div></th>
     <th>Total</th>
   </tr>
   </thead>
@@ -422,7 +451,7 @@ function renderTable() {
           Flat: flatObj.flat,
           months: {},
           total: 0
-        };
+                };
       }
     });
   });
@@ -438,7 +467,7 @@ function renderTable() {
   let html = '';
 
   sortedData.forEach(row => {
-    html += `<tr>
+    html += `<tr data-block="${row.Block}">
       <td>${row.Block}</td>
       <td>${row.Flat}</td>`;
 
@@ -452,7 +481,7 @@ function renderTable() {
   });
 
   // Add monthly totals row
-  html += `<tr class="total-row">
+  html += `<tr class="total-row" data-is-total="true">
     <td colspan="2">TOTAL</td>`;
 
   monthlyTotals.forEach(t => {
@@ -461,19 +490,61 @@ function renderTable() {
 
   html += `<td>-</td></tr>`;
   
+  updateMonthHeaderTotals();
+  updateBlockFilterOptions(sortedBlocks);
+
   // Set all HTML at once
   tbody.innerHTML = html;
+  applyFilters();
 }
 
-// 🔍 SEARCH
-document.getElementById("search").addEventListener("keyup", function() {
-  let val = this.value.toLowerCase();
+function updateMonthHeaderTotals() {
+  document.querySelectorAll("th[data-month-index]").forEach(th => {
+    const monthIndex = Number(th.dataset.monthIndex);
+    const total = monthlyTotals[monthIndex] || 0;
+    const totalEl = th.querySelector(".month-total");
+    if (totalEl) totalEl.textContent = `₹${total}`;
+  });
+}
+
+function updateBlockFilterOptions(blocks) {
+  const blockFilter = document.getElementById("blockFilter");
+  const selectedValue = blockFilter.value;
+  let options = `<option value="">All Blocks</option>`;
+
+  blocks.forEach(block => {
+    options += `<option value="${block}">${block}</option>`;
+  });
+
+  blockFilter.innerHTML = options;
+
+  if (selectedValue && blocks.includes(selectedValue)) {
+    blockFilter.value = selectedValue;
+  }
+}
+
+function applyFilters() {
+  const searchValue = document.getElementById("search").value.toLowerCase();
+  const selectedBlock = document.getElementById("blockFilter").value;
 
   document.querySelectorAll("#table tbody tr").forEach(tr => {
-    let text = tr.innerText.toLowerCase();
-    tr.style.display = text.includes(val) ? "" : "none";
+    if (tr.dataset.isTotal === "true") {
+      tr.style.display = "";
+      return;
+    }
+
+    const rowText = tr.innerText.toLowerCase();
+    const rowBlock = tr.dataset.block || "";
+    const searchMatch = rowText.includes(searchValue);
+    const blockMatch = !selectedBlock || rowBlock === selectedBlock;
+
+    tr.style.display = searchMatch && blockMatch ? "" : "none";
   });
-});
+}
+
+// 🔍 SEARCH + BLOCK FILTER
+document.getElementById("search").addEventListener("input", applyFilters);
+document.getElementById("blockFilter").addEventListener("change", applyFilters);
 
 function downloadReport() {
   let table = document.getElementById("table");
