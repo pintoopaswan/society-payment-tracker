@@ -24,6 +24,7 @@ body {
 .container {
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 }
 
 h2 {
@@ -256,6 +257,10 @@ tbody tr:last-child td {
 #logoutBtn {
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 20;
 }
 
 #logoutBtn:hover {
@@ -335,14 +340,18 @@ tbody tr:last-child td {
     <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-shadow: none; color: #0066cc;">MIG Society, Sector-29</h1>
     <h2 style="font-size: 1.3rem; font-weight: 500; text-shadow: none; margin-bottom: 0; color: #0066cc;">Guard Payment Dashboard</h2>
   </div>
+  <button id="logoutBtn" type="button">Logout</button>
 
   <div class="top-bar">
+    <select id="yearFilter">
+      <option value="2026">Year 2026</option>
+      <option value="2025">Year 2025</option>
+    </select>
     <select id="blockFilter">
       <option value="">All Blocks</option>
     </select>
     <input type="text" id="search" placeholder="🔍 Filter by Flat number..." />
     <button onclick="downloadReport()">📥 Download Report</button>
-    <button id="logoutBtn" type="button">Logout</button>
   </div>
 
   <div class="table-container">
@@ -372,7 +381,11 @@ tbody tr:last-child td {
 </div>
 
 <script>
-const SHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+const SHEET_IDS_BY_YEAR = {
+  "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
+  "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
+};
+const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = {
   username: "admin",
@@ -382,14 +395,26 @@ const AUTH_CREDENTIALS = {
 const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
 "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 
-// Tab names for each month sheet in Google Spreadsheet
-const monthSheetNames = months;
+// Per-year tab names for each month (null means that month tab doesn't exist)
+const monthSheetNamesByYear = {
+  "2026": months,
+  "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
+};
 
 let groupedData = {};
 let monthlyTotals = new Array(12).fill(0);
 let processedRecords = new Set(); // Track processed records to avoid duplicates
 let allBlocks = new Set(); // Track all unique blocks
 let allFlats = {}; // Track all flats per block
+
+function resetDataState() {
+  groupedData = {};
+  monthlyTotals = new Array(12).fill(0);
+  processedRecords = new Set();
+  allBlocks = new Set();
+  allFlats = {};
+  document.querySelector("#table tbody").innerHTML = "";
+}
 
 function showDashboard() {
   document.getElementById("loginScreen").classList.add("hidden");
@@ -428,14 +453,29 @@ function logout() {
 }
 
 async function fetchAllMonthData() {
+  const selectedYear = document.getElementById("yearFilter").value;
+  const selectedSheetId = SHEET_IDS_BY_YEAR[selectedYear];
+  const monthSheetNames = monthSheetNamesByYear[selectedYear] || months;
+  if (!selectedSheetId) return;
+
+  resetDataState();
 
   const fetchPromises = monthSheetNames.map((sheetName, monthIndex) => {
+    if (!sheetName) {
+      return Promise.resolve();
+    }
 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+    const url = `https://docs.google.com/spreadsheets/d/${selectedSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
     return fetch(url)
       .then(res => res.text())
       .then(csv => {
+        const csvPreview = csv.trim().slice(0, 120).toLowerCase();
+        if (!csv.trim() || csvPreview.startsWith("<!doctype html") || csvPreview.includes("google.visualization.query.setresponse")) {
+          // Invalid tab response, leave this month empty
+          return;
+        }
+
         const rows = csv.split("\n").slice(1);
 
         rows.forEach(r => {
@@ -644,8 +684,11 @@ function applyFilters() {
 // 🔍 SEARCH + BLOCK FILTER
 document.getElementById("search").addEventListener("input", applyFilters);
 document.getElementById("blockFilter").addEventListener("change", applyFilters);
+document.getElementById("yearFilter").addEventListener("change", fetchAllMonthData);
 document.getElementById("loginForm").addEventListener("submit", handleLogin);
 document.getElementById("logoutBtn").addEventListener("click", logout);
+
+document.getElementById("yearFilter").value = DEFAULT_YEAR;
 
 if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") {
   showDashboard();
