@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Status</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f3f7fb;
+  --card: #ffffff;
+  --line: #d9e2ee;
+  --brand: #1f5ea8;
+  --brand-dark: #123d70;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; min-height: 100vh; color: #16324f; }
+.container { max-width: 1400px; margin: 0 auto; position: relative; }
+.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
+.app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.app-header p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+.home-link { position: absolute; left: 16px; top: 16px; text-decoration: none; color: #0066cc; font-size: 1.3rem; }
+.header-title { text-align: center; }
+.nav-shell { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.main-menu a { text-decoration: none; color: var(--brand-dark); border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
+.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
+#logoutBtn { border: none; background: linear-gradient(135deg, #e34a4a 0%, #b92e2e 100%); color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); }
+select, input { padding: 14px 18px; width: 360px; border: 3px solid #667eea; border-radius: 8px; font-size: 15px; outline: none; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); }
+.table-wrap { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
+table { width: 100%; border-collapse: collapse; }
+th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
+.month-head { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.month-total { font-size: 12px; color: #ffd87b; }
+th:nth-child(1), th:nth-child(2) { position: sticky; z-index: 11; left: 0; top: 0; }
+th:nth-child(2) { left: 80px; }
+td { border: 1px solid #edf1f6; padding: 12px 8px; text-align: center; font-size: 14px; }
+td:nth-child(1), td:nth-child(2) { position: sticky; background: #fff; z-index: 5; left: 0; color: #1d3249; }
+td:nth-child(2) { left: 80px; }
+.status-paid { background: #d4edda; }
+.status-pending { background: #f8d7da; }
+.notice { margin: 10px 0 0; color: #375a7a; font-size: 0.93rem; }
+@media (max-width: 768px) {
+  .nav-shell { flex-direction: column; align-items: stretch; }
+  .main-menu { width: 100%; }
+  .main-menu a { display: inline-block; }
+  select, input { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="app-header">
+    <a class="home-link" href="index.html" title="Home">🏠</a>
+    <div class="header-title">
+      <h1>MIG Society, Sector-29</h1>
+      <p>Guard Payment Dashboard</p>
+    </div>
+  </div>
+
+  <div class="nav-shell">
+    <ul class="main-menu">
+      <li><a href="index.html">💳 Payment Details</a></li>
+      <li><a class="active" href="payment-status.html">📊 Payment Status</a></li>
+      <li><a href="owner-tenant.html">👥 Resident Details</a></li>
+    </ul>
+    <button id="logoutBtn" type="button">Logout</button>
+  </div>
+
+  <div class="top-bar">
+    <select id="yearFilter"></select>
+    <select id="blockFilter"><option value="">ALL BLOCKS</option></select>
+    <input id="flatFilter" type="text" placeholder="FILTER BY FLAT NUMBER..." />
+  </div>
+
+  <div class="table-wrap">
+    <table id="statusTable">
+      <thead>
+        <tr>
+          <th>BLOCK</th><th>FLAT</th>
+          <th data-month-index="0"><div class="month-head"><span>JAN</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="1"><div class="month-head"><span>FEB</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="2"><div class="month-head"><span>MAR</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="3"><div class="month-head"><span>APR</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="4"><div class="month-head"><span>MAY</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="5"><div class="month-head"><span>JUN</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="6"><div class="month-head"><span>JUL</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="7"><div class="month-head"><span>AUG</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="8"><div class="month-head"><span>SEP</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="9"><div class="month-head"><span>OCT</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="10"><div class="month-head"><span>NOV</span><span class="month-total">₹0</span></div></th>
+          <th data-month-index="11"><div class="month-head"><span>DEC</span><span class="month-total">₹0</span></div></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="notice" id="notice"></div>
+</div>
+
+<script>
+const AUTH_SESSION_KEY = "society_dashboard_auth";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
+
+const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
+const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const MONTH_SHORT = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const MONTHLY_DUE = 200;
+const monthSheetNamesByYear = { "2026": MONTHS, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
+const now = new Date();
+let flatMap = new Map();
+
+function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
+function normalizeBlockName(value) { const digits = String(value || "").replace(/[^0-9]/g, ""); return digits ? `Block-${Number(digits)}` : String(value || "").trim(); }
+function initFilters() {
+  const yearFilter = document.getElementById("yearFilter");
+  for (let year = 2025; year <= 2035; year++) {
+    const o = document.createElement("option"); o.value = String(year); o.textContent = `YEAR ${year}`; yearFilter.appendChild(o);
+  }
+  yearFilter.value = String(now.getFullYear());
+  if (!SHEET_IDS_BY_YEAR[yearFilter.value]) yearFilter.value = "2026";
+  yearFilter.addEventListener("change", loadStatusData);
+  document.getElementById("blockFilter").addEventListener("change", renderTable);
+  document.getElementById("flatFilter").addEventListener("input", renderTable);
+}
+
+async function loadStatusData() {
+  const year = document.getElementById("yearFilter").value;
+  const sheetId = SHEET_IDS_BY_YEAR[year];
+  const monthTabs = monthSheetNamesByYear[year] || MONTHS;
+  flatMap = new Map();
+  document.getElementById("notice").textContent = "Loading...";
+  if (!sheetId) { document.getElementById("notice").textContent = `No sheet configured for ${year}.`; renderTable(); return; }
+
+  const monthPromises = monthTabs.map((tabName, monthIndex) => {
+    if (!tabName) return Promise.resolve();
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+    return fetch(url).then(r => r.text()).then(csv => {
+      const preview = csv.trim().slice(0, 120).toLowerCase();
+      if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
+      csv.split("\n").slice(1).forEach(line => {
+        const cols = parseCSV(line);
+        const blockRaw = cols[0], flatRaw = cols[1], amountRaw = Number(cols[2] || 0), status = String(cols[5] || "").trim().toUpperCase();
+        if (!blockRaw || !flatRaw) return;
+        const block = normalizeBlockName(blockRaw);
+        const flat = String(flatRaw).trim();
+        const key = `${block}-${flat}`;
+        if (!flatMap.has(key)) flatMap.set(key, { block, flat, monthlyPaid: new Array(12).fill(0), perMonthAmount: 0 });
+        const record = flatMap.get(key);
+        if (status === "DONE" && amountRaw > 0) {
+          record.monthlyPaid[monthIndex] += amountRaw;
+          if (!record.perMonthAmount || amountRaw < record.perMonthAmount) record.perMonthAmount = amountRaw;
+        }
+      });
+    });
+  });
+
+  await Promise.all(monthPromises);
+  updateBlockFilter();
+  renderTable();
+  document.getElementById("notice").textContent = `Showing status for ${year}.`;
+}
+
+function updateBlockFilter() {
+  const blockFilter = document.getElementById("blockFilter");
+  const selected = blockFilter.value;
+  const blocks = Array.from(new Set(Array.from(flatMap.values()).map(r => r.block))).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+  blockFilter.innerHTML = `<option value="">ALL BLOCKS</option>` + blocks.map(b => `<option value="${b}">${b}</option>`).join("");
+  if (selected && blocks.includes(selected)) blockFilter.value = selected;
+}
+
+function getStatusLabels(record, year) {
+  const paidMonthsCount = Math.floor(record.monthlyPaid.reduce((a,b)=>a+b,0) / MONTHLY_DUE);
+  const labels = new Array(12).fill("Pending");
+  const cap = Math.max(0, Math.min(12, paidMonthsCount));
+  for (let i = 0; i < cap; i++) labels[i] = "Paid";
+  if (Number(year) > now.getFullYear()) {
+    for (let i = 0; i < 12; i++) if (labels[i] !== "Paid") labels[i] = "Pending";
+  }
+  return labels;
+}
+
+function updateMonthHeaderTotals(monthPaidCounts) {
+  const heads = document.querySelectorAll("th[data-month-index]");
+  heads.forEach((th, idx) => {
+    const total = (monthPaidCounts[idx] || 0) * MONTHLY_DUE;
+    th.innerHTML = `<div class="month-head"><span>${MONTH_SHORT[idx]}</span><span class="month-total">₹${total}</span></div>`;
+  });
+}
+
+function renderTable() {
+  const year = document.getElementById("yearFilter").value;
+  const blockValue = document.getElementById("blockFilter").value;
+  const flatValue = document.getElementById("flatFilter").value.trim().toLowerCase();
+  const tbody = document.querySelector("#statusTable tbody");
+
+  const rows = Array.from(flatMap.values())
+    .filter(r => !blockValue || r.block === blockValue)
+    .filter(r => !flatValue || String(r.flat).toLowerCase().includes(flatValue))
+    .sort((a,b) => { const c = a.block.localeCompare(b.block, undefined, {numeric:true}); if (c !== 0) return c; return Number(a.flat) - Number(b.flat); });
+
+  let html = "";
+  const monthPaidCounts = new Array(12).fill(0);
+  rows.forEach(r => {
+    const labels = getStatusLabels(r, year);
+    html += `<tr><td>${r.block}</td><td>${r.flat}</td>`;
+    labels.forEach((label, idx) => {
+      if (label === "Paid") {
+        monthPaidCounts[idx] += 1;
+        html += `<td class="status-paid">₹${MONTHLY_DUE}</td>`;
+      } else {
+        html += `<td class="status-pending">-</td>`;
+      }
+    });
+    html += `</tr>`;
+  });
+
+  updateMonthHeaderTotals(monthPaidCounts);
+  tbody.innerHTML = html || `<tr><td colspan="14" style="padding:14px;">No matching records found.</td></tr>`;
+}
+
+initFilters();
+loadStatusData();
+</script>
+</body>
+</html>

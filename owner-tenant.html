@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resident Details</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f3f7fb;
+  --card: #fff;
+  --line: #d6e0ec;
+  --brand: #1f5ea8;
+  --text: #17314f;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--text); min-height: 100vh; padding: 20px; }
+.container { max-width: 1300px; margin: 0 auto; }
+.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
+.home-link { position: absolute; left: 16px; top: 16px; text-decoration: none; color: #fff; font-size: 1.3rem; }
+.header-title { text-align: center; }
+.header-title h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header-title p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+.home-link { color: #0066cc; }
+.nav-shell { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.main-menu a { text-decoration: none; color: #183f70; border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
+.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
+#logoutBtn { border: none; background: linear-gradient(135deg, #e34a4a 0%, #b92e2e 100%); color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.controls { display: grid; grid-template-columns: 200px 1fr; gap: 12px; background: var(--card); padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); margin-bottom: 12px; }
+select, input { border: 3px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.meta { margin: 10px 0; color: #2a4a67; font-size: 14px; font-weight: 600; }
+.error { color: #b00020; margin-bottom: 8px; }
+.table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; text-transform: uppercase; }
+tr:nth-child(even) { background: #f8fbff; }
+tr:hover { background: #eaf3ff; }
+@media (max-width: 768px) { .nav-shell { flex-direction: column; align-items: stretch; } .controls { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="app-header">
+    <a class="home-link" href="index.html" title="Home">🏠</a>
+    <div class="header-title">
+      <h1>MIG Society, Sector-29</h1>
+      <p>Guard Payment Dashboard</p>
+    </div>
+  </div>
+
+  <div class="nav-shell">
+    <ul class="main-menu">
+      <li><a href="index.html">💳 Payment Details</a></li>
+      <li><a href="payment-status.html">📊 Payment Status</a></li>
+      <li><a class="active" href="owner-tenant.html">👥 Resident Details</a></li>
+    </ul>
+    <button id="logoutBtn" type="button">Logout</button>
+  </div>
+
+  <div class="controls">
+    <select id="searchType">
+      <option value="all">Search: All</option>
+      <option value="name">Search: Name</option>
+      <option value="mobile">Search: Mobile</option>
+      <option value="vehicle">Search: Vehicle</option>
+    </select>
+    <input id="searchInput" type="text" placeholder="Type name, mobile number, or vehicle number..." />
+  </div>
+
+  <div class="meta" id="metaInfo">Loading data...</div>
+  <div class="error" id="errorText"></div>
+
+  <div class="table-wrap">
+    <table id="directoryTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const AUTH_SESSION_KEY = "society_dashboard_auth";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
+
+const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME = "Sheet1";
+let headers = [], rows = [], filteredRows = [];
+const searchIndexes = { name: [], mobile: [], vehicle: [] };
+function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
+function normalize(value) { return String(value || "").trim().toLowerCase(); }
+function normalizeBlockDisplay(value) { const digits = String(value || "").match(/\d+/); return digits ? `Block-${Number(digits[0])}` : String(value || ""); }
+function collectIndexes() {
+  const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
+  headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
+}
+function renderTable(data) {
+  const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody");
+  const blockIndex = headers.findIndex(h => normalize(h).includes("block"));
+  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
+  tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
+  document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
+}
+function matchesByType(row, query, type) {
+  if (!query) return true;
+  if (type === "all") return row.some(cell => normalize(cell).includes(query));
+  const indexes = searchIndexes[type] || [];
+  if (!indexes.length) return row.some(cell => normalize(cell).includes(query));
+  return indexes.some(i => normalize(row[i]).includes(query));
+}
+function applySearch() {
+  const query = normalize(document.getElementById("searchInput").value), type = document.getElementById("searchType").value;
+  filteredRows = rows.filter(row => matchesByType(row, query, type));
+  renderTable(filteredRows);
+}
+async function loadDirectoryData() {
+  const errorText = document.getElementById("errorText"); errorText.textContent = "";
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`;
+    const res = await fetch(url); const csv = await res.text();
+    if (!csv.trim() || csv.trim().toLowerCase().startsWith("<!doctype html")) throw new Error("Invalid sheet response. Check sheet ID/tab name and sharing permissions.");
+    const lines = csv.split("\n").filter(Boolean);
+    headers = parseCSV(lines[0]); rows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
+    searchIndexes.name = []; searchIndexes.mobile = []; searchIndexes.vehicle = []; collectIndexes();
+    filteredRows = rows; renderTable(filteredRows);
+  } catch (error) { errorText.textContent = error.message; document.getElementById("metaInfo").textContent = "Failed to load data"; }
+}
+document.getElementById("searchInput").addEventListener("input", applySearch);
+document.getElementById("searchType").addEventListener("change", applySearch);
+loadDirectoryData();
+</script>
+</body>
+</html>

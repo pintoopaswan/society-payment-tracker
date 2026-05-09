@@ -4,52 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Society Guard Payment Dashboard</title>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f3f7fb;
+  --card: #ffffff;
+  --line: #d9e2ee;
+  --brand: #1f5ea8;
+  --brand-dark: #123d70;
+  --ok: #d4edda;
+  --bad: #f8d7da;
 }
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f7fa;
-  padding: 20px;
-  min-height: 100vh;
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-}
-
-h2 {
-  text-align: center;
-  color: #0066cc;
-  font-size: 2.5rem;
-  margin-bottom: 30px;
-  text-shadow: none;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; min-height: 100vh; color: #16324f; }
+.container { max-width: 1400px; margin: 0 auto; position: relative; }
+.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
+.app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.app-header p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+.home-link { position: absolute; left: 16px; top: 16px; text-decoration: none; color: #0066cc; font-size: 1.3rem; }
+.header-title { text-align: center; }
+.nav-shell { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.main-menu a { text-decoration: none; color: var(--brand-dark); border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
+.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
+#logoutBtn { border: none; background: linear-gradient(135deg, #e34a4a 0%, #b92e2e 100%); color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); }
+input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
+.table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
+.month-head { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.month-total { font-size: 12px; color: #ffd87b; }
+th:nth-child(1), th:nth-child(2) { position: sticky; z-index: 11; left: 0; top: 0; }
+th:nth-child(2) { left: 80px; }
+td { border: 1px solid #edf1f6; padding: 12px 8px; text-align: center; font-size: 14px; }
+td:nth-child(1), td:nth-child(2) { position: sticky; background: #fff; z-index: 5; left: 0; color: #1d3249; }
+td:nth-child(2) { left: 80px; }
+.paid { background: var(--ok); color: #155724; }
+.empty { background: var(--bad); color: #721c24; font-weight: 600; }
+.total-row { background: #ffe4b5; font-weight: 700; }
+.hidden { display: none; }
+#loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1); }
+#loginForm { display: grid; gap: 12px; }
+#loginForm input { width: 100%; }
+#loginError { color: #b00020; font-size: 0.92rem; min-height: 18px; }
 input, select {
   padding: 14px 18px;
   width: 360px;
@@ -60,648 +58,189 @@ input, select {
   outline: none;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
-
 input:focus, select:focus {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-
-button {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-.table-container {
-  overflow-x: auto;
-  overflow-y: auto;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  padding: 2px;
-  max-height: 90vh;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-th {
-  background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%);
-  color: white;
-  padding: 16px 8px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 3px solid #667eea;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.month-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  line-height: 1.2;
-}
-
-.month-total {
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: 0.95;
-  color: #ffd700;
-}
-
-th:nth-child(1), th:nth-child(2) {
-  position: sticky;
-  z-index: 11;
-  left: 0;
-  top: 0;
-}
-
-th:nth-child(2) {
-  left: 80px;
-  top: 0;
-}
-
-td {
-  border: 1px solid #f0f0f0;
-  padding: 14px 10px;
-  text-align: center;
-  font-size: 15px;
-  transition: all 0.2s ease;
-}
-
-td:nth-child(1), td:nth-child(2) {
-  position: sticky;
-  background: white;
-  z-index: 5;
-  left: 0;
-  font-weight: 400;
-  color: #333;
-}
-
-td:nth-child(2) {
-  left: 80px;
-}
-
-tbody tr {
-  transition: all 0.2s ease;
-}
-
-tbody tr:hover {
-  background-color: #f8f9ff;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-}
-
-.paid {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  font-weight: 500;
-  color: #155724;
-}
-
-.paid:hover {
-  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
-}
-
-.empty {
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-  color: #721c24;
-  font-weight: 500;
-}
-
-.empty:hover {
-  background: linear-gradient(135deg, #f5c6cb 0%, #f1b0b7 100%);
-}
-
-.total-row {
-  background: linear-gradient(135deg, #ffd89b 0%, #ffc666 100%);
-  font-weight: 700;
-  color: #333;
-  border-top: 3px solid #ff9800;
-  border-bottom: 3px solid #ff9800;
-}
-
-.total-row td {
-  padding: 14px 8px;
-  font-size: 14px;
-}
-
-tbody tr:last-child td {
-  border-bottom: 3px solid #f0f0f0;
-}
-
-.hidden {
-  display: none;
-}
-
-#loginScreen {
-  max-width: 460px;
-  margin: 60px auto;
-  background: white;
-  border-radius: 14px;
-  padding: 24px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
-}
-
-#loginScreen h3 {
-  font-size: 1.4rem;
-  color: #1a1e27;
-  margin-bottom: 12px;
-}
-
-#loginScreen p {
-  color: #555;
-  margin-bottom: 16px;
-}
-
-#loginForm {
-  display: grid;
-  gap: 12px;
-}
-
-#loginForm input {
-  width: 100%;
-}
-
-#loginError {
-  color: #b00020;
-  font-size: 0.95rem;
-  min-height: 20px;
-}
-
-#logoutBtn {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 20;
-}
-
-#logoutBtn:hover {
-  box-shadow: 0 6px 18px rgba(192, 57, 43, 0.35);
-}
-
 @media (max-width: 768px) {
-  h2 {
-    font-size: 1.8rem;
-  }
-
-  .top-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  input, select, button {
-    width: 100%;
-  }
-
-  th, td {
-    padding: 10px 6px;
-    font-size: 13px;
-  }
-
-  th {
-    padding: 12px 6px;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 12px 14px;
-    font-size: 14px;
-  }
-
-  .table-container {
-    padding: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  table {
-    min-width: 100%;
-  }
-
-  th:nth-child(1), th:nth-child(2) {
-    z-index: 12;
-  }
-
-  td:nth-child(1), td:nth-child(2) {
-    z-index: 6;
-    min-width: 60px;
-  }
-
-  h1 {
-    font-size: 1.5rem !important;
-  }
+  .nav-shell { flex-direction: column; align-items: stretch; }
+  .main-menu { width: 100%; }
+  .main-menu a { display: inline-block; }
+  input, select { width: 100%; }
 }
 </style>
 </head>
-
 <body>
-
 <div id="loginScreen">
   <h3>Authorized Access</h3>
-  <p>Please sign in to open the guard payment dashboard.</p>
+  <p style="margin:10px 0 14px; color:#4c6178;">Please sign in to open the guard payment dashboard.</p>
   <form id="loginForm">
     <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username" />
     <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
-    <button type="submit">Login</button>
+    <button type="submit" style="padding:12px;border:none;border-radius:8px;background:#1f5ea8;color:#fff;font-weight:700;cursor:pointer;">Login</button>
     <div id="loginError"></div>
   </form>
 </div>
 
 <div class="container hidden" id="appContent">
-  <div style="text-align: center; color: #0066cc; margin-bottom: 20px;">
-    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-shadow: none; color: #0066cc;">MIG Society, Sector-29</h1>
-    <h2 style="font-size: 1.3rem; font-weight: 500; text-shadow: none; margin-bottom: 0; color: #0066cc;">Guard Payment Dashboard</h2>
+  <div class="app-header">
+    <a class="home-link" href="index.html" title="Home">🏠</a>
+    <div class="header-title">
+      <h1>MIG Society, Sector-29</h1>
+      <p>Guard Payment Dashboard</p>
+    </div>
   </div>
-  <button id="logoutBtn" type="button">Logout</button>
+
+  <div class="nav-shell">
+    <ul class="main-menu">
+      <li><a class="active" href="index.html">💳 Payment Details</a></li>
+      <li><a href="payment-status.html">📊 Payment Status</a></li>
+      <li><a href="owner-tenant.html">👥 Resident Details</a></li>
+    </ul>
+    <button id="logoutBtn" type="button">Logout</button>
+  </div>
 
   <div class="top-bar">
     <select id="yearFilter">
-      <option value="2026">Year 2026</option>
-      <option value="2025">Year 2025</option>
+      <option value="2026">YEAR 2026</option>
+      <option value="2025">YEAR 2025</option>
     </select>
-    <select id="blockFilter">
-      <option value="">All Blocks</option>
-    </select>
-    <input type="text" id="search" placeholder="🔍 Filter by Flat number..." />
-    <button onclick="downloadReport()">📥 Download Report</button>
+    <select id="blockFilter"><option value="">ALL BLOCKS</option></select>
+    <input type="text" id="search" placeholder="FILTER BY FLAT NUMBER..." />
   </div>
 
   <div class="table-container">
-  <table id="table">
-  <thead>
-  <tr>
-    <th>Block</th>
-    <th>Flat</th>
-    <th data-month-index="0"><div class="month-head"><span>Jan</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="1"><div class="month-head"><span>Feb</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="2"><div class="month-head"><span>Mar</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="3"><div class="month-head"><span>Apr</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="4"><div class="month-head"><span>May</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="5"><div class="month-head"><span>Jun</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="6"><div class="month-head"><span>Jul</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="7"><div class="month-head"><span>Aug</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="8"><div class="month-head"><span>Sep</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="9"><div class="month-head"><span>Oct</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="10"><div class="month-head"><span>Nov</span><span class="month-total">₹0</span></div></th>
-    <th data-month-index="11"><div class="month-head"><span>Dec</span><span class="month-total">₹0</span></div></th>
-    <th>Total</th>
-  </tr>
-  </thead>
-  <tbody></tbody>
-  </table>
+    <table id="table">
+      <thead>
+      <tr>
+        <th>BLOCK</th><th>FLAT</th>
+        <th data-month-index="0"><div class="month-head"><span>Jan</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="1"><div class="month-head"><span>Feb</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="2"><div class="month-head"><span>Mar</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="3"><div class="month-head"><span>Apr</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="4"><div class="month-head"><span>May</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="5"><div class="month-head"><span>Jun</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="6"><div class="month-head"><span>Jul</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="7"><div class="month-head"><span>Aug</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="8"><div class="month-head"><span>Sep</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="9"><div class="month-head"><span>Oct</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="10"><div class="month-head"><span>Nov</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="11"><div class="month-head"><span>Dec</span><span class="month-total">₹0</span></div></th>
+        <th>TOTAL</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
 
 <script>
-const SHEET_IDS_BY_YEAR = {
-  "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
-  "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
-};
+const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
-const AUTH_CREDENTIALS = {
-  username: "admin",
-  password: "MigSociety@123"
-};
-
-const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-"JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-
-// Per-year tab names for each month (null means that month tab doesn't exist)
-const monthSheetNamesByYear = {
-  "2026": months,
-  "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
-};
-
-let groupedData = {};
-let monthlyTotals = new Array(12).fill(0);
-let processedRecords = new Set(); // Track processed records to avoid duplicates
-let allBlocks = new Set(); // Track all unique blocks
-let allFlats = {}; // Track all flats per block
-
-function resetDataState() {
-  groupedData = {};
-  monthlyTotals = new Array(12).fill(0);
-  processedRecords = new Set();
-  allBlocks = new Set();
-  allFlats = {};
-  document.querySelector("#table tbody").innerHTML = "";
-}
-
-function showDashboard() {
-  document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("appContent").classList.remove("hidden");
-}
-
-function showLogin() {
-  document.getElementById("loginScreen").classList.remove("hidden");
-  document.getElementById("appContent").classList.add("hidden");
-}
-
-function setLoginError(message) {
-  document.getElementById("loginError").textContent = message;
-}
-
+const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
+const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const monthSheetNamesByYear = { "2026": months, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
+let groupedData = {}, monthlyTotals = new Array(12).fill(0), processedRecords = new Set(), allBlocks = new Set(), allFlats = {};
+function normalizeBlockName(value) { const digits = String(value || "").replace(/[^0-9]/g, ""); return digits ? `Block-${Number(digits)}` : String(value || "").trim(); }
+function resetDataState() { groupedData = {}; monthlyTotals = new Array(12).fill(0); processedRecords = new Set(); allBlocks = new Set(); allFlats = {}; document.querySelector("#table tbody").innerHTML = ""; }
+function showDashboard() { document.getElementById("loginScreen").classList.add("hidden"); document.getElementById("appContent").classList.remove("hidden"); }
+function showLogin() { document.getElementById("loginScreen").classList.remove("hidden"); document.getElementById("appContent").classList.add("hidden"); }
+function setLoginError(message) { document.getElementById("loginError").textContent = message; }
 function handleLogin(event) {
   event.preventDefault();
   const username = document.getElementById("loginUsername").value.trim();
   const password = document.getElementById("loginPassword").value;
-
   if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
-    sessionStorage.setItem(AUTH_SESSION_KEY, "true");
-    setLoginError("");
-    showDashboard();
-    fetchAllMonthData();
-    return;
+    sessionStorage.setItem(AUTH_SESSION_KEY, "true"); setLoginError(""); showDashboard(); fetchAllMonthData(); return;
   }
-
   setLoginError("Invalid username or password.");
 }
-
-function logout() {
-  sessionStorage.removeItem(AUTH_SESSION_KEY);
-  showLogin();
-  document.getElementById("loginForm").reset();
+function logout() { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; }
+function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
+function processRow(block, flat, amount, date, monthIndex) {
+  if (!block || block === "TOTAL" || !flat || !amount) return;
+  const normalizedBlock = normalizeBlockName(block);
+  const recordId = `${monthIndex}-${normalizedBlock}-${flat}`;
+  if (processedRecords.has(recordId)) return;
+  processedRecords.add(recordId);
+  let parts = String(date).trim().split("/"); if (parts.length !== 3) return;
+  let month = parseInt(parts[0]), day = parseInt(parts[1]), year = parseInt(parts[2]);
+  if (isNaN(day) || isNaN(month) || isNaN(year) || monthIndex < 0 || monthIndex > 11) return;
+  let key = normalizedBlock + "-" + flat;
+  let flatNum = parseInt(flat);
+  if(!groupedData[key]) groupedData[key] = { Block: normalizedBlock, Flat: flatNum, months: {}, total: 0 };
+  let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+  let amountNum = Number(amount || 0);
+  groupedData[key].months[monthIndex] = `<div style="font-weight:600;color:#2d3436;">₹${amountNum}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${formattedDate}</div>`;
+  groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
 }
-
 async function fetchAllMonthData() {
   const selectedYear = document.getElementById("yearFilter").value;
   const selectedSheetId = SHEET_IDS_BY_YEAR[selectedYear];
   const monthSheetNames = monthSheetNamesByYear[selectedYear] || months;
   if (!selectedSheetId) return;
-
   resetDataState();
-
   const fetchPromises = monthSheetNames.map((sheetName, monthIndex) => {
-    if (!sheetName) {
-      return Promise.resolve();
-    }
-
+    if (!sheetName) return Promise.resolve();
     const url = `https://docs.google.com/spreadsheets/d/${selectedSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-
-    return fetch(url)
-      .then(res => res.text())
-      .then(csv => {
-        const csvPreview = csv.trim().slice(0, 120).toLowerCase();
-        if (!csv.trim() || csvPreview.startsWith("<!doctype html") || csvPreview.includes("google.visualization.query.setresponse")) {
-          // Invalid tab response, leave this month empty
-          return;
-        }
-
-        const rows = csv.split("\n").slice(1);
-
-        rows.forEach(r => {
-          let cols = parseCSV(r);
-
-          let block = cols[0];
-          let flat = cols[1];
-          let amount = cols[2];
-          let date = cols[4];
-          let status = cols[5];
-
-          if(!block || !flat) return;
-
-          // track all flats
-          allBlocks.add(block);
-          if(!allFlats[block]) allFlats[block] = new Set();
-          allFlats[block].add(flat);
-
-          // only paid entries
-          if(!amount || status?.toUpperCase().trim() !== "DONE") return;
-
-          processRow(block, flat, amount, date, monthIndex);
-        });
+    return fetch(url).then(res => res.text()).then(csv => {
+      const preview = csv.trim().slice(0, 120).toLowerCase();
+      if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
+      csv.split("\n").slice(1).forEach(r => {
+        let cols = parseCSV(r);
+        let block = cols[0], flat = cols[1], amount = cols[2], date = cols[4], status = cols[5];
+        if(!block || !flat) return;
+        const normalizedBlock = normalizeBlockName(block);
+        allBlocks.add(normalizedBlock);
+        if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
+        allFlats[normalizedBlock].add(flat);
+        if(!amount || status?.toUpperCase().trim() !== "DONE") return;
+        processRow(block, flat, amount, date, monthIndex);
       });
-
+    });
   });
-
   await Promise.all(fetchPromises);
   renderTable();
 }
-
-
-function parseCSV(line) {
-  return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-             ?.map(s => s.replace(/(^"|"$)/g, "")) || [];
-}
-
-function processRow(block, flat, amount, date, monthIndex) {
-
-  // Validate inputs
-  if (!block || block === 'TOTAL' || !flat || !amount) {
-    return;
-  }
-
-  // Create unique record identifier to prevent duplicates
-  const recordId = `${monthIndex}-${block}-${flat}`;
-
-  if (processedRecords.has(recordId)) {
-    return;
-  }
-  processedRecords.add(recordId);
-
-  // Parse date in MM/DD/YYYY format
-  let parts = String(date).trim().split("/");
-  if (parts.length !== 3) {
-    return;
-  }
-
-  let month = parseInt(parts[0]);
-  let day = parseInt(parts[1]);
-  let year = parseInt(parts[2]);
-
-  if (isNaN(day) || isNaN(month) || isNaN(year)) {
-    return;
-  }
-
-  if (monthIndex < 0 || monthIndex > 11) return;
-
-  let key = block + "-" + flat;
-  let flatNum = parseInt(flat);
-
-  if(!groupedData[key]) {
-    groupedData[key] = {
-      Block: block,
-      Flat: flatNum,
-      months: {},
-      total: 0
-    };
-  }
-
-  let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
-  let amountNum = Number(amount || 0);
-
-  groupedData[key].months[monthIndex] =
-    `<div style="font-weight:600;color:#2d3436;">₹${amountNum}</div><div style="font-size:0.8em;color:#636e72;margin-top:4px;">${formattedDate}</div>`;
-
-  groupedData[key].total += amountNum;
-  monthlyTotals[monthIndex] += amountNum;
-}
-
+function updateMonthHeaderTotals() { document.querySelectorAll("th[data-month-index]").forEach(th => { const i = Number(th.dataset.monthIndex); const t = monthlyTotals[i] || 0; const el = th.querySelector(".month-total"); if (el) el.textContent = `₹${t}`; }); }
+function updateBlockFilterOptions(blocks) { const blockFilter = document.getElementById("blockFilter"); const selected = blockFilter.value; blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(b => `<option value="${b}">${b}</option>`).join(""); if (selected && blocks.includes(selected)) blockFilter.value = selected; }
 function renderTable() {
   let tbody = document.querySelector("#table tbody");
-
-  // Create entries for all blocks and flats, even those without data
-  const sortedBlocks = Array.from(allBlocks).sort();
-
+  const sortedBlocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
   sortedBlocks.forEach(block => {
-    const flats = Array.from(allFlats[block] || [])
-      .map(f => ({
-        flat: parseInt(f),
-        display: f
-      }))
-      .sort((a, b) => a.flat - b.flat);
-
-    flats.forEach(flatObj => {
-      const key = block + "-" + flatObj.display;
-
-      // Create entry if it doesn't exist
-      if (!groupedData[key]) {
-        groupedData[key] = {
-          Block: block,
-          Flat: flatObj.flat,
-          months: {},
-          total: 0
-                };
-      }
-    });
+    const flats = Array.from(allFlats[block] || []).map(f => ({ flat: parseInt(f), display: f })).sort((a,b)=>a.flat-b.flat);
+    flats.forEach(flatObj => { const key = block + "-" + flatObj.display; if (!groupedData[key]) groupedData[key] = { Block: block, Flat: flatObj.flat, months: {}, total: 0 }; });
   });
-
-  // Sort data by block and flat number for consistent ordering
-  const sortedData = Object.values(groupedData).sort((a, b) => {
-    const blockCompare = a.Block.localeCompare(b.Block);
-    if (blockCompare !== 0) return blockCompare;
-    return a.Flat - b.Flat;
-  });
-
-  // Build HTML string in memory instead of appending repeatedly
-  let html = '';
-
+  const sortedData = Object.values(groupedData).sort((a,b)=>{ const c = a.Block.localeCompare(b.Block, undefined, {numeric:true}); return c !== 0 ? c : a.Flat - b.Flat; });
+  let html = "";
   sortedData.forEach(row => {
-    html += `<tr data-block="${row.Block}">
-      <td>${row.Block}</td>
-      <td>${row.Flat}</td>`;
-
-    months.forEach((m, i) => {
-      let val = row.months[i];
-      html += val ? `<td class="paid" style="padding:10px 6px;vertical-align:middle;">${val}</td>`
-                : `<td class="empty">-</td>`;
-    });
-
+    html += `<tr data-block="${row.Block}"><td>${row.Block}</td><td>${row.Flat}</td>`;
+    months.forEach((_,i)=>{ html += row.months[i] ? `<td class="paid">${row.months[i]}</td>` : `<td class="empty">-</td>`; });
     html += `<td><b>₹${row.total}</b></td></tr>`;
   });
-
-  // Add monthly totals row
-  html += `<tr class="total-row" data-is-total="true">
-    <td colspan="2">TOTAL</td>`;
-
-  monthlyTotals.forEach(t => {
-    html += `<td>₹${t}</td>`;
-  });
-
+  html += `<tr class="total-row" data-is-total="true"><td colspan="2">TOTAL</td>`;
+  monthlyTotals.forEach(t => { html += `<td>₹${t}</td>`; });
   html += `<td>-</td></tr>`;
-
-  updateMonthHeaderTotals();
-  updateBlockFilterOptions(sortedBlocks);
-
-  // Set all HTML at once
-  tbody.innerHTML = html;
-  applyFilters();
+  updateMonthHeaderTotals(); updateBlockFilterOptions(sortedBlocks); tbody.innerHTML = html; applyFilters();
 }
-
-function updateMonthHeaderTotals() {
-  document.querySelectorAll("th[data-month-index]").forEach(th => {
-    const monthIndex = Number(th.dataset.monthIndex);
-    const total = monthlyTotals[monthIndex] || 0;
-    const totalEl = th.querySelector(".month-total");
-    if (totalEl) totalEl.textContent = `₹${total}`;
-  });
-}
-
-function updateBlockFilterOptions(blocks) {
-  const blockFilter = document.getElementById("blockFilter");
-  const selectedValue = blockFilter.value;
-  let options = `<option value="">All Blocks</option>`;
-
-  blocks.forEach(block => {
-    options += `<option value="${block}">${block}</option>`;
-  });
-
-  blockFilter.innerHTML = options;
-
-  if (selectedValue && blocks.includes(selectedValue)) {
-    blockFilter.value = selectedValue;
-  }
-}
-
 function applyFilters() {
   const searchValue = document.getElementById("search").value.toLowerCase();
   const selectedBlock = document.getElementById("blockFilter").value;
-
   document.querySelectorAll("#table tbody tr").forEach(tr => {
-    if (tr.dataset.isTotal === "true") {
-      tr.style.display = "";
-      return;
-    }
-
-    const rowText = tr.innerText.toLowerCase();
-    const rowBlock = tr.dataset.block || "";
-    const searchMatch = rowText.includes(searchValue);
-    const blockMatch = !selectedBlock || rowBlock === selectedBlock;
-
-    tr.style.display = searchMatch && blockMatch ? "" : "none";
+    if (tr.dataset.isTotal === "true") { tr.style.display = ""; return; }
+    const rowText = tr.innerText.toLowerCase(); const rowBlock = tr.dataset.block || "";
+    tr.style.display = rowText.includes(searchValue) && (!selectedBlock || rowBlock === selectedBlock) ? "" : "none";
   });
 }
-
-// 🔍 SEARCH + BLOCK FILTER
+function downloadReport() { let table = document.getElementById("table"); let wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, "Society_Report.xlsx"); }
 document.getElementById("search").addEventListener("input", applyFilters);
 document.getElementById("blockFilter").addEventListener("change", applyFilters);
 document.getElementById("yearFilter").addEventListener("change", fetchAllMonthData);
 document.getElementById("loginForm").addEventListener("submit", handleLogin);
 document.getElementById("logoutBtn").addEventListener("click", logout);
-
 document.getElementById("yearFilter").value = DEFAULT_YEAR;
-
-if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") {
-  showDashboard();
-  fetchAllMonthData();
-} else {
-  showLogin();
-}
-
-function downloadReport() {
-  let table = document.getElementById("table");
-  let wb = XLSX.utils.table_to_book(table);
-  XLSX.writeFile(wb, "Society_Report.xlsx");
-}
+if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") { showDashboard(); fetchAllMonthData(); } else { showLogin(); }
 </script>
 </body>
 </html>
