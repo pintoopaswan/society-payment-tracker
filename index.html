@@ -32,6 +32,14 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
 .table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
+/* Fixed table layout so month columns stay uniform */
+table { table-layout: fixed; }
+th, td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); }
+th:first-child, td:first-child { width: 80px; }
+th:nth-child(2), td:nth-child(2) { width: 80px; }
+.month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:2px 6px; border-radius:6px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
 .month-head { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .month-total { font-size: 12px; color: #ffd87b; }
@@ -158,7 +166,7 @@ function handleLogin(event) {
 }
 function logout() { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; }
 function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
-function processRow(block, flat, amount, date, monthIndex) {
+function processRow(block, flat, amount, date, monthIndex, paidMonthsRaw) {
   if (!block || block === "TOTAL" || !flat || !amount) return;
   const normalizedBlock = normalizeBlockName(block);
   const recordId = `${monthIndex}-${normalizedBlock}-${flat}`;
@@ -172,7 +180,16 @@ function processRow(block, flat, amount, date, monthIndex) {
   if(!groupedData[key]) groupedData[key] = { Block: normalizedBlock, Flat: flatNum, months: {}, total: 0 };
   let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
   let amountNum = Number(amount || 0);
-  groupedData[key].months[monthIndex] = `<div style="font-weight:600;color:#2d3436;">₹${amountNum}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${formattedDate}</div>`;
+  let paidMonthsHtml = "";
+  if (paidMonthsRaw) {
+    const parts = String(paidMonthsRaw).split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean);
+    if (parts.length) {
+      const short = parts.map(p => (String(p).substring(0,3) || p).toUpperCase()).join(', ');
+      const full = parts.join(', ');
+      paidMonthsHtml = `<span class="paid-months-compact" title="${full}">${short}</span>`;
+    }
+  }
+  groupedData[key].months[monthIndex] = `<div class="month-cell-content"><div style="font-weight:600;color:#2d3436;">₹${amountNum}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${formattedDate}</div>${paidMonthsHtml}</div>`;
   groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
 }
 async function fetchAllMonthData() {
@@ -189,14 +206,14 @@ async function fetchAllMonthData() {
       if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
       csv.split("\n").slice(1).forEach(r => {
         let cols = parseCSV(r);
-        let block = cols[0], flat = cols[1], amount = cols[2], date = cols[4], status = cols[5];
+        let block = cols[0], flat = cols[1], amount = cols[2], paidMonths = cols[8], date = cols[4], status = cols[5];
         if(!block || !flat) return;
         const normalizedBlock = normalizeBlockName(block);
         allBlocks.add(normalizedBlock);
         if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
         allFlats[normalizedBlock].add(flat);
         if(!amount || status?.toUpperCase().trim() !== "DONE") return;
-        processRow(block, flat, amount, date, monthIndex);
+        processRow(block, flat, amount, date, monthIndex, paidMonths);
       });
     });
   });
@@ -216,7 +233,7 @@ function renderTable() {
   let html = "";
   sortedData.forEach(row => {
     html += `<tr data-block="${row.Block}"><td>${row.Block}</td><td>${row.Flat}</td>`;
-    months.forEach((_,i)=>{ html += row.months[i] ? `<td class="paid">${row.months[i]}</td>` : `<td class="empty">-</td>`; });
+    months.forEach((_,i)=>{ html += row.months[i] ? `<td class="paid month-cell">${row.months[i]}</td>` : `<td class="empty month-cell">-</td>`; });
     html += `<td><b>₹${row.total}</b></td></tr>`;
   });
   html += `<tr class="total-row" data-is-total="true"><td colspan="2">TOTAL</td>`;
