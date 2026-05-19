@@ -273,6 +273,20 @@ function findHeaderIndex(patterns) {
   const normalizedHeaders = headers.map(h => normalize(h));
   return patterns.reduce((found, pattern) => found >= 0 ? found : normalizedHeaders.findIndex(h => h.includes(pattern)), -1);
 }
+function findPersonHeaderIndex(primaryPatterns, fallbackPatterns = []) {
+  const excludedPatterns = ["vehicle", "car", "bike", "scooter", "number plate", "registration", "veh", "type", "parking"];
+  const normalizedHeaders = headers.map(h => normalize(h));
+  const matchPattern = (pattern) => normalizedHeaders.findIndex(header => header.includes(pattern) && !excludedPatterns.some(excluded => header.includes(excluded)));
+  for (const pattern of primaryPatterns) {
+    const index = matchPattern(pattern);
+    if (index >= 0) return index;
+  }
+  for (const pattern of fallbackPatterns) {
+    const index = matchPattern(pattern);
+    if (index >= 0) return index;
+  }
+  return -1;
+}
 function collectIndexes() {
   const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
   headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
@@ -281,22 +295,21 @@ function renderTable(data) {
   const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody"), cardList = document.getElementById("cardList");
   const blockIndex = findHeaderIndex(["block"]);
   const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
-  const ownerIndex = findHeaderIndex(["owner", "name", "resident"]);
-  const tenantIndex = findHeaderIndex(["tenant", "occupant"]);
-  const vehicleIndex = findHeaderIndex(["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"]);
+  const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
+  const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
   thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
   tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
   cardList.innerHTML = data.map(row => {
     const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
     const flatValue = row[flatIndex] || "";
-    const ownerValue = row[ownerIndex] || "";
-    const tenantValue = row[tenantIndex] || "";
-    const vehicleValue = vehicleIndex >= 0 ? row[vehicleIndex] || "" : "";
-    const cardTitle = vehicleValue || `${blockValue} / Flat ${flatValue}`;
-    const residentName = tenantValue || ownerValue || "Resident";
-    const cardSubtitle = `${residentName}, ${blockValue}${flatValue ? `-${flatValue}` : ""}`;
+    const ownerValue = ownerIndex >= 0 ? row[ownerIndex] || "" : "";
+    const tenantValue = tenantIndex >= 0 ? row[tenantIndex] || "" : "";
+    const cardTitle = `${blockValue} / Flat ${flatValue}`;
+    const ownerLine = ownerValue ? `<div>Owner: ${ownerValue}</div>` : "";
+    const tenantLine = tenantValue ? `<div>Tenant: ${tenantValue}</div>` : "";
+    const cardPeople = ownerLine || tenantLine ? `${ownerLine}${tenantLine}` : `<div>Resident details</div>`;
     const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${row[index] || ""}</span></div>`).join("");
-    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people"><div>${cardSubtitle}</div></div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
   }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
 }

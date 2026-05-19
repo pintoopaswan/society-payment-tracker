@@ -75,7 +75,7 @@ th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); min-widt
 th:first-child, td:first-child { width: 80px; min-width: 80px; }
 th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; }
 .month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
-.paid-months-compact { font-size:0.72em; color:#246c41; text-transform:uppercase; letter-spacing:0.6px; background:#eaf7ef; padding:3px 8px; border-radius:999px; border:1px solid #b9dcc8; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:3px 8px; border-radius:999px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
 .month-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; white-space: normal; }
 .month-total { font-size: 12px; color: #ffd87b; }
@@ -231,6 +231,7 @@ input:focus, select:focus {
   .mobile-card { padding: 24px 28px; }
   .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .month-item { font-size: 0.9rem; }
+  .card-details .paid-months-compact { color:#246c41; background:#eaf7ef; border-color:#b9dcc8; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th[data-month-index] { min-width: 90px; }
   .month-head { gap: 6px; }
