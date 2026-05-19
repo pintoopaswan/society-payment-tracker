@@ -36,24 +36,25 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
   .controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: var(--card); padding: 18px; border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06); margin-bottom: 12px; }
   .search-bar { display: flex; gap: 10px; width: 100%; }
   .search-bar input { flex: 1; min-width: 0; }
-  .search-btn { border: none; background: #1f5ea8; color: #fff; border-radius: 12px; padding: 0 18px; font-weight: 700; cursor: pointer; transition: background 0.2s ease; }
-  .search-btn:hover { background: #164e82; }
   select, input { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; background: #fff; color: #1f314a; }
 .meta { margin: 10px 0; color: #2a4a67; font-size: 14px; font-weight: 600; }
 .error { color: #b00020; margin-bottom: 8px; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
 .card-list { display: none; margin-top: 16px; }
-  .mobile-card { background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%); border-radius: 18px; border: 1px solid rgba(31, 94, 168, 0.14); padding: 14px; margin-bottom: 16px; box-shadow: 0 16px 32px rgba(31, 94, 168, 0.08); }
-  .mobile-card.expanded { border-color: rgba(31, 94, 168, 0.28); box-shadow: 0 20px 40px rgba(31, 94, 168, 0.16); }
-  .mobile-card-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; }
-  .mobile-card-header .title { font-weight: 700; color: #17314f; font-size: 1rem; }
-  .card-people { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
-  .card-people .owner, .card-people .tenant { font-size: 0.95rem; line-height: 1.3; }
-  .card-people .owner { color: #1f3b5d; font-weight: 700; }
-  .card-people .tenant { color: #4d688e; }
-  .toggle-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(31, 94, 168, 0.18); display: grid; place-items: center; color: #1f5ea8; font-weight: 700; background: #e9f0ff; transition: transform 0.2s ease; }
-  .mobile-card.expanded .toggle-icon { transform: rotate(180deg); }
-  .card-details { display: none; margin-top: 16px; }
+  .mobile-card { background: #fff; border-radius: 24px; border: 0; padding: 24px 28px; margin-bottom: 18px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
+  .mobile-card.expanded { box-shadow: 0 22px 44px rgba(27, 37, 54, 0.1); }
+  .mobile-card-header { display: flex; justify-content: space-between; align-items: center; gap: 18px; cursor: pointer; min-height: 72px; }
+  .mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1.1rem; line-height: 1.2; letter-spacing: 0; }
+  .mobile-card-copy { min-width: 0; }
+  .card-people { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; color: #646464; font-size: 1rem; font-weight: 400; line-height: 1.35; }
+  .card-people .owner, .card-people .tenant { font-size: inherit; line-height: inherit; }
+  .card-people .owner { color: inherit; font-weight: 400; }
+  .card-people .tenant { color: inherit; }
+  .toggle-icon { width: 30px; height: 36px; border-radius: 8px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
+  .toggle-icon::before { content: ""; position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
+  .toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 7px; width: 15px; height: 8px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
+  .mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
+  .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
   .mobile-card.expanded .card-details { display: block; }
   .detail-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }
   .detail-row:last-child { border-bottom: none; }
@@ -66,7 +67,7 @@ th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; tex
 tr:nth-child(even) { background: #f8fbff; }
 tr:hover { background: #eaf3ff; }
 @media (max-width: 768px) {
-  body { padding: 0; background: #fff; }
+  body { padding: 0; background: #f5f6f8; }
   .container { padding: 0; }
   .app-header { display: none; }
   .header-title { text-align: left; align-items: flex-start; }
@@ -165,10 +166,28 @@ tr:hover { background: #eaf3ff; }
     background: #5fb783;
   }
   #logoutBtn { width: 100%; }
-  .controls { grid-template-columns: 1fr; margin: 0 12px 12px; }
+  .controls { grid-template-columns: 1fr; gap: 12px; margin: 0 18px 18px; padding: 0; background: transparent; border-radius: 0; box-shadow: none; }
+  .search-bar { display: block; }
+  .search-bar input, .controls select {
+    width: 100%;
+    max-width: none;
+    min-height: 52px;
+    border: 2px solid #d6e0ec;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f314a;
+    box-shadow: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .search-bar input:focus, .controls select:focus {
+    border-color: #1f5ea8;
+    box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1);
+    outline: none;
+  }
   select, input { width: 100%; }
   .table-wrap { display: none; }
-  .card-list { display: block; padding: 0 12px 14px; }
+  .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
   .meta, .error { margin-left: 12px; margin-right: 12px; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th { padding: 12px 8px; }
@@ -180,7 +199,11 @@ tr:hover { background: #eaf3ff; }
   .profile-menu { right: 28px; }
   .main-menu { gap: 0; }
   .main-menu a { font-size: 1.18rem; padding: 18px 10px 14px; }
-  .controls { padding: 12px; }
+  .controls { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .card-list { padding-left: 16px; padding-right: 16px; }
+  .mobile-card { border-radius: 22px; padding: 22px 24px; }
+  .mobile-card-header .title { font-size: 1.08rem; }
+  .card-people { font-size: 1rem; }
 }
 </style>
 </head>
@@ -213,7 +236,6 @@ tr:hover { background: #eaf3ff; }
   <div class="controls">
     <div class="search-bar">
       <input id="searchInput" type="text" placeholder="Search owner, tenant, mobile or vehicle" />
-      <button class="search-btn" type="button">Search</button>
     </div>
     <select id="searchType">
       <option value="all">Search: All</option>
@@ -261,6 +283,7 @@ function renderTable(data) {
   const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
   const ownerIndex = findHeaderIndex(["owner", "name", "resident"]);
   const tenantIndex = findHeaderIndex(["tenant", "occupant"]);
+  const vehicleIndex = findHeaderIndex(["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"]);
   thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
   tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
   cardList.innerHTML = data.map(row => {
@@ -268,10 +291,12 @@ function renderTable(data) {
     const flatValue = row[flatIndex] || "";
     const ownerValue = row[ownerIndex] || "";
     const tenantValue = row[tenantIndex] || "";
-    const ownerLine = ownerValue ? `<div class="owner">Owner: ${ownerValue}</div>` : "";
-    const tenantLine = tenantValue ? `<div class="tenant">Tenant: ${tenantValue}</div>` : "";
+    const vehicleValue = vehicleIndex >= 0 ? row[vehicleIndex] || "" : "";
+    const cardTitle = vehicleValue || `${blockValue} / Flat ${flatValue}`;
+    const residentName = tenantValue || ownerValue || "Resident";
+    const cardSubtitle = `${residentName}, ${blockValue}${flatValue ? `-${flatValue}` : ""}`;
     const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${row[index] || ""}</span></div>`).join("");
-    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div><div class="title">${blockValue} / Flat ${flatValue}</div><div class="card-people">${ownerLine}${tenantLine}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people"><div>${cardSubtitle}</div></div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
   }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
 }

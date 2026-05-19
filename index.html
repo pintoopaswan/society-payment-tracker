@@ -41,12 +41,16 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
 .table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
 .card-list { display: none; margin-top: 12px; }
-.mobile-card { background: #fff; border-radius: 14px; border: 1px solid #d9e2ee; padding: 14px; margin-bottom: 14px; box-shadow: 0 10px 24px rgba(20, 40, 75, 0.06); }
-.mobile-card-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 0; flex-wrap: wrap; cursor: pointer; }
-.mobile-card-header .title { font-weight: 700; color: #1d3249; }
-.mobile-card-header .subtitle { color: #3a4d6d; font-size: 0.95rem; }
-.toggle-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #d7e9ff; display: grid; place-items: center; color: #1f5ea8; font-weight: 700; background: #eef6ff; }
-.card-details { display: none; margin-top: 14px; }
+.mobile-card { background: #fff; border-radius: 24px; border: 0; padding: 24px 28px; margin-bottom: 18px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
+.mobile-card-header { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 0; cursor: pointer; min-height: 72px; }
+.mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1.1rem; line-height: 1.2; letter-spacing: 0; }
+.mobile-card-header .subtitle { color: #646464; font-size: 1rem; font-weight: 400; line-height: 1.35; margin-top: 8px; }
+.mobile-card-copy { min-width: 0; }
+.toggle-icon { width: 30px; height: 36px; border-radius: 8px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
+.toggle-icon::before { content: ""; position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
+.toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 7px; width: 15px; height: 8px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
+.mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
+.card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
 .mobile-card.expanded .card-details { display: block; }
 .month-grid { display: grid; gap: 10px; }
 .month-item { background: #f8fbff; border-radius: 12px; border: 1px solid #dce8f8; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; }
@@ -104,7 +108,7 @@ input:focus, select:focus {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 @media (max-width: 768px) {
-  body { padding: 0; background: #fff; }
+  body { padding: 0; background: #f5f6f8; }
   .container { padding: 0; }
   .app-header { display: none; }
   .header-title { text-align: left; }
@@ -201,12 +205,29 @@ input:focus, select:focus {
     background: #5fb783;
   }
   #logoutBtn { width: 100%; }
-  .top-bar { flex-direction: column; align-items: stretch; margin: 0 12px 18px; }
-  .search-controls { flex-direction: column; align-items: stretch; }
+  .top-bar { flex-direction: column; align-items: stretch; margin: 0 18px 22px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
+  .search-controls { flex-direction: column; align-items: stretch; gap: 12px; }
+  .top-bar input, .top-bar select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 52px;
+    border: 2px solid #d6e0ec;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f314a;
+    box-shadow: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .top-bar input:focus, .top-bar select:focus {
+    border-color: #1f5ea8;
+    box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1);
+  }
   input, select { width: 100%; }
   .table-container { display: none; }
-  .card-list { display: block; padding: 0 12px 14px; }
-  .mobile-card { padding: 16px; }
+  .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
+  .mobile-card { padding: 24px 28px; }
   .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .month-item { font-size: 0.9rem; }
   th, td { white-space: normal; font-size: 0.95rem; }
@@ -220,7 +241,11 @@ input:focus, select:focus {
   .profile-menu { right: 28px; }
   .main-menu { gap: 0; }
   .main-menu a { font-size: 1.18rem; padding: 18px 10px 14px; }
-  .top-bar { padding: 12px; }
+  .top-bar { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .card-list { padding-left: 16px; padding-right: 16px; }
+  .mobile-card { border-radius: 22px; padding: 22px 24px; }
+  .mobile-card-header .title { font-size: 1.08rem; }
+  .mobile-card-header .subtitle { font-size: 1rem; }
   .month-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -421,7 +446,7 @@ function renderTable() {
     });
     html += `<td><b>₹${row.total}</b></td></tr>`;
 
-    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Total received: ₹${row.total}</div></div><span class="toggle-icon">+</span></div><div class="card-details"><div class="year-list">`;
+    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Payment total ₹${row.total}</div></div><span class="toggle-icon">+</span></div><div class="card-details"><div class="year-list">`;
     const years = Object.keys(row.years || {}).sort((a,b)=>b-a);
     years.forEach(year => {
       const yearData = row.years[year] || { total: 0, months: {} };
