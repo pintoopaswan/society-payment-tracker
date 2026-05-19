@@ -31,12 +31,35 @@ select, input { border: 3px solid var(--line); border-radius: 8px; padding: 10px
 .meta { margin: 10px 0; color: #2a4a67; font-size: 14px; font-weight: 600; }
 .error { color: #b00020; margin-bottom: 8px; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; }
 th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
 th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; text-transform: uppercase; }
 tr:nth-child(even) { background: #f8fbff; }
 tr:hover { background: #eaf3ff; }
-@media (max-width: 768px) { .nav-shell { flex-direction: column; align-items: stretch; } .controls { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  .container { padding: 0 4px; }
+  .app-header { padding: 14px 16px; }
+  .home-link { position: static; display: inline-block; margin-bottom: 10px; }
+  .header-title { text-align: left; }
+  .nav-shell { flex-direction: column; align-items: stretch; }
+  .main-menu { width: 100%; justify-content: flex-start; }
+  .main-menu a { flex: 1 1 auto; text-align: center; }
+  #logoutBtn { width: 100%; }
+  .controls { grid-template-columns: 1fr; }
+  select, input { width: 100%; }
+  .table-wrap { max-height: none; }
+  table { min-width: auto; }
+  th, td { white-space: normal; font-size: 0.95rem; }
+  th { padding: 12px 8px; }
+}
+@media (max-width: 560px) {
+  .app-header { border-radius: 10px; }
+  .nav-shell { padding: 10px 12px; }
+  .main-menu { gap: 6px; }
+  .main-menu a { font-size: 0.88rem; padding: 8px 10px; }
+  .controls { padding: 12px; }
+}
 </style>
 </head>
 <body>
