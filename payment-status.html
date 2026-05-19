@@ -18,15 +18,21 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
 .app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
 .app-header p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
-.home-link { position: absolute; left: 16px; top: 16px; text-decoration: none; color: #0066cc; font-size: 1.3rem; }
 .header-title { text-align: center; }
 .nav-shell { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
 .main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
 .main-menu a { text-decoration: none; color: var(--brand-dark); border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
 .main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
-#logoutBtn { border: none; background: linear-gradient(135deg, #e34a4a 0%, #b92e2e 100%); color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+#logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
+.profile-menu { position: relative; }
+.profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+.profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
+.profile-dropdown.visible { display: block; }
+.profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
+.profile-dropdown button:hover { background: #eef4fb; }
 .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); }
-select, input { padding: 14px 18px; width: 360px; border: 3px solid #667eea; border-radius: 8px; font-size: 15px; outline: none; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); }
+select, input { padding: 14px 18px; width: auto; max-width: 220px; border: 3px solid #667eea; border-radius: 8px; font-size: 15px; outline: none; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); }
+.top-bar input, .top-bar select { width: auto; max-width: 220px; }
 .table-wrap { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
 table { width: 100%; border-collapse: collapse; min-width: 850px; }
 th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
@@ -44,7 +50,6 @@ td:nth-child(2) { left: 80px; }
   body { padding: 12px; }
   .container { padding: 0 4px; }
   .app-header { padding: 14px 16px; }
-  .home-link { position: static; display: inline-block; margin-bottom: 10px; }
   .header-title { text-align: left; }
   .nav-shell { flex-direction: column; align-items: stretch; }
   .main-menu { width: 100%; justify-content: flex-start; }
@@ -68,7 +73,6 @@ td:nth-child(2) { left: 80px; }
 <body>
 <div class="container">
   <div class="app-header">
-    <a class="home-link" href="index.html" title="Home">🏠</a>
     <div class="header-title">
       <h1>MIG Society, Sector-29</h1>
       <p>Guard Payment Dashboard</p>
@@ -81,7 +85,12 @@ td:nth-child(2) { left: 80px; }
       <li><a class="active" href="payment-status.html">📊 Payment Status</a></li>
       <li><a href="owner-tenant.html">👥 Resident Details</a></li>
     </ul>
-    <button id="logoutBtn" type="button">Logout</button>
+    <div class="profile-menu">
+      <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <button id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
   </div>
 
   <div class="top-bar">
@@ -118,6 +127,21 @@ td:nth-child(2) { left: 80px; }
 <script>
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+const profileToggle = document.getElementById("profileToggle");
+const profileDropdown = document.getElementById("profileDropdown");
+if (profileToggle && profileDropdown) {
+  profileToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const visible = profileDropdown.classList.toggle("visible");
+    profileToggle.setAttribute("aria-expanded", visible);
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".profile-menu")) {
+      profileDropdown.classList.remove("visible");
+      profileToggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+}
 document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
 
 const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };

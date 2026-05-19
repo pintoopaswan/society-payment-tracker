@@ -15,21 +15,48 @@
 }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--text); min-height: 100vh; padding: 20px; }
 .container { max-width: 1300px; margin: 0 auto; }
-.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
-.home-link { position: absolute; left: 16px; top: 16px; text-decoration: none; color: #fff; font-size: 1.3rem; }
-.header-title { text-align: center; }
+.app-header { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; display: flex; flex-direction: column; align-items: center; }
+.header-title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .header-title h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
 .header-title p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
-.home-link { color: #0066cc; }
-.nav-shell { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.main-menu a { text-decoration: none; color: #183f70; border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
-.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
-#logoutBtn { border: none; background: linear-gradient(135deg, #e34a4a 0%, #b92e2e 100%); color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
-.controls { display: grid; grid-template-columns: 200px 1fr; gap: 12px; background: var(--card); padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); margin-bottom: 12px; }
-select, input { border: 3px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
+  .main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
+  .main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
+  .main-menu a.active { background: #1f5ea8; border-color: #1f5ea8; color: #fff; }
+  #logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
+  .profile-menu { position: relative; }
+  .profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+  .profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
+  .profile-dropdown.visible { display: block; }
+  .profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
+  .profile-dropdown button:hover { background: #eef4fb; }
+  .controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: var(--card); padding: 18px; border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06); margin-bottom: 12px; }
+  .search-bar { display: flex; gap: 10px; width: 100%; }
+  .search-bar input { flex: 1; min-width: 0; }
+  .search-btn { border: none; background: #1f5ea8; color: #fff; border-radius: 12px; padding: 0 18px; font-weight: 700; cursor: pointer; transition: background 0.2s ease; }
+  .search-btn:hover { background: #164e82; }
+  select, input { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; background: #fff; color: #1f314a; }
 .meta { margin: 10px 0; color: #2a4a67; font-size: 14px; font-weight: 600; }
 .error { color: #b00020; margin-bottom: 8px; }
+.table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
+.card-list { display: none; margin-top: 16px; }
+  .mobile-card { background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%); border-radius: 18px; border: 1px solid rgba(31, 94, 168, 0.14); padding: 14px; margin-bottom: 16px; box-shadow: 0 16px 32px rgba(31, 94, 168, 0.08); }
+  .mobile-card.expanded { border-color: rgba(31, 94, 168, 0.28); box-shadow: 0 20px 40px rgba(31, 94, 168, 0.16); }
+  .mobile-card-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; }
+  .mobile-card-header .title { font-weight: 700; color: #17314f; font-size: 1rem; }
+  .card-people { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .card-people .owner, .card-people .tenant { font-size: 0.95rem; line-height: 1.3; }
+  .card-people .owner { color: #1f3b5d; font-weight: 700; }
+  .card-people .tenant { color: #4d688e; }
+  .toggle-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(31, 94, 168, 0.18); display: grid; place-items: center; color: #1f5ea8; font-weight: 700; background: #e9f0ff; transition: transform 0.2s ease; }
+  .mobile-card.expanded .toggle-icon { transform: rotate(180deg); }
+  .card-details { display: none; margin-top: 16px; }
+  .mobile-card.expanded .card-details { display: block; }
+  .detail-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }
+  .detail-row:last-child { border-bottom: none; }
+.detail-key { font-size: 0.92rem; color: #556681; font-weight: 700; }
+.detail-value { font-size: 0.92rem; color: #1f2a3d; text-align: right; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
 table { width: 100%; border-collapse: collapse; min-width: 680px; }
 th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
@@ -40,16 +67,15 @@ tr:hover { background: #eaf3ff; }
   body { padding: 12px; }
   .container { padding: 0 4px; }
   .app-header { padding: 14px 16px; }
-  .home-link { position: static; display: inline-block; margin-bottom: 10px; }
-  .header-title { text-align: left; }
+  .header-title { text-align: left; align-items: flex-start; }
   .nav-shell { flex-direction: column; align-items: stretch; }
   .main-menu { width: 100%; justify-content: flex-start; }
   .main-menu a { flex: 1 1 auto; text-align: center; }
   #logoutBtn { width: 100%; }
   .controls { grid-template-columns: 1fr; }
   select, input { width: 100%; }
-  .table-wrap { max-height: none; }
-  table { min-width: auto; }
+  .table-wrap { display: none; }
+  .card-list { display: block; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th { padding: 12px 8px; }
 }
@@ -65,30 +91,36 @@ tr:hover { background: #eaf3ff; }
 <body>
 <div class="container">
   <div class="app-header">
-    <a class="home-link" href="index.html" title="Home">🏠</a>
     <div class="header-title">
       <h1>MIG Society, Sector-29</h1>
-      <p>Guard Payment Dashboard</p>
+      <p>Resident Directory</p>
     </div>
   </div>
 
   <div class="nav-shell">
     <ul class="main-menu">
       <li><a href="index.html">💳 Payment Details</a></li>
-      <li><a href="payment-status.html">📊 Payment Status</a></li>
       <li><a class="active" href="owner-tenant.html">👥 Resident Details</a></li>
     </ul>
-    <button id="logoutBtn" type="button">Logout</button>
+    <div class="profile-menu">
+      <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <button id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
   </div>
 
   <div class="controls">
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Search owner, tenant, mobile or vehicle" />
+      <button class="search-btn" type="button">Search</button>
+    </div>
     <select id="searchType">
       <option value="all">Search: All</option>
-      <option value="name">Search: Name</option>
-      <option value="mobile">Search: Mobile</option>
-      <option value="vehicle">Search: Vehicle</option>
+      <option value="name">Owner / Tenant</option>
+      <option value="mobile">Mobile</option>
+      <option value="vehicle">Vehicle</option>
     </select>
-    <input id="searchInput" type="text" placeholder="Type name, mobile number, or vehicle number..." />
   </div>
 
   <div class="meta" id="metaInfo">Loading data...</div>
@@ -100,6 +132,7 @@ tr:hover { background: #eaf3ff; }
       <tbody id="tableBody"></tbody>
     </table>
   </div>
+  <div class="card-list" id="cardList"></div>
 </div>
 
 <script>
@@ -114,15 +147,32 @@ const searchIndexes = { name: [], mobile: [], vehicle: [] };
 function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
 function normalize(value) { return String(value || "").trim().toLowerCase(); }
 function normalizeBlockDisplay(value) { const digits = String(value || "").match(/\d+/); return digits ? `Block-${Number(digits[0])}` : String(value || ""); }
+function findHeaderIndex(patterns) {
+  const normalizedHeaders = headers.map(h => normalize(h));
+  return patterns.reduce((found, pattern) => found >= 0 ? found : normalizedHeaders.findIndex(h => h.includes(pattern)), -1);
+}
 function collectIndexes() {
   const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
   headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
 }
 function renderTable(data) {
-  const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody");
-  const blockIndex = headers.findIndex(h => normalize(h).includes("block"));
+  const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody"), cardList = document.getElementById("cardList");
+  const blockIndex = findHeaderIndex(["block"]);
+  const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
+  const ownerIndex = findHeaderIndex(["owner", "name", "resident"]);
+  const tenantIndex = findHeaderIndex(["tenant", "occupant"]);
   thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
   tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
+  cardList.innerHTML = data.map(row => {
+    const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
+    const flatValue = row[flatIndex] || "";
+    const ownerValue = row[ownerIndex] || "";
+    const tenantValue = row[tenantIndex] || "";
+    const ownerLine = ownerValue ? `<div class="owner">Owner: ${ownerValue}</div>` : "";
+    const tenantLine = tenantValue ? `<div class="tenant">Tenant: ${tenantValue}</div>` : "";
+    const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${row[index] || ""}</span></div>`).join("");
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div><div class="title">${blockValue} / Flat ${flatValue}</div><div class="card-people">${ownerLine}${tenantLine}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+  }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
 }
 function matchesByType(row, query, type) {
@@ -151,6 +201,30 @@ async function loadDirectoryData() {
 }
 document.getElementById("searchInput").addEventListener("input", applySearch);
 document.getElementById("searchType").addEventListener("change", applySearch);
+const profileToggle = document.getElementById("profileToggle");
+const profileDropdown = document.getElementById("profileDropdown");
+if (profileToggle && profileDropdown) {
+  profileToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const visible = profileDropdown.classList.toggle("visible");
+    profileToggle.setAttribute("aria-expanded", visible);
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".profile-menu")) {
+      profileDropdown.classList.remove("visible");
+      profileToggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+document.getElementById("cardList").addEventListener("click", (event) => {
+  const header = event.target.closest(".mobile-card-header");
+  if (!header) return;
+  const card = header.closest(".mobile-card");
+  if (!card) return;
+  card.classList.toggle("expanded");
+  const icon = card.querySelector(".toggle-icon");
+  if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
+});
 loadDirectoryData();
 </script>
 </body>
