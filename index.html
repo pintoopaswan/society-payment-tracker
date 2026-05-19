@@ -88,10 +88,23 @@ td:nth-child(2) { left: 80px; }
 .empty { background: var(--bad); color: #721c24; font-weight: 600; }
 .total-row { background: #ffe4b5; font-weight: 700; }
 .hidden { display: none; }
-#loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1); }
-#loginForm { display: grid; gap: 12px; }
+#loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 24px; padding: 28px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
+#loginScreen h3 { color: #202124; font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+#loginScreen p { color: #646464 !important; font-size: 1rem; line-height: 1.4; }
+#loginForm { display: grid; gap: 14px; }
 #loginForm input { width: 100%; }
 #loginError { color: #b00020; font-size: 0.92rem; min-height: 18px; }
+#loginForm button { min-height: 52px; border: none !important; border-radius: 14px !important; background: #1f5ea8 !important; color: #fff !important; font-weight: 700 !important; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+#loginForm input {
+  max-width: none;
+  min-height: 52px;
+  border: 2px solid #d6e0ec;
+  border-radius: 14px;
+  background: #fff;
+  color: #1f314a;
+  box-shadow: none;
+  font-size: 0.98rem;
+}
 input, select {
   padding: 14px 18px;
   width: 100%;
@@ -110,6 +123,7 @@ input:focus, select:focus {
 }
 @media (max-width: 768px) {
   body { padding: 0; background: #f5f6f8; }
+  #loginScreen { margin: 76px 18px 0; padding: 24px 28px; }
   .container { padding: 0; }
   .app-header { display: none; }
   .header-title { text-align: left; }

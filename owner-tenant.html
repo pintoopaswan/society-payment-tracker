@@ -33,7 +33,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
   .profile-dropdown.visible { display: block; }
   .profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
   .profile-dropdown button:hover { background: #eef4fb; }
-  .controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: var(--card); padding: 18px; border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06); margin-bottom: 12px; }
+  .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: var(--card); padding: 18px; border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06); margin-bottom: 12px; }
   .search-bar { display: flex; gap: 10px; width: 100%; }
   .search-bar input { flex: 1; min-width: 0; }
   select, input { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; background: #fff; color: #1f314a; }
@@ -60,6 +60,9 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
   .detail-row:last-child { margin-bottom: 0; }
 .detail-key { font-size: 0.82rem; color: #686f78; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
 .detail-value { font-size: 0.95rem; color: #202124; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+.call-link { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; color: inherit; text-decoration: none; font-weight: inherit; }
+.call-link:hover { text-decoration: none; }
+.call-icon { width: 28px; height: 28px; border-radius: 50%; background: #cfcfcf; color: #fff; display: inline-grid; place-items: center; font-size: 0.9rem; line-height: 1; font-weight: 700; flex: 0 0 auto; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
 table { width: 100%; border-collapse: collapse; min-width: 680px; }
 th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
@@ -237,6 +240,7 @@ tr:hover { background: #eaf3ff; }
     <div class="search-bar">
       <input id="searchInput" type="text" placeholder="Search owner, tenant, mobile or vehicle" />
     </div>
+    <select id="blockFilter"><option value="">All Blocks</option></select>
     <select id="searchType">
       <option value="all">Search: All</option>
       <option value="name">Owner / Tenant</option>
@@ -269,6 +273,12 @@ const searchIndexes = { name: [], mobile: [], vehicle: [] };
 function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
 function normalize(value) { return String(value || "").trim().toLowerCase(); }
 function normalizeBlockDisplay(value) { const digits = String(value || "").match(/\d+/); return digits ? `Block-${Number(digits[0])}` : String(value || ""); }
+function normalizePhone(value) { return String(value || "").replace(/[^\d+]/g, ""); }
+function renderPhoneLink(value) {
+  const phone = normalizePhone(value);
+  if (!phone) return value || "";
+  return `<a class="call-link" href="tel:${phone}"><span class="call-icon" aria-label="Call">☎</span><span>${value}</span></a>`;
+}
 function findHeaderIndex(patterns) {
   const normalizedHeaders = headers.map(h => normalize(h));
   return patterns.reduce((found, pattern) => found >= 0 ? found : normalizedHeaders.findIndex(h => h.includes(pattern)), -1);
@@ -287,9 +297,21 @@ function findPersonHeaderIndex(primaryPatterns, fallbackPatterns = []) {
   }
   return -1;
 }
+function isPhoneHeader(header) {
+  const h = normalize(header);
+  return ["mobile", "phone", "contact", "whatsapp"].some(pattern => h.includes(pattern));
+}
 function collectIndexes() {
   const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
   headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
+}
+function updateBlockFilterOptions() {
+  const blockFilter = document.getElementById("blockFilter");
+  const blockIndex = findHeaderIndex(["block"]);
+  const selected = blockFilter.value;
+  const blocks = Array.from(new Set(rows.map(row => normalizeBlockDisplay(row[blockIndex] || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(block => `<option value="${block}">${block}</option>`).join("");
+  if (selected && blocks.includes(selected)) blockFilter.value = selected;
 }
 function renderTable(data) {
   const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody"), cardList = document.getElementById("cardList");
@@ -308,7 +330,7 @@ function renderTable(data) {
     const ownerLine = ownerValue ? `<div>Owner: ${ownerValue}</div>` : "";
     const tenantLine = tenantValue ? `<div>Tenant: ${tenantValue}</div>` : "";
     const cardPeople = ownerLine || tenantLine ? `${ownerLine}${tenantLine}` : `<div>Resident details</div>`;
-    const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${row[index] || ""}</span></div>`).join("");
+    const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${isPhoneHeader(header) ? renderPhoneLink(row[index]) : (row[index] || "")}</span></div>`).join("");
     return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
   }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
@@ -321,8 +343,12 @@ function matchesByType(row, query, type) {
   return indexes.some(i => normalize(row[i]).includes(query));
 }
 function applySearch() {
-  const query = normalize(document.getElementById("searchInput").value), type = document.getElementById("searchType").value;
-  filteredRows = rows.filter(row => matchesByType(row, query, type));
+  const query = normalize(document.getElementById("searchInput").value), type = document.getElementById("searchType").value, selectedBlock = document.getElementById("blockFilter").value;
+  const blockIndex = findHeaderIndex(["block"]);
+  filteredRows = rows.filter(row => {
+    const rowBlock = normalizeBlockDisplay(row[blockIndex] || "");
+    return (!selectedBlock || rowBlock === selectedBlock) && matchesByType(row, query, type);
+  });
   renderTable(filteredRows);
 }
 async function loadDirectoryData() {
@@ -334,11 +360,13 @@ async function loadDirectoryData() {
     const lines = csv.split("\n").filter(Boolean);
     headers = parseCSV(lines[0]); rows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
     searchIndexes.name = []; searchIndexes.mobile = []; searchIndexes.vehicle = []; collectIndexes();
+    updateBlockFilterOptions();
     filteredRows = rows; renderTable(filteredRows);
   } catch (error) { errorText.textContent = error.message; document.getElementById("metaInfo").textContent = "Failed to load data"; }
 }
 document.getElementById("searchInput").addEventListener("input", applySearch);
 document.getElementById("searchType").addEventListener("change", applySearch);
+document.getElementById("blockFilter").addEventListener("change", applySearch);
 const profileToggle = document.getElementById("profileToggle");
 const profileDropdown = document.getElementById("profileDropdown");
 if (profileToggle && profileDropdown) {
@@ -355,6 +383,7 @@ if (profileToggle && profileDropdown) {
   });
 }
 document.getElementById("cardList").addEventListener("click", (event) => {
+  if (event.target.closest(".call-link")) return;
   const header = event.target.closest(".mobile-card-header");
   if (!header) return;
   const card = header.closest(".mobile-card");
