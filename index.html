@@ -46,11 +46,13 @@ input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; bor
 .toggle-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #d7e9ff; display: grid; place-items: center; color: #1f5ea8; font-weight: 700; background: #eef6ff; }
 .card-details { display: none; margin-top: 14px; }
 .mobile-card.expanded .card-details { display: block; }
-.month-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.month-item { background: #f8fbff; border-radius: 12px; border: 1px solid #dce8f8; padding: 10px; display: grid; gap: 6px; }
-.month-name { font-weight: 700; color: #17437c; font-size: 0.9rem; }
-.month-amount { font-size: 0.95rem; color: #1d3249; font-weight: 700; }
-.month-date { font-size: 0.82rem; color: #57687c; }
+.month-grid { display: grid; gap: 10px; }
+.month-item { background: #f8fbff; border-radius: 12px; border: 1px solid #dce8f8; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; }
+.month-name { font-weight: 700; color: #17437c; font-size: 0.95rem; }
+.month-amount { font-size: 0.95rem; color: #1d3249; font-weight: 700; text-align: right; }
+.month-date { font-size: 0.85rem; color: #57687c; text-align: right; }
+.paid-months-row { grid-column: 1 / -1; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.month-summary { margin-top: 14px; padding: 14px 16px; background: #eef6ff; border-radius: 14px; border: 1px solid #d7e9ff; color: #17314f; font-weight: 700; }
 .total-chip { background: #ffe4b5; color: #4a2a03; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
 /* Fixed table layout so month columns stay uniform */
@@ -310,9 +312,9 @@ function renderTable() {
     months.forEach((month, i) => {
       const monthLabel = month.substring(0,3);
       const monthValue = row.months[i];
-      cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div><div class="month-date">${monthValue?.date || ''}</div></div>`;
+      cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div><div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
     });
-    cardHtml += `</div></div></div>`;
+    cardHtml += `</div><div class="month-summary">Paid amount: ₹${row.total}</div></div></div>`;
   });
   html += `<tr class="total-row" data-is-total="true"><td colspan="2">TOTAL</td>`;
   monthlyTotals.forEach(t => { html += `<td>₹${t}</td>`; });
