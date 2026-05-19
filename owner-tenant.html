@@ -56,10 +56,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
   .mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
   .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
   .mobile-card.expanded .card-details { display: block; }
-  .detail-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }
-  .detail-row:last-child { border-bottom: none; }
-.detail-key { font-size: 0.92rem; color: #556681; font-weight: 700; }
-.detail-value { font-size: 0.92rem; color: #1f2a3d; text-align: right; }
+  .detail-row { display: grid; grid-template-columns: minmax(96px, 0.45fr) minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; margin-bottom: 10px; border: 1px solid #e5ebe8; border-radius: 16px; background: #f8faf9; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
+  .detail-row:last-child { margin-bottom: 0; }
+.detail-key { font-size: 0.82rem; color: #686f78; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.detail-value { font-size: 0.95rem; color: #202124; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
 table { width: 100%; border-collapse: collapse; min-width: 680px; }
 th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }

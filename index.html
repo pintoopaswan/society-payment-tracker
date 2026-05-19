@@ -53,18 +53,19 @@ input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; bor
 .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
 .mobile-card.expanded .card-details { display: block; }
 .month-grid { display: grid; gap: 10px; }
-.month-item { background: #f8fbff; border-radius: 12px; border: 1px solid #dce8f8; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; }
-.month-name { font-weight: 700; color: #17437c; font-size: 0.95rem; }
-.month-amount { font-size: 0.95rem; color: #1d3249; font-weight: 700; text-align: right; }
-.month-date { font-size: 0.85rem; color: #57687c; text-align: right; }
+.month-item { background: #fff; border-radius: 16px; border: 1px solid #e5ebe8; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
+.month-name { font-weight: 700; color: #202124; font-size: 0.95rem; }
+.month-amount { font-size: 0.95rem; color: #2f8d55; font-weight: 700; text-align: right; }
+.month-date { grid-column: 1 / -1; font-size: 0.85rem; color: #686f78; text-align: left; }
 .paid-months-row { grid-column: 1 / -1; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 .year-list { display: grid; gap: 10px; }
-.year-block { background: #f7faff; border-radius: 14px; border: 1px solid #d8e7f8; padding: 0; }
-.year-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; font-weight: 700; color: #1d3249; }
-.year-row:hover { background: #eef4ff; }
-.year-toggle { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #d7e9ff; align-items: center; justify-content: center; color: #1f5ea8; font-weight: 700; background: #eef6ff; }
-.year-month-details { display: none; padding: 14px 16px 16px; border-top: 1px solid #dbe8f9; }
-.month-summary { margin-top: 14px; padding: 14px 16px; background: #eef6ff; border-radius: 14px; border: 1px solid #d7e9ff; color: #17314f; font-weight: 700; }
+.year-block { background: #f8faf9; border-radius: 18px; border: 1px solid #e2ebe5; padding: 0; overflow: hidden; }
+.year-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; font-weight: 700; color: #202124; }
+.year-row:hover { background: #f1f7f3; }
+.year-total { color: #2f8d55; }
+.year-toggle { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #b9dcc8; align-items: center; justify-content: center; color: #2f8d55; font-weight: 700; background: #eaf7ef; }
+.year-month-details { display: none; padding: 14px; border-top: 1px solid #e2ebe5; background: #f6f8f7; }
+.month-summary { margin-top: 14px; padding: 14px 16px; background: #eaf7ef; border-radius: 16px; border: 1px solid #b9dcc8; color: #246c41; font-weight: 700; }
 .total-chip { background: #ffe4b5; color: #4a2a03; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
 /* Fixed table layout so month columns stay uniform */
@@ -74,7 +75,7 @@ th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); min-widt
 th:first-child, td:first-child { width: 80px; min-width: 80px; }
 th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; }
 .month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
-.paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:2px 6px; border-radius:6px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.paid-months-compact { font-size:0.72em; color:#246c41; text-transform:uppercase; letter-spacing:0.6px; background:#eaf7ef; padding:3px 8px; border-radius:999px; border:1px solid #b9dcc8; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
 .month-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; white-space: normal; }
 .month-total { font-size: 12px; color: #ffd87b; }
