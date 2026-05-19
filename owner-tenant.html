@@ -20,6 +20,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .header-title h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
 .header-title p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
   .nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.mobile-brand-row { display: none; }
+.mobile-menu-mark { display: none; }
 .main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
   .main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
   .main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
@@ -64,26 +66,120 @@ th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; tex
 tr:nth-child(even) { background: #f8fbff; }
 tr:hover { background: #eaf3ff; }
 @media (max-width: 768px) {
-  body { padding: 12px; }
-  .container { padding: 0 4px; }
-  .app-header { padding: 14px 16px; }
+  body { padding: 0; background: #fff; }
+  .container { padding: 0; }
+  .app-header { display: none; }
   .header-title { text-align: left; align-items: flex-start; }
-  .nav-shell { flex-direction: column; align-items: stretch; }
-  .main-menu { width: 100%; justify-content: flex-start; }
-  .main-menu a { flex: 1 1 auto; text-align: center; }
+  .nav-shell {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 18px;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #e2e2e2;
+  }
+  .mobile-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    min-height: 72px;
+    padding: 0 78px 0 38px;
+    border-bottom: 1px solid #c78b52;
+  }
+  .mobile-menu-mark {
+    display: inline-flex;
+    width: 34px;
+    height: 28px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .mobile-menu-mark span {
+    display: block;
+    height: 5px;
+    border-radius: 999px;
+    background: #5fb783;
+  }
+  .mobile-menu-mark span:nth-child(1) { width: 34px; }
+  .mobile-menu-mark span:nth-child(2) { width: 28px; }
+  .mobile-menu-mark span:nth-child(3) { width: 24px; }
+  .mobile-brand-title {
+    color: #1f1f24;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+  .profile-menu {
+    position: absolute;
+    top: 15px;
+    right: 34px;
+    z-index: 25;
+  }
+  .profile-button {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #5fb783;
+    background: #fff;
+    color: #5fb783;
+    box-shadow: none;
+    font-size: 1.05rem;
+  }
+  .profile-dropdown { top: calc(100% + 8px); }
+  .main-menu {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .main-menu a {
+    display: block;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: #737373;
+    padding: 20px 12px 16px;
+    text-align: center;
+    font-size: 1.32rem;
+    font-weight: 800;
+    transition: none;
+  }
+  .main-menu a:hover { background: #fff; transform: none; }
+  .main-menu a.active {
+    position: relative;
+    background: #fff;
+    border-color: transparent;
+    color: #202024;
+  }
+  .main-menu a.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: #5fb783;
+  }
   #logoutBtn { width: 100%; }
-  .controls { grid-template-columns: 1fr; }
+  .controls { grid-template-columns: 1fr; margin: 0 12px 12px; }
   select, input { width: 100%; }
   .table-wrap { display: none; }
-  .card-list { display: block; }
+  .card-list { display: block; padding: 0 12px 14px; }
+  .meta, .error { margin-left: 12px; margin-right: 12px; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th { padding: 12px 8px; }
 }
 @media (max-width: 560px) {
   .app-header { border-radius: 10px; }
-  .nav-shell { padding: 10px 12px; }
-  .main-menu { gap: 6px; }
-  .main-menu a { font-size: 0.88rem; padding: 8px 10px; }
+  .mobile-brand-row { gap: 28px; padding-left: 30px; padding-right: 82px; }
+  .mobile-brand-title { font-size: 1.18rem; }
+  .profile-menu { right: 28px; }
+  .main-menu { gap: 0; }
+  .main-menu a { font-size: 1.18rem; padding: 18px 10px 14px; }
   .controls { padding: 12px; }
 }
 </style>
@@ -98,9 +194,13 @@ tr:hover { background: #eaf3ff; }
   </div>
 
   <div class="nav-shell">
+    <div class="mobile-brand-row">
+      <div class="mobile-menu-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="mobile-brand-title">MIG-1 Society</div>
+    </div>
     <ul class="main-menu">
-      <li><a href="index.html">💳 Payment Details</a></li>
-      <li><a class="active" href="owner-tenant.html">👥 Resident Details</a></li>
+      <li><a href="index.html">Payments</a></li>
+      <li><a class="active" href="owner-tenant.html">Residents</a></li>
     </ul>
     <div class="profile-menu">
       <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
