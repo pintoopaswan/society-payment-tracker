@@ -41,22 +41,23 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
 .table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
 .card-list { display: none; margin-top: 12px; }
-.mobile-card { background: #fff; border-radius: 24px; border: 0; padding: 24px 28px; margin-bottom: 18px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
-.mobile-card-header { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 0; cursor: pointer; min-height: 72px; }
-.mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1.1rem; line-height: 1.2; letter-spacing: 0; }
-.mobile-card-header .subtitle { color: #646464; font-size: 1rem; font-weight: 400; line-height: 1.35; margin-top: 8px; }
+.mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
+.mobile-card-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 0; cursor: pointer; min-height: 60px; }
+.mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1rem; line-height: 1.2; letter-spacing: 0; }
+.mobile-card-header .subtitle { color: #646464; font-size: 0.92rem; font-weight: 400; line-height: 1.35; margin-top: 6px; }
 .mobile-card-copy { min-width: 0; }
-.toggle-icon { width: 30px; height: 36px; border-radius: 8px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
-.toggle-icon::before { content: ""; position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
-.toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 7px; width: 15px; height: 8px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
+.toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
+.toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
+.toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
 .mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
 .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
 .mobile-card.expanded .card-details { display: block; }
 .month-grid { display: grid; gap: 10px; }
-.month-item { background: #fff; border-radius: 16px; border: 1px solid #e5ebe8; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
+.month-item { background: #fff; border-radius: 14px; border: 1px solid #e5ebe8; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 10px; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
 .month-name { font-weight: 700; color: #202124; font-size: 0.95rem; }
 .month-amount { font-size: 0.95rem; color: #2f8d55; font-weight: 700; text-align: right; }
-.month-date { grid-column: 1 / -1; font-size: 0.85rem; color: #686f78; text-align: left; }
+.payment-mode { grid-column: 2; grid-row: 2; align-self: center; justify-self: end; color: #686f78; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
+.month-date { grid-column: 1; grid-row: 2; align-self: center; font-size: 0.85rem; color: #686f78; text-align: left; }
 .paid-months-row { grid-column: 1 / -1; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 .year-list { display: grid; gap: 10px; }
 .year-block { background: #f8faf9; border-radius: 18px; border: 1px solid #e2ebe5; padding: 0; overflow: hidden; }
@@ -242,7 +243,8 @@ input:focus, select:focus {
   input, select { width: 100%; }
   .table-container { display: none; }
   .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
-  .mobile-card { padding: 24px 28px; }
+  .mobile-card { padding: 18px 20px; border-radius: 20px; margin-bottom: 14px; }
+  .mobile-card-header { min-height: 56px; }
   .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .month-item { font-size: 0.9rem; }
   .card-details .paid-months-compact { color:#246c41; background:#eaf7ef; border-color:#b9dcc8; }
@@ -259,9 +261,11 @@ input:focus, select:focus {
   .main-menu a { font-size: 1.18rem; padding: 18px 10px 14px; }
   .top-bar { margin-left: 16px; margin-right: 16px; padding: 0; }
   .card-list { padding-left: 16px; padding-right: 16px; }
-  .mobile-card { border-radius: 22px; padding: 22px 24px; }
-  .mobile-card-header .title { font-size: 1.08rem; }
-  .mobile-card-header .subtitle { font-size: 1rem; }
+  .mobile-card { border-radius: 18px; padding: 16px 18px; }
+  .mobile-card-header .title { font-size: 0.98rem; }
+  .mobile-card-header .subtitle { font-size: 0.9rem; }
+  .month-name, .month-amount { font-size: 0.9rem; }
+  .month-date { font-size: 0.8rem; }
   .month-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -370,7 +374,7 @@ function handleLogin(event) {
 }
 function logout() { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; }
 function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
-function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw) {
+function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, paymentModeRaw) {
   if (!block || block === "TOTAL" || !flat || !amount) return;
   const normalizedBlock = normalizeBlockName(block);
   const recordId = `${year}-${monthIndex}-${normalizedBlock}-${flat}`;
@@ -385,6 +389,7 @@ function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw) 
   if(!groupedData[key].years[year]) groupedData[key].years[year] = { total: 0, months: {} };
   let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${parsedYear}`;
   let amountNum = Number(amount || 0);
+  const paymentMode = String(paymentModeRaw || "").trim().toUpperCase();
   let paidMonthsHtml = "";
   if (paidMonthsRaw) {
     const parts = String(paidMonthsRaw).split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean);
@@ -398,13 +403,15 @@ function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw) 
     amount: amountNum,
     date: formattedDate,
     paidMonthsHtml,
+    paymentMode,
   };
   groupedData[key].years[year].total += amountNum;
   if (!groupedData[key].months[monthIndex]) {
-    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "" };
+    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "", paymentMode: "" };
   }
   groupedData[key].months[monthIndex].amount += amountNum;
   groupedData[key].months[monthIndex].paidMonthsHtml = groupedData[key].months[monthIndex].paidMonthsHtml || paidMonthsHtml;
+  groupedData[key].months[monthIndex].paymentMode = groupedData[key].months[monthIndex].paymentMode || paymentMode;
   groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
 }
 async function fetchAllMonthData() {
@@ -423,14 +430,14 @@ async function fetchAllMonthData() {
         if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
         csv.split("\n").slice(1).forEach(r => {
           let cols = parseCSV(r);
-          let block = cols[0], flat = cols[1], amount = cols[2], paidMonths = cols[8], date = cols[4], status = cols[5];
+          let block = cols[0], flat = cols[1], amount = cols[2], paymentMode = cols[3], paidMonths = cols[8], date = cols[4], status = cols[5];
           if(!block || !flat) return;
           const normalizedBlock = normalizeBlockName(block);
           allBlocks.add(normalizedBlock);
           if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
           allFlats[normalizedBlock].add(flat);
           if(!amount || status?.toUpperCase().trim() !== "DONE") return;
-          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths);
+          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths, paymentMode);
         });
       });
     });
@@ -470,7 +477,7 @@ function renderTable() {
       months.forEach((month, i) => {
         const monthLabel = month.substring(0,3);
         const monthValue = yearData.months[i];
-        cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div><div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
+        cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div>${monthValue?.paymentMode ? `<div class="payment-mode">${monthValue.paymentMode}</div>` : ''}<div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
       });
       cardHtml += `</div><div class="month-summary">Paid amount: ₹${yearData.total}</div></div></div>`;
     });
