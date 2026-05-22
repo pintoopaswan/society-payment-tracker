@@ -327,7 +327,7 @@ input:focus, select:focus {
 </style>
 </head>
 <body>
-<div id="loginScreen">
+<div id="loginScreen" class="hidden">
   <h3>Authorized Access</h3>
   <p style="margin:10px 0 14px; color:#4c6178;">Please sign in to open the guard payment dashboard.</p>
   <form id="loginForm">
@@ -338,7 +338,7 @@ input:focus, select:focus {
   </form>
 </div>
 
-<div class="container hidden" id="appContent">
+<div class="container" id="appContent">
   <div class="app-header">
     <div class="header-title">
       <h1>MIG Society, Sector-29</h1>
@@ -903,8 +903,8 @@ document.getElementById("mobileCards").addEventListener("click", (event) => {
   const icon = card.querySelector(".toggle-icon");
   if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
 });
-document.getElementById("loginForm").addEventListener("submit", handleLogin);
-document.getElementById("logoutBtn").addEventListener("click", logout);
+// Apps Script already protects this admin page with Google login.
+document.getElementById("logoutBtn").addEventListener("click", () => { window.location.href = "https://accounts.google.com/Logout"; });
 const profileToggle = document.getElementById("profileToggle");
 const profileDropdown = document.getElementById("profileDropdown");
 if (profileToggle && profileDropdown) {
@@ -923,7 +923,8 @@ if (profileToggle && profileDropdown) {
 document.getElementById("paymentDate").max = getTodayInputValue();
 updateAdminPaymentVisibility();
 document.getElementById("yearFilter").value = DEFAULT_YEAR;
-if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") { showDashboard(); fetchAllMonthData(); } else { showLogin(); }
+showDashboard();
+fetchAllMonthData()
 </script>
 </body>
 </html>
