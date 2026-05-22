@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resident Details</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f3f7fb;
+  --card: #fff;
+  --line: #d6e0ec;
+  --brand: #1f5ea8;
+  --text: #17314f;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--text); min-height: 100vh; padding: 20px; }
+.container { max-width: 1300px; margin: 0 auto; }
+.app-header { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; display: flex; flex-direction: column; align-items: center; }
+.header-title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.header-title h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header-title p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+  .nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.mobile-brand-row { display: none; }
+.mobile-menu-mark { display: none; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
+  .main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
+  .main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
+  .main-menu a.active { background: #1f5ea8; border-color: #1f5ea8; color: #fff; }
+  #logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
+  .profile-menu { position: relative; }
+  .profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+  .profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
+  .profile-dropdown.visible { display: block; }
+  .profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
+  .profile-dropdown button:hover { background: #eef4fb; }
+  .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; background: var(--card); padding: 18px; border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06); margin-bottom: 12px; }
+  .search-bar { display: flex; gap: 10px; width: 100%; }
+  .search-bar input { flex: 1; min-width: 0; }
+  select, input { border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; background: #fff; color: #1f314a; }
+.meta { margin: 10px 0; color: #2a4a67; font-size: 14px; font-weight: 600; }
+.error { color: #b00020; margin-bottom: 8px; }
+.table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
+.card-list { display: none; margin-top: 16px; }
+  .mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
+  .mobile-card.expanded { box-shadow: 0 18px 34px rgba(27, 37, 54, 0.09); }
+  .mobile-card-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; min-height: 60px; }
+  .mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1rem; line-height: 1.2; letter-spacing: 0; }
+  .mobile-card-copy { min-width: 0; }
+  .card-people { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; color: #646464; font-size: 0.92rem; font-weight: 400; line-height: 1.35; }
+  .card-people .owner, .card-people .tenant { font-size: inherit; line-height: inherit; }
+  .card-people .owner { color: inherit; font-weight: 400; }
+  .card-people .tenant { color: inherit; }
+  .toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
+  .toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
+  .toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
+  .mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
+  .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
+  .mobile-card.expanded .card-details { display: block; }
+  .detail-row { display: grid; grid-template-columns: minmax(96px, 0.45fr) minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; margin-bottom: 10px; border: 1px solid #e5ebe8; border-radius: 16px; background: #f8faf9; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
+  .detail-row:last-child { margin-bottom: 0; }
+.detail-key { font-size: 0.82rem; color: #686f78; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.detail-value { font-size: 0.95rem; color: #202124; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+.call-link { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; color: inherit; text-decoration: none; font-weight: inherit; }
+.call-link:hover { text-decoration: none; }
+.call-icon { width: 28px; height: 28px; border-radius: 50%; background: #cfcfcf; color: #fff; display: inline-grid; place-items: center; font-size: 0.9rem; line-height: 1; font-weight: 700; flex: 0 0 auto; }
+.table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; }
+th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; text-transform: uppercase; }
+tr:nth-child(even) { background: #f8fbff; }
+tr:hover { background: #eaf3ff; }
+@media (max-width: 768px) {
+  body { padding: 0; background: #f5f6f8; }
+  .container { padding: 0; }
+  .app-header { display: none; }
+  .header-title { text-align: left; align-items: flex-start; }
+  .nav-shell {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 18px;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #e2e2e2;
+  }
+  .mobile-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    min-height: 72px;
+    padding: 0 78px 0 38px;
+    border-bottom: 1px solid #c78b52;
+  }
+  .mobile-menu-mark {
+    display: inline-flex;
+    width: 34px;
+    height: 28px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .mobile-menu-mark span {
+    display: block;
+    height: 5px;
+    border-radius: 999px;
+    background: #5fb783;
+  }
+  .mobile-menu-mark span:nth-child(1) { width: 34px; }
+  .mobile-menu-mark span:nth-child(2) { width: 28px; }
+  .mobile-menu-mark span:nth-child(3) { width: 24px; }
+  .mobile-brand-title {
+    color: #1f1f24;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+  .profile-menu {
+    position: absolute;
+    top: 15px;
+    right: 34px;
+    z-index: 25;
+  }
+  .profile-button {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #5fb783;
+    background: #fff;
+    color: #5fb783;
+    box-shadow: none;
+    font-size: 1.05rem;
+  }
+  .profile-dropdown { top: calc(100% + 8px); }
+  .main-menu {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .main-menu a {
+    display: block;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: #737373;
+    padding: 20px 12px 16px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 800;
+    transition: none;
+  }
+  .main-menu a:hover { background: #fff; transform: none; }
+  .main-menu a.active {
+    position: relative;
+    background: #fff;
+    border-color: transparent;
+    color: #202024;
+  }
+  .main-menu a.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: #5fb783;
+  }
+  #logoutBtn { width: 100%; }
+  .controls { grid-template-columns: 1fr; gap: 12px; margin: 0 18px 18px; padding: 0; background: transparent; border-radius: 0; box-shadow: none; }
+  .search-bar { display: block; }
+  .search-bar input, .controls select {
+    width: 100%;
+    max-width: none;
+    min-height: 52px;
+    border: 2px solid #d6e0ec;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f314a;
+    box-shadow: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .search-bar input:focus, .controls select:focus {
+    border-color: #1f5ea8;
+    box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1);
+    outline: none;
+  }
+  select, input { width: 100%; }
+  .table-wrap { display: none; }
+  .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
+  .mobile-card { padding: 18px 20px; border-radius: 20px; margin-bottom: 14px; }
+  .mobile-card-header { min-height: 56px; }
+  .meta, .error { margin-left: 12px; margin-right: 12px; }
+  th, td { white-space: normal; font-size: 0.95rem; }
+  th { padding: 12px 8px; }
+}
+@media (max-width: 560px) {
+  .app-header { border-radius: 10px; }
+  .mobile-brand-row { gap: 28px; padding-left: 30px; padding-right: 82px; }
+  .mobile-brand-title { font-size: 1.18rem; }
+  .profile-menu { right: 28px; }
+  .main-menu { gap: 0; }
+  .main-menu a { font-size: 0.9rem; padding: 18px 8px 14px; }
+  .controls { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .card-list { padding-left: 16px; padding-right: 16px; }
+  .mobile-card { border-radius: 18px; padding: 16px 18px; }
+  .mobile-card-header .title { font-size: 0.98rem; }
+  .card-people { font-size: 0.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>MIG Society, Sector-29</h1>
+      <p>Resident Directory</p>
+    </div>
+  </div>
+
+  <div class="nav-shell">
+    <div class="mobile-brand-row">
+      <div class="mobile-menu-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="mobile-brand-title">MIG-1 Society</div>
+    </div>
+    <ul class="main-menu">
+      <li><a href="index.html">Payments</a></li>
+      <li><a class="active" href="owner-tenant.html">Residents</a></li>
+      <li><a href="emergency-contact.html">Emergency Contact</a></li>
+    </ul>
+    <div class="profile-menu">
+      <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <button id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Search owner, tenant, mobile or vehicle" />
+    </div>
+    <select id="blockFilter"><option value="">All Blocks</option></select>
+    <select id="searchType">
+      <option value="all">Search: All</option>
+      <option value="name">Owner / Tenant</option>
+      <option value="mobile">Mobile</option>
+      <option value="vehicle">Vehicle</option>
+    </select>
+  </div>
+
+  <div class="meta" id="metaInfo">Loading data...</div>
+  <div class="error" id="errorText"></div>
+
+  <div class="table-wrap">
+    <table id="directoryTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="card-list" id="cardList"></div>
+</div>
+
+<script>
+const AUTH_SESSION_KEY = "society_dashboard_auth";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
+
+const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME = "Sheet1";
+let headers = [], rows = [], filteredRows = [];
+const searchIndexes = { name: [], mobile: [], vehicle: [] };
+function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
+function normalize(value) { return String(value || "").trim().toLowerCase(); }
+function normalizeBlockDisplay(value) { const digits = String(value || "").match(/\d+/); return digits ? `Block-${Number(digits[0])}` : String(value || ""); }
+function normalizePhone(value) { return String(value || "").replace(/[^\d+]/g, ""); }
+function renderPhoneLink(value) {
+  const phone = normalizePhone(value);
+  if (!phone) return value || "";
+  return `<a class="call-link" href="tel:${phone}"><span class="call-icon" aria-label="Call">☎</span><span>${value}</span></a>`;
+}
+function findHeaderIndex(patterns) {
+  const normalizedHeaders = headers.map(h => normalize(h));
+  return patterns.reduce((found, pattern) => found >= 0 ? found : normalizedHeaders.findIndex(h => h.includes(pattern)), -1);
+}
+function findPersonHeaderIndex(primaryPatterns, fallbackPatterns = []) {
+  const excludedPatterns = ["vehicle", "car", "bike", "scooter", "number plate", "registration", "veh", "type", "parking"];
+  const normalizedHeaders = headers.map(h => normalize(h));
+  const matchPattern = (pattern) => normalizedHeaders.findIndex(header => header.includes(pattern) && !excludedPatterns.some(excluded => header.includes(excluded)));
+  for (const pattern of primaryPatterns) {
+    const index = matchPattern(pattern);
+    if (index >= 0) return index;
+  }
+  for (const pattern of fallbackPatterns) {
+    const index = matchPattern(pattern);
+    if (index >= 0) return index;
+  }
+  return -1;
+}
+function isPhoneHeader(header) {
+  const h = normalize(header);
+  return ["mobile", "phone", "contact", "whatsapp"].some(pattern => h.includes(pattern));
+}
+function collectIndexes() {
+  const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
+  headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
+}
+function updateBlockFilterOptions() {
+  const blockFilter = document.getElementById("blockFilter");
+  const blockIndex = findHeaderIndex(["block"]);
+  const selected = blockFilter.value;
+  const blocks = Array.from(new Set(rows.map(row => normalizeBlockDisplay(row[blockIndex] || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(block => `<option value="${block}">${block}</option>`).join("");
+  if (selected && blocks.includes(selected)) blockFilter.value = selected;
+}
+function renderTable(data) {
+  const thead = document.getElementById("tableHead"), tbody = document.getElementById("tableBody"), cardList = document.getElementById("cardList");
+  const blockIndex = findHeaderIndex(["block"]);
+  const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
+  const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
+  const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
+  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
+  tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
+  cardList.innerHTML = data.map(row => {
+    const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
+    const flatValue = row[flatIndex] || "";
+    const ownerValue = ownerIndex >= 0 ? row[ownerIndex] || "" : "";
+    const tenantValue = tenantIndex >= 0 ? row[tenantIndex] || "" : "";
+    const cardTitle = `${blockValue} / Flat ${flatValue}`;
+    const ownerLine = ownerValue ? `<div>Owner: ${ownerValue}</div>` : "";
+    const tenantLine = tenantValue ? `<div>Tenant: ${tenantValue}</div>` : "";
+    const cardPeople = ownerLine || tenantLine ? `${ownerLine}${tenantLine}` : `<div>Resident details</div>`;
+    const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${isPhoneHeader(header) ? renderPhoneLink(row[index]) : (row[index] || "")}</span></div>`).join("");
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+  }).join("");
+  document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
+}
+function matchesByType(row, query, type) {
+  if (!query) return true;
+  if (type === "all") return row.some(cell => normalize(cell).includes(query));
+  const indexes = searchIndexes[type] || [];
+  if (!indexes.length) return row.some(cell => normalize(cell).includes(query));
+  return indexes.some(i => normalize(row[i]).includes(query));
+}
+function applySearch() {
+  const query = normalize(document.getElementById("searchInput").value), type = document.getElementById("searchType").value, selectedBlock = document.getElementById("blockFilter").value;
+  const blockIndex = findHeaderIndex(["block"]);
+  filteredRows = rows.filter(row => {
+    const rowBlock = normalizeBlockDisplay(row[blockIndex] || "");
+    return (!selectedBlock || rowBlock === selectedBlock) && matchesByType(row, query, type);
+  });
+  renderTable(filteredRows);
+}
+async function loadDirectoryData() {
+  const errorText = document.getElementById("errorText"); errorText.textContent = "";
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`;
+    const res = await fetch(url); const csv = await res.text();
+    if (!csv.trim() || csv.trim().toLowerCase().startsWith("<!doctype html")) throw new Error("Invalid sheet response. Check sheet ID/tab name and sharing permissions.");
+    const lines = csv.split("\n").filter(Boolean);
+    headers = parseCSV(lines[0]); rows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
+    searchIndexes.name = []; searchIndexes.mobile = []; searchIndexes.vehicle = []; collectIndexes();
+    updateBlockFilterOptions();
+    filteredRows = rows; renderTable(filteredRows);
+  } catch (error) { errorText.textContent = error.message; document.getElementById("metaInfo").textContent = "Failed to load data"; }
+}
+document.getElementById("searchInput").addEventListener("input", applySearch);
+document.getElementById("searchType").addEventListener("change", applySearch);
+document.getElementById("blockFilter").addEventListener("change", applySearch);
+const profileToggle = document.getElementById("profileToggle");
+const profileDropdown = document.getElementById("profileDropdown");
+if (profileToggle && profileDropdown) {
+  profileToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const visible = profileDropdown.classList.toggle("visible");
+    profileToggle.setAttribute("aria-expanded", visible);
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".profile-menu")) {
+      profileDropdown.classList.remove("visible");
+      profileToggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+document.getElementById("cardList").addEventListener("click", (event) => {
+  if (event.target.closest(".call-link")) return;
+  const header = event.target.closest(".mobile-card-header");
+  if (!header) return;
+  const card = header.closest(".mobile-card");
+  if (!card) return;
+  card.classList.toggle("expanded");
+  const icon = card.querySelector(".toggle-icon");
+  if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
+});
+loadDirectoryData();
+</script>
+</body>
+</html>

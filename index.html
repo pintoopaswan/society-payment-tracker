@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Society Guard Payment Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f3f7fb;
+  --card: #ffffff;
+  --line: #d9e2ee;
+  --brand: #1f5ea8;
+  --brand-dark: #123d70;
+  --ok: #d4edda;
+  --bad: #f8d7da;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; min-height: 100vh; color: #16324f; }
+.container { max-width: 1400px; margin: 0 auto; position: relative; }
+.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
+.app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.app-header p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+.header-title { text-align: center; }
+.nav-shell { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.mobile-brand-row { display: none; }
+.mobile-menu-mark { display: none; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.main-menu a { text-decoration: none; color: var(--brand-dark); border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
+.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
+#logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
+.profile-menu { position: relative; }
+.profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+.profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
+.profile-dropdown.visible { display: block; }
+.profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
+.profile-dropdown button:hover { background: #eef4fb; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); }
+.search-controls { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; align-items: center; }
+.search-controls select, .search-controls input { min-width: 160px; }
+input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
+.table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
+.card-list { display: none; margin-top: 12px; }
+.mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
+.mobile-card-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 0; cursor: pointer; min-height: 60px; }
+.mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1rem; line-height: 1.2; letter-spacing: 0; }
+.mobile-card-header .subtitle { color: #646464; font-size: 0.92rem; font-weight: 400; line-height: 1.35; margin-top: 6px; }
+.mobile-card-copy { min-width: 0; }
+.toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
+.toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
+.toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
+.mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
+.card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
+.mobile-card.expanded .card-details { display: block; }
+.month-grid { display: grid; gap: 10px; }
+.month-item { background: #fff; border-radius: 14px; border: 1px solid #e5ebe8; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 10px; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
+.month-name { font-weight: 700; color: #202124; font-size: 0.95rem; }
+.month-amount { font-size: 0.95rem; color: #2f8d55; font-weight: 700; text-align: right; }
+.payment-mode { grid-column: 2; grid-row: 2; align-self: center; justify-self: end; color: #686f78; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
+.month-date { grid-column: 1; grid-row: 2; align-self: center; font-size: 0.85rem; color: #686f78; text-align: left; }
+.paid-months-row { grid-column: 1 / -1; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.year-list { display: grid; gap: 10px; }
+.year-block { background: #f8faf9; border-radius: 18px; border: 1px solid #e2ebe5; padding: 0; overflow: hidden; }
+.year-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; font-weight: 700; color: #202124; }
+.year-row:hover { background: #f1f7f3; }
+.year-total { color: #2f8d55; }
+.year-toggle { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #b9dcc8; align-items: center; justify-content: center; color: #2f8d55; font-weight: 700; background: #eaf7ef; }
+.year-month-details { display: none; padding: 14px; border-top: 1px solid #e2ebe5; background: #f6f8f7; }
+.month-summary { margin-top: 14px; padding: 14px 16px; background: #eaf7ef; border-radius: 16px; border: 1px solid #b9dcc8; color: #246c41; font-weight: 700; }
+.total-chip { background: #ffe4b5; color: #4a2a03; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+/* Fixed table layout so month columns stay uniform */
+table { table-layout: fixed; }
+th, td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); min-width: 70px; }
+th:first-child, td:first-child { width: 80px; min-width: 80px; }
+th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; }
+.month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:3px 8px; border-radius:999px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
+.month-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; white-space: normal; }
+.month-total { font-size: 12px; color: #ffd87b; }
+th:nth-child(1), th:nth-child(2) { position: sticky; z-index: 11; left: 0; top: 0; }
+th:nth-child(2) { left: 80px; }
+td { border: 1px solid #edf1f6; padding: 12px 8px; text-align: center; font-size: 14px; }
+td:nth-child(1), td:nth-child(2) { position: sticky; background: #fff; z-index: 5; left: 0; color: #1d3249; }
+td:nth-child(2) { left: 80px; }
+.paid { background: var(--ok); color: #155724; }
+.empty { background: var(--bad); color: #721c24; font-weight: 600; }
+.total-row { background: #ffe4b5; font-weight: 700; }
+.hidden { display: none; }
+#loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 24px; padding: 28px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
+#loginScreen h3 { color: #202124; font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+#loginScreen p { color: #646464 !important; font-size: 1rem; line-height: 1.4; }
+#loginForm { display: grid; gap: 14px; }
+#loginForm input { width: 100%; }
+#loginError { color: #b00020; font-size: 0.92rem; min-height: 18px; }
+#loginForm button { min-height: 52px; border: none !important; border-radius: 14px !important; background: #1f5ea8 !important; color: #fff !important; font-weight: 700 !important; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
+#loginForm input {
+  max-width: none;
+  min-height: 52px;
+  border: 2px solid #d6e0ec;
+  border-radius: 14px;
+  background: #fff;
+  color: #1f314a;
+  box-shadow: none;
+  font-size: 0.98rem;
+}
+input, select {
+  padding: 14px 18px;
+  width: 100%;
+  max-width: 360px;
+  border: 3px solid #667eea;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+.top-bar input, .top-bar select { width: auto; max-width: 220px; }
+input:focus, select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+@media (max-width: 768px) {
+  body { padding: 0; background: #f5f6f8; }
+  #loginScreen { margin: 76px 18px 0; padding: 24px 28px; }
+  .container { padding: 0; }
+  .app-header { display: none; }
+  .header-title { text-align: left; }
+  .nav-shell {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 18px;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #e2e2e2;
+  }
+  .mobile-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    min-height: 72px;
+    padding: 0 78px 0 38px;
+    border-bottom: 1px solid #c78b52;
+  }
+  .mobile-menu-mark {
+    display: inline-flex;
+    width: 34px;
+    height: 28px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .mobile-menu-mark span {
+    display: block;
+    height: 5px;
+    border-radius: 999px;
+    background: #5fb783;
+  }
+  .mobile-menu-mark span:nth-child(1) { width: 34px; }
+  .mobile-menu-mark span:nth-child(2) { width: 28px; }
+  .mobile-menu-mark span:nth-child(3) { width: 24px; }
+  .mobile-brand-title {
+    color: #1f1f24;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+  .profile-menu {
+    position: absolute;
+    top: 15px;
+    right: 34px;
+    z-index: 25;
+  }
+  .profile-button {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #5fb783;
+    background: #fff;
+    color: #5fb783;
+    box-shadow: none;
+    font-size: 1.05rem;
+  }
+  .profile-dropdown { top: calc(100% + 8px); }
+  .main-menu {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .main-menu a {
+    display: block;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: #737373;
+    padding: 20px 12px 16px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  .main-menu a.active {
+    position: relative;
+    background: #fff;
+    border-color: transparent;
+    color: #202024;
+  }
+  .main-menu a.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: #5fb783;
+  }
+  #logoutBtn { width: 100%; }
+  .top-bar { flex-direction: column; align-items: stretch; margin: 0 18px 22px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
+  .search-controls { flex-direction: column; align-items: stretch; gap: 12px; }
+  .top-bar input, .top-bar select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 52px;
+    border: 2px solid #d6e0ec;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f314a;
+    box-shadow: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+  .top-bar input:focus, .top-bar select:focus {
+    border-color: #1f5ea8;
+    box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1);
+  }
+  input, select { width: 100%; }
+  .table-container { display: none; }
+  .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
+  .mobile-card { padding: 18px 20px; border-radius: 20px; margin-bottom: 14px; }
+  .mobile-card-header { min-height: 56px; }
+  .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .month-item { font-size: 0.9rem; }
+  .card-details .paid-months-compact { color:#246c41; background:#eaf7ef; border-color:#b9dcc8; }
+  th, td { white-space: normal; font-size: 0.95rem; }
+  th[data-month-index] { min-width: 90px; }
+  .month-head { gap: 6px; }
+}
+@media (max-width: 560px) {
+  .app-header { border-radius: 10px; }
+  .mobile-brand-row { gap: 28px; padding-left: 30px; padding-right: 82px; }
+  .mobile-brand-title { font-size: 1.18rem; }
+  .profile-menu { right: 28px; }
+  .main-menu { gap: 0; }
+  .main-menu a { font-size: 0.9rem; padding: 18px 8px 14px; }
+  .top-bar { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .card-list { padding-left: 16px; padding-right: 16px; }
+  .mobile-card { border-radius: 18px; padding: 16px 18px; }
+  .mobile-card-header .title { font-size: 0.98rem; }
+  .mobile-card-header .subtitle { font-size: 0.9rem; }
+  .month-name, .month-amount { font-size: 0.9rem; }
+  .month-date { font-size: 0.8rem; }
+  .month-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <h3>Authorized Access</h3>
+  <p style="margin:10px 0 14px; color:#4c6178;">Please sign in to open the guard payment dashboard.</p>
+  <form id="loginForm">
+    <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username" />
+    <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
+    <button type="submit" style="padding:12px;border:none;border-radius:8px;background:#1f5ea8;color:#fff;font-weight:700;cursor:pointer;">Login</button>
+    <div id="loginError"></div>
+  </form>
+</div>
+
+<div class="container hidden" id="appContent">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>MIG Society, Sector-29</h1>
+      <p>Guard Payment Dashboard</p>
+    </div>
+  </div>
+
+  <div class="nav-shell">
+    <div class="mobile-brand-row">
+      <div class="mobile-menu-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="mobile-brand-title">MIG-1 Society</div>
+    </div>
+    <ul class="main-menu">
+      <li><a class="active" href="index.html">Payments</a></li>
+      <li><a href="owner-tenant.html">Residents</a></li>
+      <li><a href="emergency-contact.html">Emergency Contact</a></li>
+    </ul>
+    <div class="profile-menu">
+      <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <button id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <div class="search-controls">
+      <select id="yearFilter">
+        <option value="2026">YEAR 2026</option>
+        <option value="2025">YEAR 2025</option>
+      </select>
+      <select id="blockFilter"><option value="">ALL BLOCKS</option></select>
+      <select id="searchType">
+        <option value="all">Search: All</option>
+        <option value="block">Block</option>
+        <option value="flat">Flat</option>
+        <option value="amount">Amount</option>
+      </select>
+      <input type="text" id="search" placeholder="Search block, flat or amount..." />
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="table">
+      <thead>
+      <tr>
+        <th>BLOCK</th><th>FLAT</th>
+        <th data-month-index="0"><div class="month-head"><span>Jan</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="1"><div class="month-head"><span>Feb</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="2"><div class="month-head"><span>Mar</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="3"><div class="month-head"><span>Apr</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="4"><div class="month-head"><span>May</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="5"><div class="month-head"><span>Jun</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="6"><div class="month-head"><span>Jul</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="7"><div class="month-head"><span>Aug</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="8"><div class="month-head"><span>Sep</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="9"><div class="month-head"><span>Oct</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="10"><div class="month-head"><span>Nov</span><span class="month-total">₹0</span></div></th>
+        <th data-month-index="11"><div class="month-head"><span>Dec</span><span class="month-total">₹0</span></div></th>
+        <th>TOTAL</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="mobileCards" class="card-list"></div>
+</div>
+
+<script>
+const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
+const DEFAULT_YEAR = "2026";
+const AUTH_SESSION_KEY = "society_dashboard_auth";
+const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
+const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const monthSheetNamesByYear = { "2026": months, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
+let groupedData = {}, monthlyTotals = new Array(12).fill(0), processedRecords = new Set(), allBlocks = new Set(), allFlats = {};
+function normalizeBlockName(value) { const digits = String(value || "").replace(/[^0-9]/g, ""); return digits ? `Block-${Number(digits)}` : String(value || "").trim(); }
+function resetDataState() { groupedData = {}; monthlyTotals = new Array(12).fill(0); processedRecords = new Set(); allBlocks = new Set(); allFlats = {}; document.querySelector("#table tbody").innerHTML = ""; }
+function showDashboard() { document.getElementById("loginScreen").classList.add("hidden"); document.getElementById("appContent").classList.remove("hidden"); }
+function showLogin() { document.getElementById("loginScreen").classList.remove("hidden"); document.getElementById("appContent").classList.add("hidden"); }
+function setLoginError(message) { document.getElementById("loginError").textContent = message; }
+function handleLogin(event) {
+  event.preventDefault();
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
+    sessionStorage.setItem(AUTH_SESSION_KEY, "true"); setLoginError(""); showDashboard(); fetchAllMonthData(); return;
+  }
+  setLoginError("Invalid username or password.");
+}
+function logout() { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; }
+function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
+function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, paymentModeRaw) {
+  if (!block || block === "TOTAL" || !flat || !amount) return;
+  const normalizedBlock = normalizeBlockName(block);
+  const recordId = `${year}-${monthIndex}-${normalizedBlock}-${flat}`;
+  if (processedRecords.has(recordId)) return;
+  processedRecords.add(recordId);
+  let parts = String(date).trim().split("/"); if (parts.length !== 3) return;
+  let month = parseInt(parts[0]), day = parseInt(parts[1]), parsedYear = parseInt(parts[2]);
+  if (isNaN(day) || isNaN(month) || isNaN(parsedYear) || monthIndex < 0 || monthIndex > 11) return;
+  let key = normalizedBlock + "-" + flat;
+  let flatNum = parseInt(flat);
+  if(!groupedData[key]) groupedData[key] = { Block: normalizedBlock, Flat: flatNum, years: {}, months: {}, total: 0 };
+  if(!groupedData[key].years[year]) groupedData[key].years[year] = { total: 0, months: {} };
+  let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${parsedYear}`;
+  let amountNum = Number(amount || 0);
+  const paymentMode = String(paymentModeRaw || "").trim().toUpperCase();
+  let paidMonthsHtml = "";
+  if (paidMonthsRaw) {
+    const parts = String(paidMonthsRaw).split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean);
+    if (parts.length) {
+      const short = parts.map(p => (String(p).substring(0,3) || p).toUpperCase()).join(', ');
+      const full = parts.join(', ');
+      paidMonthsHtml = `<span class="paid-months-compact" title="${full}">${short}</span>`;
+    }
+  }
+  groupedData[key].years[year].months[monthIndex] = {
+    amount: amountNum,
+    date: formattedDate,
+    paidMonthsHtml,
+    paymentMode,
+  };
+  groupedData[key].years[year].total += amountNum;
+  if (!groupedData[key].months[monthIndex]) {
+    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "", paymentMode: "" };
+  }
+  groupedData[key].months[monthIndex].amount += amountNum;
+  groupedData[key].months[monthIndex].paidMonthsHtml = groupedData[key].months[monthIndex].paidMonthsHtml || paidMonthsHtml;
+  groupedData[key].months[monthIndex].paymentMode = groupedData[key].months[monthIndex].paymentMode || paymentMode;
+  groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
+}
+async function fetchAllMonthData() {
+  const selectedYear = document.getElementById("yearFilter").value;
+  const selectedYears = selectedYear === "all" ? Object.keys(SHEET_IDS_BY_YEAR) : [selectedYear];
+  resetDataState();
+  const fetchPromises = selectedYears.flatMap(currYear => {
+    const selectedSheetId = SHEET_IDS_BY_YEAR[currYear];
+    const monthSheetNames = monthSheetNamesByYear[currYear] || months;
+    if (!selectedSheetId) return [];
+    return monthSheetNames.map((sheetName, monthIndex) => {
+      if (!sheetName) return Promise.resolve();
+      const url = `https://docs.google.com/spreadsheets/d/${selectedSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+      return fetch(url).then(res => res.text()).then(csv => {
+        const preview = csv.trim().slice(0, 120).toLowerCase();
+        if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
+        csv.split("\n").slice(1).forEach(r => {
+          let cols = parseCSV(r);
+          let block = cols[0], flat = cols[1], amount = cols[2], paymentMode = cols[3], paidMonths = cols[8], date = cols[4], status = cols[5];
+          if(!block || !flat) return;
+          const normalizedBlock = normalizeBlockName(block);
+          allBlocks.add(normalizedBlock);
+          if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
+          allFlats[normalizedBlock].add(flat);
+          if(!amount || status?.toUpperCase().trim() !== "DONE") return;
+          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths, paymentMode);
+        });
+      });
+    });
+  });
+  await Promise.all(fetchPromises);
+  renderTable();
+}
+function updateMonthHeaderTotals() { document.querySelectorAll("th[data-month-index]").forEach(th => { const i = Number(th.dataset.monthIndex); const t = monthlyTotals[i] || 0; const el = th.querySelector(".month-total"); if (el) el.textContent = `₹${t}`; }); }
+function updateBlockFilterOptions(blocks) { const blockFilter = document.getElementById("blockFilter"); const selected = blockFilter.value; blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(b => `<option value="${b}">${b}</option>`).join(""); if (selected && blocks.includes(selected)) blockFilter.value = selected; }
+function renderTable() {
+  let tbody = document.querySelector("#table tbody");
+  let cardContainer = document.getElementById("mobileCards");
+  const sortedBlocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+  sortedBlocks.forEach(block => {
+    const flats = Array.from(allFlats[block] || []).map(f => ({ flat: parseInt(f), display: f })).sort((a,b)=>a.flat-b.flat);
+    flats.forEach(flatObj => { const key = block + "-" + flatObj.display; if (!groupedData[key]) groupedData[key] = { Block: block, Flat: flatObj.flat, months: {}, total: 0 }; });
+  });
+  const sortedData = Object.values(groupedData).sort((a,b)=>{ const c = a.Block.localeCompare(b.Block, undefined, {numeric:true}); return c !== 0 ? c : a.Flat - b.Flat; });
+  let html = "";
+  let cardHtml = "";
+  sortedData.forEach(row => {
+    html += `<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
+    months.forEach((_,i)=>{
+      if (row.months[i] && row.months[i].amount > 0) {
+        html += `<td class="paid month-cell"><div class="month-cell-content"><div style="font-weight:600;color:#2d3436;">₹${row.months[i].amount}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${row.months[i].date}</div>${row.months[i].paidMonthsHtml || ""}</div></td>`;
+      } else {
+        html += `<td class="empty month-cell">-</td>`;
+      }
+    });
+    html += `<td><b>₹${row.total}</b></td></tr>`;
+
+    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Payment total ₹${row.total}</div></div><span class="toggle-icon">+</span></div><div class="card-details"><div class="year-list">`;
+    const years = Object.keys(row.years || {}).sort((a,b)=>b-a);
+    years.forEach(year => {
+      const yearData = row.years[year] || { total: 0, months: {} };
+      cardHtml += `<div class="year-block"><div class="year-row" data-year="${year}"><span class="year-label">${year}</span><span class="year-total">₹${yearData.total}</span><span class="year-toggle">+</span></div><div class="year-month-details"><div class="month-grid">`;
+      months.forEach((month, i) => {
+        const monthLabel = month.substring(0,3);
+        const monthValue = yearData.months[i];
+        cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div>${monthValue?.paymentMode ? `<div class="payment-mode">${monthValue.paymentMode}</div>` : ''}<div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
+      });
+      cardHtml += `</div><div class="month-summary">Paid amount: ₹${yearData.total}</div></div></div>`;
+    });
+    cardHtml += `</div></div></div>`;
+  });
+  html += `<tr class="total-row" data-is-total="true"><td colspan="2">TOTAL</td>`;
+  monthlyTotals.forEach(t => { html += `<td>₹${t}</td>`; });
+  html += `<td>-</td></tr>`;
+  updateMonthHeaderTotals(); updateBlockFilterOptions(sortedBlocks); tbody.innerHTML = html; cardContainer.innerHTML = cardHtml; applyFilters();
+}
+function applyFilters() {
+  const searchValue = document.getElementById("search").value.toLowerCase();
+  const selectedBlock = document.getElementById("blockFilter").value;
+  const searchType = document.getElementById("searchType").value;
+  document.querySelectorAll("#table tbody tr").forEach(tr => {
+    if (tr.dataset.isTotal === "true") { tr.style.display = ""; return; }
+    const rowBlock = (tr.dataset.block || "").toLowerCase();
+    const rowFlat = (tr.dataset.flat || "").toLowerCase();
+    const rowText = tr.innerText.toLowerCase();
+    let match = false;
+    if (!searchValue) match = true;
+    else if (searchType === "block") match = rowBlock.includes(searchValue);
+    else if (searchType === "flat") match = rowFlat.includes(searchValue);
+    else if (searchType === "amount") match = rowText.includes(searchValue);
+    else match = rowText.includes(searchValue);
+    tr.style.display = match && (!selectedBlock || rowBlock === selectedBlock.toLowerCase()) ? "" : "none";
+  });
+  document.querySelectorAll("#mobileCards .mobile-card").forEach(card => {
+    const cardBlock = (card.dataset.block || "").toLowerCase();
+    const cardFlat = (card.dataset.flat || "").toLowerCase();
+    const cardText = card.innerText.toLowerCase();
+    let match = false;
+    if (!searchValue) match = true;
+    else if (searchType === "block") match = cardBlock.includes(searchValue);
+    else if (searchType === "flat") match = cardFlat.includes(searchValue);
+    else if (searchType === "amount") match = cardText.includes(searchValue);
+    else match = cardText.includes(searchValue);
+    card.style.display = match && (!selectedBlock || cardBlock === selectedBlock.toLowerCase()) ? "block" : "none";
+  });
+}
+function downloadReport() { let table = document.getElementById("table"); let wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, "Society_Report.xlsx"); }
+document.getElementById("search").addEventListener("input", applyFilters);
+document.getElementById("searchType").addEventListener("change", applyFilters);
+document.getElementById("blockFilter").addEventListener("change", applyFilters);
+const yearFilter = document.getElementById("yearFilter");
+const mobileAllYearsOption = document.createElement("option");
+mobileAllYearsOption.value = "all";
+mobileAllYearsOption.textContent = "ALL YEARS";
+yearFilter.addEventListener("change", fetchAllMonthData);
+function updateYearFilterForMobile() {
+  const hasAll = !!yearFilter.querySelector('option[value="all"]');
+  if (window.innerWidth <= 768) {
+    if (!hasAll) yearFilter.insertBefore(mobileAllYearsOption, yearFilter.firstChild);
+  } else if (hasAll) {
+    if (yearFilter.value === "all") yearFilter.value = DEFAULT_YEAR;
+    yearFilter.removeChild(yearFilter.querySelector('option[value="all"]'));
+  }
+}
+window.addEventListener("resize", updateYearFilterForMobile);
+updateYearFilterForMobile();
+document.getElementById("mobileCards").addEventListener("click", (event) => {
+  const yearRow = event.target.closest(".year-row");
+  if (yearRow) {
+    const details = yearRow.nextElementSibling;
+    if (!details || !details.classList.contains("year-month-details")) return;
+    yearRow.classList.toggle("expanded");
+    details.style.display = yearRow.classList.contains("expanded") ? "block" : "none";
+    const toggle = yearRow.querySelector(".year-toggle");
+    if (toggle) toggle.textContent = yearRow.classList.contains("expanded") ? "−" : "+";
+    return;
+  }
+  const header = event.target.closest(".mobile-card-header");
+  if (!header) return;
+  const card = header.closest(".mobile-card");
+  if (!card) return;
+  card.classList.toggle("expanded");
+  const icon = card.querySelector(".toggle-icon");
+  if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
+});
+document.getElementById("loginForm").addEventListener("submit", handleLogin);
+document.getElementById("logoutBtn").addEventListener("click", logout);
+const profileToggle = document.getElementById("profileToggle");
+const profileDropdown = document.getElementById("profileDropdown");
+if (profileToggle && profileDropdown) {
+  profileToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const visible = profileDropdown.classList.toggle("visible");
+    profileToggle.setAttribute("aria-expanded", visible);
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".profile-menu")) {
+      profileDropdown.classList.remove("visible");
+      profileToggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+document.getElementById("yearFilter").value = DEFAULT_YEAR;
+if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") { showDashboard(); fetchAllMonthData(); } else { showLogin(); }
+</script>
+</body>
+</html>
