@@ -665,7 +665,7 @@ function isAppsScriptRuntime() {
   return !!(window.google && google.script && google.script.run);
 }
 function canUseAdminPayments() {
-  return isAppsScriptRuntime();
+  return true;
 }
 function updateAdminPaymentVisibility() {
   const canUse = canUseAdminPayments();
