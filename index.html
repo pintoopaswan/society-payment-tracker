@@ -88,6 +88,7 @@ th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); min-widt
 th:first-child, td:first-child { width: 80px; min-width: 80px; }
 th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; }
 .month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.editable-payment { cursor: pointer; }
 .paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:3px 8px; border-radius:999px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
 .month-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; white-space: normal; }
@@ -133,6 +134,7 @@ td:nth-child(2) { left: 80px; }
 .payment-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; }
 .payment-save-btn, .payment-cancel-btn { min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
 .payment-save-btn { border: none; background: #2f8d55; color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
+.payment-delete-btn { border: 1px solid #e2a7b0; background: #fff4f6; color: #b00020; min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
 .payment-save-btn:disabled { opacity: 0.65; cursor: wait; }
 .payment-cancel-btn { border: 1px solid #c8d8ea; background: #fff; color: #17314f; }
 #loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 24px; padding: 28px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
@@ -471,6 +473,7 @@ input:focus, select:focus {
       <div class="payment-message" id="paymentMessage"></div>
       <div class="payment-actions">
         <button class="payment-cancel-btn" id="cancelPaymentBtn" type="button">Cancel</button>
+        <button class="payment-delete-btn hidden" id="deletePaymentBtn" type="button">Delete Record</button>
         <button class="payment-save-btn" id="savePaymentBtn" type="submit">Save Payment</button>
       </div>
     </form>
@@ -482,12 +485,14 @@ const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulv
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwFekF7TUXnsa_tMelzwaBSHEEZRZw6hmbqd2ESkwqiqd-A0GTsy9cwLcyLAQpGEtBqbg/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxc0O15I51s5Mmyjz8g6XO8abp2jG23kkN0QY0e4o_gwBJ6MZq9qZKwPXwegk6oNbXG7A/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const paymentMonthLabels = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 const monthSheetNamesByYear = { "2026": months, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
 let groupedData = {}, monthlyTotals = new Array(12).fill(0), processedRecords = new Set(), allBlocks = new Set(), allFlats = {};
+let paymentModalAction = "create";
+let activePaymentEditContext = null;
 function normalizeBlockName(value) { const digits = String(value || "").replace(/[^0-9]/g, ""); return digits ? `Block-${Number(digits)}` : String(value || "").trim(); }
 function resetDataState() { groupedData = {}; monthlyTotals = new Array(12).fill(0); processedRecords = new Set(); allBlocks = new Set(); allFlats = {}; document.querySelector("#table tbody").innerHTML = ""; }
 function showDashboard() { document.getElementById("loginScreen").classList.add("hidden"); document.getElementById("appContent").classList.remove("hidden"); }
@@ -509,7 +514,7 @@ function formatPaidMonthLabel(value) {
   const monthIndex = months.findIndex(month => month === raw || month.substring(0, 3) === raw.substring(0, 3));
   return monthIndex >= 0 ? paymentMonthLabels[monthIndex] : raw;
 }
-function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, paymentModeRaw) {
+function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, paymentModeRaw, receivedByRaw, notesRaw) {
   if (!block || block === "TOTAL" || !flat || !amount) return;
   const normalizedBlock = normalizeBlockName(block);
   const recordId = `${year}-${monthIndex}-${normalizedBlock}-${flat}`;
@@ -539,14 +544,20 @@ function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, 
     date: formattedDate,
     paidMonthsHtml,
     paymentMode,
+    receivedBy: String(receivedByRaw || "").trim(),
+    notes: String(notesRaw || "").trim(),
+    paidMonths: String(paidMonthsRaw || "").trim(),
   };
   groupedData[key].years[year].total += amountNum;
   if (!groupedData[key].months[monthIndex]) {
-    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "", paymentMode: "" };
+    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "", paymentMode: "", receivedBy: "", notes: "", paidMonths: "" };
   }
   groupedData[key].months[monthIndex].amount += amountNum;
   groupedData[key].months[monthIndex].paidMonthsHtml = groupedData[key].months[monthIndex].paidMonthsHtml || paidMonthsHtml;
   groupedData[key].months[monthIndex].paymentMode = groupedData[key].months[monthIndex].paymentMode || paymentMode;
+  groupedData[key].months[monthIndex].receivedBy = groupedData[key].months[monthIndex].receivedBy || String(receivedByRaw || "").trim();
+  groupedData[key].months[monthIndex].notes = groupedData[key].months[monthIndex].notes || String(notesRaw || "").trim();
+  groupedData[key].months[monthIndex].paidMonths = groupedData[key].months[monthIndex].paidMonths || String(paidMonthsRaw || "").trim();
   groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
 }
 async function fetchAllMonthData() {
@@ -565,14 +576,14 @@ async function fetchAllMonthData() {
         if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
         csv.split("\n").slice(1).forEach(r => {
           let cols = parseCSV(r);
-          let block = cols[0], flat = cols[1], amount = cols[2], paymentMode = cols[3], paidMonths = cols[8], date = cols[4], status = cols[5];
+          let block = cols[0], flat = cols[1], amount = cols[2], paymentMode = cols[3], date = cols[4], status = cols[5], receivedBy = cols[6], notes = cols[7], paidMonths = cols[8];
           if(!block || !flat) return;
           const normalizedBlock = normalizeBlockName(block);
           allBlocks.add(normalizedBlock);
           if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
           allFlats[normalizedBlock].add(flat);
           if(!amount || status?.toUpperCase().trim() !== "DONE") return;
-          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths, paymentMode);
+          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths, paymentMode, receivedBy, notes);
         });
       });
     });
@@ -585,6 +596,8 @@ function updateBlockFilterOptions(blocks) { const blockFilter = document.getElem
 function renderTable() {
   let tbody = document.querySelector("#table tbody");
   let cardContainer = document.getElementById("mobileCards");
+  const selectedYearForEdit = document.getElementById("yearFilter").value;
+  const canEditFromWebTable = selectedYearForEdit !== "all";
   const sortedBlocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
   sortedBlocks.forEach(block => {
     const flats = Array.from(allFlats[block] || []).map(f => ({ flat: parseInt(f), display: f })).sort((a,b)=>a.flat-b.flat);
@@ -597,7 +610,9 @@ function renderTable() {
     html += `<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
     months.forEach((_,i)=>{
       if (row.months[i] && row.months[i].amount > 0) {
-        html += `<td class="paid month-cell"><div class="month-cell-content"><div style="font-weight:600;color:#2d3436;">₹${row.months[i].amount}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${row.months[i].date}</div>${row.months[i].paidMonthsHtml || ""}</div></td>`;
+        const cellClass = canEditFromWebTable ? "paid month-cell editable-payment" : "paid month-cell";
+        const editAttrs = canEditFromWebTable ? ` data-action="edit-payment" data-year="${selectedYearForEdit}" data-month-index="${i}" data-block="${row.Block}" data-flat="${row.Flat}"` : "";
+        html += `<td class="${cellClass}"${editAttrs}><div class="month-cell-content"><div style="font-weight:600;color:#2d3436;">₹${row.months[i].amount}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${row.months[i].date}</div>${row.months[i].paidMonthsHtml || ""}</div></td>`;
       } else {
         html += `<td class="empty month-cell">-</td>`;
       }
@@ -612,7 +627,9 @@ function renderTable() {
       months.forEach((month, i) => {
         const monthLabel = month.substring(0,3);
         const monthValue = yearData.months[i];
-        cardHtml += `<div class="month-item"><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div>${monthValue?.paymentMode ? `<div class="payment-mode">${monthValue.paymentMode}</div>` : ''}<div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
+        const monthItemClass = monthValue?.amount ? "month-item editable-payment" : "month-item";
+        const monthItemAttrs = monthValue?.amount ? ` data-action="edit-payment" data-year="${year}" data-month-index="${i}" data-block="${row.Block}" data-flat="${row.Flat}"` : "";
+        cardHtml += `<div class="${monthItemClass}"${monthItemAttrs}><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div>${monthValue?.paymentMode ? `<div class="payment-mode">${monthValue.paymentMode}</div>` : ''}<div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
       });
       cardHtml += `</div><div class="month-summary">Paid amount: ₹${yearData.total}</div></div></div>`;
     });
@@ -755,6 +772,11 @@ function resetPaymentForm() {
   const currentMonth = monthFromInputDate(document.getElementById("paymentDate").value);
   document.querySelectorAll('#paymentMonths input[type="checkbox"]').forEach(input => { input.checked = input.value === currentMonth; });
   updatePaymentMonthSummary();
+  paymentModalAction = "create";
+  activePaymentEditContext = null;
+  document.getElementById("paymentModalTitle").textContent = "Add Payment";
+  document.getElementById("savePaymentBtn").textContent = "Save Payment";
+  document.getElementById("deletePaymentBtn").classList.add("hidden");
 }
 function openPaymentModal({ mode = "web", block = "", flat = "" } = {}) {
   resetPaymentForm();
@@ -763,6 +785,57 @@ function openPaymentModal({ mode = "web", block = "", flat = "" } = {}) {
   overlay.classList.add("visible");
   overlay.setAttribute("aria-hidden", "false");
   setTimeout(() => document.getElementById("paymentAmount").focus(), 0);
+}
+function toInputDateFromDisplay(displayDate) {
+  const parts = String(displayDate || "").split("/");
+  if (parts.length !== 3) return "";
+  const month = String(parts[1]).padStart(2, "0");
+  const day = String(parts[0]).padStart(2, "0");
+  const year = String(parts[2]);
+  return `${year}-${month}-${day}`;
+}
+function findPaymentContext(block, flat, year, monthIndex) {
+  let row = groupedData[`${block}-${flat}`];
+  if (!row) {
+    row = Object.values(groupedData).find(item => item.Block === block && String(item.Flat) === String(flat));
+  }
+  if (!row || !row.years || !row.years[year] || !row.years[year].months[monthIndex]) return null;
+  const monthData = row.years[year].months[monthIndex];
+  return {
+    block,
+    flat: String(flat),
+    year: String(year),
+    monthIndex: Number(monthIndex),
+    amount: Number(monthData.amount || 0),
+    date: monthData.date || "",
+    paymentMode: monthData.paymentMode || "ONLINE",
+    receivedBy: monthData.receivedBy || "",
+    notes: monthData.notes || "",
+    paidMonths: String(monthData.paidMonths || "").split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean),
+  };
+}
+function openPaymentEditModal(context) {
+  if (!context) return;
+  openPaymentModal({ mode: "web" });
+  paymentModalAction = "update";
+  activePaymentEditContext = context;
+  document.getElementById("paymentModalTitle").textContent = "Edit Payment";
+  document.getElementById("savePaymentBtn").textContent = "Update Record";
+  document.getElementById("deletePaymentBtn").classList.remove("hidden");
+  populatePaymentBlockOptions(context.block);
+  populatePaymentFlatOptions(context.block, context.flat);
+  document.getElementById("paymentBlock").value = context.block;
+  document.getElementById("paymentFlat").value = context.flat;
+  document.getElementById("paymentAmount").value = String(context.amount || "");
+  document.getElementById("paymentMode").value = context.paymentMode || "ONLINE";
+  document.getElementById("paymentReceivedBy").value = context.receivedBy || "";
+  document.getElementById("receivedByField").classList.toggle("hidden", (context.paymentMode || "ONLINE") !== "CASH");
+  const inputDate = toInputDateFromDisplay(context.date);
+  if (inputDate) document.getElementById("paymentDate").value = inputDate;
+  document.getElementById("paymentNotes").value = context.notes || "";
+  const selected = new Set((context.paidMonths || []).map(value => formatPaidMonthLabel(value)));
+  document.querySelectorAll('#paymentMonths input[type="checkbox"]').forEach(input => { input.checked = selected.has(input.value); });
+  updatePaymentMonthSummary();
 }
 function closePaymentModal() {
   const overlay = document.getElementById("paymentModalOverlay");
@@ -781,6 +854,7 @@ function getPaymentPayload() {
   const paidMonths = selectedPaymentMonths();
   return {
     secret: PAYMENT_WRITE_SECRET,
+    actionType: paymentModalAction,
     block,
     flatNo,
     amount: Number(document.getElementById("paymentAmount").value),
@@ -812,9 +886,34 @@ function submitPaymentPayload(payload) {
         .savePaymentFromAdmin(payload);
     });
   }
-  return verifyPaymentService().then(() => submitPaymentPayloadViaJsonp(payload));
+  const sameAppUrl = window.location.href.split("?")[0];
+  const isAppsScriptHost = /script\.google\.com|googleusercontent\.com/i.test(window.location.host);
+  if (!isAppsScriptHost) {
+    return submitPaymentPayloadViaJsonp(payload);
+  }
+  return fetch(sameAppUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then(async (response) => {
+    const raw = await response.text();
+    let data = null;
+    try {
+      data = JSON.parse(raw);
+    } catch (parseError) {
+      const looksLikeHtml = /^\s*</.test(raw);
+      if (looksLikeHtml) {
+        throw new Error("Payment service returned HTML instead of JSON. Check Apps Script deployment URL and access settings.");
+      }
+      throw new Error("Payment service returned invalid response.");
+    }
+    if (!response.ok) {
+      throw new Error((data && data.error) || `Payment service returned ${response.status}.`);
+    }
+    return data;
+  });
 }
-function runJsonpRequest(action, payload) {
+function submitPaymentPayloadViaJsonp(payload) {
   return new Promise((resolve, reject) => {
     const callbackName = `paymentWriteCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
     let script;
@@ -829,11 +928,11 @@ function runJsonpRequest(action, payload) {
       resolve(result || { ok: false, error: "Empty response from payment service." });
     };
     const query = new URLSearchParams({
-      action,
+      action: "savePayment",
       callback: callbackName,
+      payload: JSON.stringify(payload),
       _: String(Date.now()),
     });
-    if (payload) query.set("payload", JSON.stringify(payload));
     script = document.createElement("script");
     script.src = `${PAYMENT_WRITE_URL}?${query.toString()}`;
     script.async = true;
@@ -847,15 +946,6 @@ function runJsonpRequest(action, payload) {
     }, 20000);
     document.body.appendChild(script);
   });
-}
-async function verifyPaymentService() {
-  const pingResult = await runJsonpRequest("ping");
-  if (!pingResult || !pingResult.ok) {
-    throw new Error((pingResult && pingResult.error) || "Payment service ping failed.");
-  }
-}
-function submitPaymentPayloadViaJsonp(payload) {
-  return runJsonpRequest("savePayment", payload);
 }
 async function savePayment(event) {
   event.preventDefault();
@@ -877,6 +967,28 @@ async function savePayment(event) {
     saveBtn.disabled = false;
   }
 }
+async function deletePayment() {
+  if (!activePaymentEditContext) return;
+  const payload = getPaymentPayload();
+  payload.actionType = "delete";
+  const saveBtn = document.getElementById("savePaymentBtn");
+  const deleteBtn = document.getElementById("deletePaymentBtn");
+  saveBtn.disabled = true;
+  deleteBtn.disabled = true;
+  setPaymentMessage("Deleting payment...");
+  try {
+    const result = await submitPaymentPayload(payload);
+    if (!result.ok) throw new Error(result.error || "Unable to delete payment.");
+    setPaymentMessage("Payment deleted successfully.", true);
+    await fetchAllMonthData();
+    setTimeout(closePaymentModal, 650);
+  } catch (error) {
+    setPaymentMessage(error.message || "Unable to delete payment.");
+  } finally {
+    saveBtn.disabled = false;
+    deleteBtn.disabled = false;
+  }
+}
 document.getElementById("search").addEventListener("input", applyFilters);
 document.getElementById("searchType").addEventListener("change", applyFilters);
 document.getElementById("blockFilter").addEventListener("change", applyFilters);
@@ -884,6 +996,7 @@ document.getElementById("openPaymentModalBtn").addEventListener("click", () => o
 document.getElementById("openPaymentModalMobileBtn").addEventListener("click", () => openPaymentModal({ mode: "web" }));
 document.getElementById("closePaymentModalBtn").addEventListener("click", closePaymentModal);
 document.getElementById("cancelPaymentBtn").addEventListener("click", closePaymentModal);
+document.getElementById("deletePaymentBtn").addEventListener("click", deletePayment);
 document.getElementById("paymentForm").addEventListener("submit", savePayment);
 document.getElementById("paymentBlock").addEventListener("change", (event) => populatePaymentFlatOptions(event.target.value));
 document.getElementById("paymentMode").addEventListener("change", (event) => {
@@ -913,6 +1026,18 @@ document.addEventListener("click", (event) => {
 document.getElementById("paymentModalOverlay").addEventListener("click", (event) => {
   if (event.target.id === "paymentModalOverlay") closePaymentModal();
 });
+document.querySelector("#table tbody").addEventListener("click", (event) => {
+  const target = event.target.closest('[data-action="edit-payment"]');
+  if (!target) return;
+  const context = findPaymentContext(
+    target.dataset.block || "",
+    target.dataset.flat || "",
+    target.dataset.year || "",
+    Number(target.dataset.monthIndex || -1)
+  );
+  if (!context) return;
+  openPaymentEditModal(context);
+});
 const yearFilter = document.getElementById("yearFilter");
 const mobileAllYearsOption = document.createElement("option");
 mobileAllYearsOption.value = "all";
@@ -930,6 +1055,18 @@ function updateYearFilterForMobile() {
 window.addEventListener("resize", updateYearFilterForMobile);
 updateYearFilterForMobile();
 document.getElementById("mobileCards").addEventListener("click", (event) => {
+  const editableItem = event.target.closest('[data-action="edit-payment"]');
+  if (editableItem) {
+    event.stopPropagation();
+    const context = findPaymentContext(
+      editableItem.dataset.block || "",
+      editableItem.dataset.flat || "",
+      editableItem.dataset.year || "",
+      Number(editableItem.dataset.monthIndex || -1)
+    );
+    if (context) openPaymentEditModal(context);
+    return;
+  }
   const yearRow = event.target.closest(".year-row");
   if (yearRow) {
     const details = yearRow.nextElementSibling;

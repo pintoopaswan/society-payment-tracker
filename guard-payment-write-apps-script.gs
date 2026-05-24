@@ -44,7 +44,7 @@ function handlePingRequest(e) {
 
 function savePaymentFromAdmin(payload) {
   assertAllowedUser();
-  return savePaymentPayload(payload);
+  return handlePaymentMutation(payload);
 }
 
 function doPost(e) {
@@ -53,7 +53,7 @@ function doPost(e) {
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
     }
-    return jsonResponse(savePaymentPayload(payload));
+    return jsonResponse(handlePaymentMutation(payload));
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
   }
@@ -73,7 +73,7 @@ function handleApiSaveRequest(e) {
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       result = { ok: false, error: "Unauthorized" };
     } else {
-      result = savePaymentPayload(payload);
+      result = handlePaymentMutation(payload);
     }
   } catch (error) {
     result = { ok: false, error: error.message };
@@ -94,6 +94,13 @@ function parseApiPayload(payloadParam) {
   } catch (error) {
     return JSON.parse(decodeURIComponent(raw));
   }
+}
+
+function handlePaymentMutation(payload) {
+  const actionType = String(payload.actionType || "create").trim().toLowerCase();
+  if (actionType === "update") return updatePaymentPayload(payload);
+  if (actionType === "delete") return deletePaymentPayload(payload);
+  return savePaymentPayload(payload);
 }
 
 function savePaymentPayload(payload) {
@@ -157,6 +164,91 @@ function savePaymentPayload(payload) {
   }
 
   return { ok: true, sheetName: sheetName, updatedRow: targetRow };
+}
+
+function updatePaymentPayload(payload) {
+  const sheetName = getSheetNameFromPaymentDate(payload.paymentDateInput);
+  if (!sheetName) {
+    return { ok: false, error: "Invalid payment date." };
+  }
+
+  const amount = Number(payload.amount || 0);
+  if (!payload.block || !payload.flatNo || !amount || amount % 1 !== 0) {
+    return { ok: false, error: "Block, flat number, and whole-number amount are required." };
+  }
+
+  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || []);
+  if (!submittedPaidMonths.length) {
+    return { ok: false, error: "Paid months are required." };
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    return { ok: false, error: "Missing sheet tab: " + sheetName };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
+    if (!targetRow) {
+      return {
+        ok: false,
+        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
+      };
+    }
+
+    const updatedRemarks = String(payload.notes || "").trim();
+    sheet.getRange(targetRow, 3, 1, 7).setValues([[
+      amount,
+      payload.paymentMode || "",
+      toSheetDate(payload.paymentDateInput),
+      "DONE",
+      payload.receivedBy || "",
+      updatedRemarks,
+      submittedPaidMonths.join(" "),
+    ]]);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "update" };
+}
+
+function deletePaymentPayload(payload) {
+  const sheetName = getSheetNameFromPaymentDate(payload.paymentDateInput);
+  if (!sheetName) {
+    return { ok: false, error: "Invalid payment date." };
+  }
+  if (!payload.block || !payload.flatNo) {
+    return { ok: false, error: "Block and flat number are required." };
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    return { ok: false, error: "Missing sheet tab: " + sheetName };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
+    if (!targetRow) {
+      return {
+        ok: false,
+        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
+      };
+    }
+    sheet.getRange(targetRow, 3, 1, 7).clearContent();
+  } finally {
+    lock.releaseLock();
+  }
+
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete" };
 }
 
 function assertAllowedUser() {
