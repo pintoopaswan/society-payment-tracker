@@ -131,6 +131,17 @@ td:nth-child(2) { left: 80px; }
 .payment-hint { color: #6a7a8c; font-size: 0.72rem; line-height: 1.25; }
 .payment-message { grid-column: 1 / -1; min-height: 18px; color: #b00020; font-weight: 700; font-size: 0.85rem; }
 .payment-message.success { color: #246c41; }
+.message-modal-overlay { position: fixed; inset: 0; z-index: 240; background: rgba(12, 25, 42, 0.48); display: none; align-items: center; justify-content: center; padding: 18px; }
+.message-modal-overlay.visible { display: flex; }
+.message-modal { width: min(420px, 100%); background: #fff; border-radius: 14px; box-shadow: 0 22px 50px rgba(12, 25, 42, 0.28); border: 1px solid #e5eaf0; overflow: hidden; }
+.message-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #ecf0f5; background: #f8fbff; }
+.message-modal-title { font-weight: 800; color: #17314f; font-size: 0.98rem; }
+.message-modal-close { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #d1dbe6; background: #fff; color: #1f314a; font-size: 1rem; cursor: pointer; line-height: 1; }
+.message-modal-body { padding: 16px 14px 14px; color: #2a3f57; font-weight: 700; line-height: 1.45; }
+.message-modal-actions { display: flex; justify-content: flex-end; padding: 0 14px 14px; }
+.message-modal-ok { min-height: 38px; border: none; border-radius: 9px; padding: 0 16px; font-weight: 800; cursor: pointer; background: #1f5ea8; color: #fff; }
+.message-modal.success .message-modal-title { color: #1f6d42; }
+.message-modal.error .message-modal-title { color: #8f001a; }
 .payment-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; }
 .payment-save-btn, .payment-cancel-btn { min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
 .payment-save-btn { border: none; background: #2f8d55; color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
@@ -479,13 +490,25 @@ input:focus, select:focus {
     </form>
   </div>
 </div>
+<div id="messageModalOverlay" class="message-modal-overlay" aria-hidden="true">
+  <div id="messageModal" class="message-modal error" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
+    <div class="message-modal-header">
+      <div id="messageModalTitle" class="message-modal-title">Message</div>
+      <button id="messageModalCloseBtn" class="message-modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="messageModalBody" class="message-modal-body"></div>
+    <div class="message-modal-actions">
+      <button id="messageModalOkBtn" class="message-modal-ok" type="button">OK</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxc0O15I51s5Mmyjz8g6XO8abp2jG23kkN0QY0e4o_gwBJ6MZq9qZKwPXwegk6oNbXG7A/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbz04sTGzbddL7rNtYkR9n_Bt7HN7JXpVNaLFXxjZ76p1hEJ59afLrtE9TltW4Ame5bzcA/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const paymentMonthLabels = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -714,6 +737,23 @@ function setPaymentMessage(message, isSuccess = false) {
   const messageEl = document.getElementById("paymentMessage");
   messageEl.textContent = message;
   messageEl.classList.toggle("success", isSuccess);
+}
+function showMessageModal(message, isSuccess = false) {
+  const overlay = document.getElementById("messageModalOverlay");
+  const modal = document.getElementById("messageModal");
+  const title = document.getElementById("messageModalTitle");
+  const body = document.getElementById("messageModalBody");
+  modal.classList.toggle("success", isSuccess);
+  modal.classList.toggle("error", !isSuccess);
+  title.textContent = isSuccess ? "Success" : "Error";
+  body.textContent = message;
+  overlay.classList.add("visible");
+  overlay.setAttribute("aria-hidden", "false");
+}
+function closeMessageModal() {
+  const overlay = document.getElementById("messageModalOverlay");
+  overlay.classList.remove("visible");
+  overlay.setAttribute("aria-hidden", "true");
 }
 function populatePaymentMonths() {
   const monthGroup = document.getElementById("paymentMonths");
@@ -959,10 +999,12 @@ async function savePayment(event) {
     const result = await submitPaymentPayload(payload);
     if (!result.ok) throw new Error(result.error || "Unable to save payment.");
     setPaymentMessage("Payment saved successfully.", true);
+    showMessageModal(paymentModalAction === "update" ? "Payment updated successfully." : "Payment saved successfully.", true);
     await fetchAllMonthData();
     setTimeout(closePaymentModal, 650);
   } catch (error) {
     setPaymentMessage(error.message || "Unable to save payment.");
+    showMessageModal(error.message || "Unable to save payment.");
   } finally {
     saveBtn.disabled = false;
   }
@@ -980,10 +1022,12 @@ async function deletePayment() {
     const result = await submitPaymentPayload(payload);
     if (!result.ok) throw new Error(result.error || "Unable to delete payment.");
     setPaymentMessage("Payment deleted successfully.", true);
+    showMessageModal("Payment deleted successfully.", true);
     await fetchAllMonthData();
     setTimeout(closePaymentModal, 650);
   } catch (error) {
     setPaymentMessage(error.message || "Unable to delete payment.");
+    showMessageModal(error.message || "Unable to delete payment.");
   } finally {
     saveBtn.disabled = false;
     deleteBtn.disabled = false;
@@ -997,6 +1041,8 @@ document.getElementById("openPaymentModalMobileBtn").addEventListener("click", (
 document.getElementById("closePaymentModalBtn").addEventListener("click", closePaymentModal);
 document.getElementById("cancelPaymentBtn").addEventListener("click", closePaymentModal);
 document.getElementById("deletePaymentBtn").addEventListener("click", deletePayment);
+document.getElementById("messageModalCloseBtn").addEventListener("click", closeMessageModal);
+document.getElementById("messageModalOkBtn").addEventListener("click", closeMessageModal);
 document.getElementById("paymentForm").addEventListener("submit", savePayment);
 document.getElementById("paymentBlock").addEventListener("change", (event) => populatePaymentFlatOptions(event.target.value));
 document.getElementById("paymentMode").addEventListener("change", (event) => {
@@ -1025,6 +1071,9 @@ document.addEventListener("click", (event) => {
 });
 document.getElementById("paymentModalOverlay").addEventListener("click", (event) => {
   if (event.target.id === "paymentModalOverlay") closePaymentModal();
+});
+document.getElementById("messageModalOverlay").addEventListener("click", (event) => {
+  if (event.target.id === "messageModalOverlay") closeMessageModal();
 });
 document.querySelector("#table tbody").addEventListener("click", (event) => {
   const target = event.target.closest('[data-action="edit-payment"]');

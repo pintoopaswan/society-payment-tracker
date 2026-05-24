@@ -290,9 +290,43 @@ function buildPaymentRemark(inputDate, amount) {
 
 function normalizePaidMonths(value) {
   const rawMonths = Array.isArray(value) ? value : String(value || "").split(/[,;|\/]+|\s+/);
-  return rawMonths
-    .map(function(month) { return normalizePaidMonthLabel(month); })
-    .filter(Boolean);
+  const expanded = [];
+  rawMonths.forEach(function(month) {
+    splitCombinedMonthLabels(month).forEach(function(label) { expanded.push(label); });
+  });
+  const unique = {};
+  expanded.forEach(function(month) { unique[month] = true; });
+  return PAID_MONTH_LABELS.filter(function(month) { return !!unique[month]; });
+}
+
+function splitCombinedMonthLabels(value) {
+  const direct = normalizePaidMonthLabel(value);
+  if (direct) return [direct];
+
+  const raw = String(value || "").trim().toUpperCase();
+  if (!raw) return [];
+  const compact = raw.replace(/[^A-Z]/g, "");
+  if (!compact) return [];
+
+  const found = [];
+  if (compact.length % 3 === 0) {
+    for (var i = 0; i < compact.length; i += 3) {
+      const label = normalizePaidMonthLabel(compact.substring(i, i + 3));
+      if (label) found.push(label);
+    }
+    if (found.length && found.length * 3 === compact.length) {
+      return found;
+    }
+  }
+
+  for (var index = 0; index < PAID_MONTH_LABELS.length; index++) {
+    var shortLabel = PAID_MONTH_LABELS[index];
+    var fullLabel = MONTHS[index];
+    if (compact.indexOf(fullLabel) >= 0 || compact.indexOf(shortLabel) >= 0) {
+      found.push(shortLabel);
+    }
+  }
+  return found;
 }
 
 function normalizePaidMonthLabel(value) {
