@@ -54,6 +54,10 @@ input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; bor
 .payment-add-icon::after { width: 3px; height: 18px; }
 .payment-add-icon:hover { background: #d9f1e3; }
 .payment-add-text { display: none; }
+.payment-contact-icon { width: 44px; height: 44px; color: #60636a; background: #fff; border: 2px solid #c9ccd2; border-radius: 50%; position: relative; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; }
+.payment-contact-icon::before { content: ""; position: absolute; top: 9px; left: 50%; width: 13px; height: 13px; border: 3px solid currentColor; border-radius: 50%; transform: translateX(-50%); }
+.payment-contact-icon::after { content: ""; position: absolute; left: 50%; bottom: 9px; width: 24px; height: 12px; border: 3px solid currentColor; border-bottom: 0; border-radius: 999px 999px 0 0; transform: translateX(-50%); }
+.mobile-payment-actions { display: none; }
 .toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
 .toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
 .toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
@@ -265,7 +269,9 @@ input:focus, select:focus {
   #logoutBtn { width: 100%; }
   .top-bar { flex-direction: column; align-items: stretch; margin: 0 18px 22px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
   .search-controls { flex-direction: column; align-items: stretch; gap: 12px; }
-  .add-payment-btn { display: none; }
+  .top-bar .add-payment-btn { display: none; }
+  .mobile-payment-actions { display: flex; justify-content: flex-end; padding: 0 18px 12px; }
+  .mobile-payment-actions .add-payment-btn { display: inline-flex; margin-left: 0; }
   .top-bar input, .top-bar select {
     width: 100%;
     max-width: none;
@@ -292,6 +298,9 @@ input:focus, select:focus {
   .payment-add-icon::before { left: 15px; width: 13px; height: 2px; }
   .payment-add-icon::after { left: 20.5px; width: 2px; height: 13px; }
   .payment-add-text { display: inline; color: #246c41; }
+  .payment-contact-icon { width: 40px; height: 40px; }
+  .payment-contact-icon::before { top: 8px; width: 12px; height: 12px; border-width: 2px; }
+  .payment-contact-icon::after { bottom: 8px; width: 22px; height: 11px; border-width: 2px; border-bottom: 0; }
   .payment-modal-overlay { align-items: flex-end; padding: 0; }
   .payment-modal { width: 100%; max-height: 94vh; border-radius: 22px 22px 0 0; }
   .payment-modal-header { padding: 18px 18px 14px; }
@@ -316,6 +325,7 @@ input:focus, select:focus {
   .main-menu { gap: 0; }
   .main-menu a { font-size: 0.9rem; padding: 18px 8px 14px; }
   .top-bar { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .mobile-payment-actions { padding-left: 16px; padding-right: 16px; }
   .card-list { padding-left: 16px; padding-right: 16px; }
   .mobile-card { border-radius: 18px; padding: 16px 18px; }
   .mobile-card-header .title { font-size: 0.98rem; }
@@ -327,7 +337,7 @@ input:focus, select:focus {
 </style>
 </head>
 <body>
-<div id="loginScreen">
+<div id="loginScreen" class="hidden">
   <h3>Authorized Access</h3>
   <p style="margin:10px 0 14px; color:#4c6178;">Please sign in to open the guard payment dashboard.</p>
   <form id="loginForm">
@@ -405,6 +415,9 @@ input:focus, select:focus {
       <tbody></tbody>
     </table>
   </div>
+  <div class="mobile-payment-actions">
+    <button class="add-payment-btn" id="openPaymentModalMobileBtn" type="button">+ Add Payment</button>
+  </div>
   <div id="mobileCards" class="card-list"></div>
 </div>
 
@@ -469,7 +482,7 @@ const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulv
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxI0hyV1g8LsReNwQoYEEES2c1o4C_T6YCOuSzD_v1eT6Qzmga3KayRsgyHw64zG1WvzQ/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwFekF7TUXnsa_tMelzwaBSHEEZRZw6hmbqd2ESkwqiqd-A0GTsy9cwLcyLAQpGEtBqbg/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const paymentMonthLabels = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -572,7 +585,6 @@ function updateBlockFilterOptions(blocks) { const blockFilter = document.getElem
 function renderTable() {
   let tbody = document.querySelector("#table tbody");
   let cardContainer = document.getElementById("mobileCards");
-  const showPaymentActions = canUseAdminPayments();
   const sortedBlocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
   sortedBlocks.forEach(block => {
     const flats = Array.from(allFlats[block] || []).map(f => ({ flat: parseInt(f), display: f })).sort((a,b)=>a.flat-b.flat);
@@ -592,8 +604,7 @@ function renderTable() {
     });
     html += `<td><b>₹${row.total}</b></td></tr>`;
 
-    const paymentActionHtml = showPaymentActions ? `<button class="payment-add-icon" type="button" data-block="${row.Block}" data-flat="${row.Flat}" aria-label="Add payment for ${row.Block} Flat ${row.Flat}"><span class="payment-add-text">Add Payment</span></button>` : "";
-    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Payment total ₹${row.total}</div></div>${paymentActionHtml}</div><div class="card-details"><div class="year-list">`;
+    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Payment total ₹${row.total}</div></div><span class="payment-contact-icon" aria-hidden="true"></span></div><div class="card-details"><div class="year-list">`;
     const years = Object.keys(row.years || {}).sort((a,b)=>b-a);
     years.forEach(year => {
       const yearData = row.years[year] || { total: 0, months: {} };
@@ -801,7 +812,50 @@ function submitPaymentPayload(payload) {
         .savePaymentFromAdmin(payload);
     });
   }
-  return Promise.reject(new Error("Open the protected Google Apps Script admin URL to add payments."));
+  return verifyPaymentService().then(() => submitPaymentPayloadViaJsonp(payload));
+}
+function runJsonpRequest(action, payload) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `paymentWriteCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    let script;
+    let timeoutId;
+    const cleanup = () => {
+      if (window[callbackName]) delete window[callbackName];
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+    window[callbackName] = (result) => {
+      cleanup();
+      resolve(result || { ok: false, error: "Empty response from payment service." });
+    };
+    const query = new URLSearchParams({
+      action,
+      callback: callbackName,
+      _: String(Date.now()),
+    });
+    if (payload) query.set("payload", JSON.stringify(payload));
+    script = document.createElement("script");
+    script.src = `${PAYMENT_WRITE_URL}?${query.toString()}`;
+    script.async = true;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Payment service URL is unreachable or blocked."));
+    };
+    timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("Payment service did not respond in time."));
+    }, 20000);
+    document.body.appendChild(script);
+  });
+}
+async function verifyPaymentService() {
+  const pingResult = await runJsonpRequest("ping");
+  if (!pingResult || !pingResult.ok) {
+    throw new Error((pingResult && pingResult.error) || "Payment service ping failed.");
+  }
+}
+function submitPaymentPayloadViaJsonp(payload) {
+  return runJsonpRequest("savePayment", payload);
 }
 async function savePayment(event) {
   event.preventDefault();
@@ -827,6 +881,7 @@ document.getElementById("search").addEventListener("input", applyFilters);
 document.getElementById("searchType").addEventListener("change", applyFilters);
 document.getElementById("blockFilter").addEventListener("change", applyFilters);
 document.getElementById("openPaymentModalBtn").addEventListener("click", () => openPaymentModal({ mode: "web" }));
+document.getElementById("openPaymentModalMobileBtn").addEventListener("click", () => openPaymentModal({ mode: "web" }));
 document.getElementById("closePaymentModalBtn").addEventListener("click", closePaymentModal);
 document.getElementById("cancelPaymentBtn").addEventListener("click", closePaymentModal);
 document.getElementById("paymentForm").addEventListener("submit", savePayment);
@@ -875,16 +930,6 @@ function updateYearFilterForMobile() {
 window.addEventListener("resize", updateYearFilterForMobile);
 updateYearFilterForMobile();
 document.getElementById("mobileCards").addEventListener("click", (event) => {
-  const addPaymentButton = event.target.closest(".payment-add-icon");
-  if (addPaymentButton) {
-    event.stopPropagation();
-    openPaymentModal({
-      mode: "mobile",
-      block: addPaymentButton.dataset.block || "",
-      flat: addPaymentButton.dataset.flat || "",
-    });
-    return;
-  }
   const yearRow = event.target.closest(".year-row");
   if (yearRow) {
     const details = yearRow.nextElementSibling;
@@ -903,8 +948,7 @@ document.getElementById("mobileCards").addEventListener("click", (event) => {
   const icon = card.querySelector(".toggle-icon");
   if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
 });
-document.getElementById("loginForm").addEventListener("submit", handleLogin);
-document.getElementById("logoutBtn").addEventListener("click", logout);
+document.getElementById("logoutBtn").addEventListener("click", () => { window.location.href = "https://accounts.google.com/Logout"; });
 const profileToggle = document.getElementById("profileToggle");
 const profileDropdown = document.getElementById("profileDropdown");
 if (profileToggle && profileDropdown) {
@@ -923,7 +967,8 @@ if (profileToggle && profileDropdown) {
 document.getElementById("paymentDate").max = getTodayInputValue();
 updateAdminPaymentVisibility();
 document.getElementById("yearFilter").value = DEFAULT_YEAR;
-if (sessionStorage.getItem(AUTH_SESSION_KEY) === "true") { showDashboard(); fetchAllMonthData(); } else { showLogin(); }
+showDashboard();
+fetchAllMonthData();
 </script>
 </body>
 </html>

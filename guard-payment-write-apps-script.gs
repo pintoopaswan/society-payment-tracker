@@ -4,7 +4,13 @@ const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 
-function doGet() {
+function doGet(e) {
+  if (isPingRequest(e)) {
+    return handlePingRequest(e);
+  }
+  if (isApiSaveRequest(e)) {
+    return handleApiSaveRequest(e);
+  }
   const email = getSignedInEmail();
   if (!isAllowedEmail(email)) {
     return HtmlService
@@ -14,9 +20,26 @@ function doGet() {
   }
 
   return HtmlService
-    .createHtmlOutputFromFile("admin-index")
-    .setTitle("MIG Society Admin")
+    .createHtmlOutputFromFile("index")
+    .setTitle("MIG Society Guard Payment Dashboard")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function isPingRequest(e) {
+  const params = (e && e.parameter) || {};
+  return String(params.action || "").toLowerCase() === "ping";
+}
+
+function handlePingRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const result = { ok: true, status: "alive", service: "guard-payment-write", time: new Date().toISOString() };
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
 }
 
 function savePaymentFromAdmin(payload) {
@@ -26,7 +49,6 @@ function savePaymentFromAdmin(payload) {
 
 function doPost(e) {
   try {
-    assertAllowedUser();
     const payload = JSON.parse(e.postData.contents || "{}");
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
@@ -34,6 +56,43 @@ function doPost(e) {
     return jsonResponse(savePaymentPayload(payload));
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
+  }
+}
+
+function isApiSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  return String(params.action || "").toLowerCase() === "savepayment";
+}
+
+function handleApiSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const payload = parseApiPayload(params.payload);
+  let result;
+  try {
+    if (payload.secret !== PAYMENT_WRITE_SECRET) {
+      result = { ok: false, error: "Unauthorized" };
+    } else {
+      result = savePaymentPayload(payload);
+    }
+  } catch (error) {
+    result = { ok: false, error: error.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+function parseApiPayload(payloadParam) {
+  const raw = String(payloadParam || "").trim();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    return JSON.parse(decodeURIComponent(raw));
   }
 }
 
