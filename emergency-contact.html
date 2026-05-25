@@ -15,19 +15,27 @@
   --ink: #17314f;
   --mobile-ink: #14313b;
   --call: #50af49;
+  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --accent: #1f5ea8;
+  --accent-soft: #dfefff;
+  --accent-text: #214d7c;
+  --success: #3da765;
+  --success-soft: #e4f7eb;
+  --success-text: #1d6f45;
+  --success-border: #b9e0c8;
 }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--ink); min-height: 100vh; padding: 20px; }
 .container { max-width: 1200px; margin: 0 auto; }
-.app-header { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); text-align: center; }
-.app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
-.app-header p { color: #0066cc; font-size: 1.3rem; font-weight: 500; }
+.app-header { background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 18px 40px rgba(13, 36, 66, 0.22); text-align: center; }
+.app-header h1 { color: #fff; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.app-header p { color: #fff; font-size: 1rem; font-weight: 700; opacity: 0.92; letter-spacing: 0.03em; text-transform: uppercase; }
 .nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
 .mobile-brand-row { display: none; }
 .mobile-menu-mark { display: none; }
 .main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
 .main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
 .main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
-.main-menu a.active { background: #1f5ea8; border-color: #1f5ea8; color: #fff; }
+.main-menu a.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 #logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
 .profile-menu { position: relative; }
 .profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
@@ -46,8 +54,17 @@ th { color: #17314f; background: #f4f8fc; text-transform: uppercase; font-size: 
 td { color: #1d3249; font-size: 0.95rem; }
 tr:last-child td { border-bottom: 0; }
 .number-link { color: #1f5ea8; font-weight: 700; text-decoration: none; }
+.desktop-call { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; min-width: 78px; border-radius: 999px; background: var(--success-soft); color: var(--success-text); font-weight: 800; text-decoration: none; border: 1px solid var(--success-border); font-size: 0.82rem; }
+.desktop-call.disabled { background: #f0f2f5; border-color: #dee3ea; color: #8a95a3; pointer-events: none; }
 .empty-state { background: #fff; border: 1px solid #dde6f2; border-radius: 12px; padding: 28px; color: #567; text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
 .mobile-page-header, .contact-tabs, .mobile-contact-list { display: none; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; margin: 0 0 14px; }
+.metric-card { background: #fff; border: 1px solid #d8e4ef; border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(16, 42, 72, 0.08); }
+.metric-label { font-size: 0.74rem; color: #486481; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.metric-value { margin-top: 6px; font-size: 1.3rem; font-weight: 800; color: #16324f; }
+.metric-sub { margin-top: 3px; color: #6a7d91; font-size: 0.82rem; font-weight: 600; }
+.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-text); }
+.main-menu a.active .menu-badge { background: rgba(255,255,255,0.24); color: #fff; }
 .contact-icon, .call-button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
 .contact-icon { width: 44px; height: 44px; color: #60636a; background: #fff; border: 2px solid #c9ccd2; position: relative; }
 .contact-icon::before { content: ""; position: absolute; top: 9px; left: 50%; width: 13px; height: 13px; border: 3px solid currentColor; border-radius: 50%; transform: translateX(-50%); }
@@ -56,8 +73,9 @@ tr:last-child td { border-bottom: 0; }
 .call-button { width: 58px; height: 58px; background: var(--call); color: #fff; text-decoration: none; font-size: 1.8rem; line-height: 1; }
 .call-button.disabled { background: #d7dce2; pointer-events: none; }
 @media (max-width: 768px) {
-  body { padding: 0; background: #fff; color: #242424; }
+  body { padding: 0; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: #242424; }
   .container { max-width: none; }
+  .nav-shell { position: sticky; top: 0; z-index: 40; }
   .app-header, .nav-shell, .meta, .sections { display: none; }
   .error { padding: 16px 18px; margin: 0; font-size: 0.95rem; }
   .mobile-page-header {
@@ -66,18 +84,19 @@ tr:last-child td { border-bottom: 0; }
     align-items: center;
     min-height: 78px;
     padding: 14px 18px 10px;
-    border-bottom: 1px solid #d9d9d9;
-    background: #fff;
+    border-bottom: 0;
+    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
+    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
   }
-  .back-link { color: var(--mobile-ink); text-decoration: none; font-size: 3rem; line-height: 1; font-weight: 300; transform: translateY(-2px); }
-  .mobile-page-title { text-align: center; color: var(--mobile-ink); font-size: 1.45rem; font-weight: 800; letter-spacing: 0; }
+  .back-link { color: #fff; text-decoration: none; font-size: 3rem; line-height: 1; font-weight: 300; transform: translateY(-2px); }
+  .mobile-page-title { text-align: center; color: #fff; font-size: 1.2rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
   .contact-tabs {
     position: relative;
     display: flex;
     overflow-x: auto;
     gap: 0;
-    padding: 24px 28px 0;
-    background: #fff;
+    padding: 16px 18px 0;
+    background: #f7fbff;
     scrollbar-width: none;
   }
   .contact-tabs::after {
@@ -93,11 +112,11 @@ tr:last-child td { border-bottom: 0; }
   .contact-tab {
     position: relative;
     flex: 0 0 50%;
-    min-width: 178px;
+    min-width: 164px;
     border: 0;
     background: #fff;
     color: #252525;
-    padding: 0 8px 24px;
+    padding: 0 8px 16px;
     font-size: 1.08rem;
     font-weight: 650;
     text-align: center;
@@ -113,19 +132,30 @@ tr:last-child td { border-bottom: 0; }
     background: var(--mobile-ink);
     z-index: 1;
   }
-  .mobile-contact-list { display: block; padding: 44px 18px 0; background: #fff; }
+  .mobile-contact-list { display: block; padding: 20px 16px 8px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
   .mobile-contact-row {
     display: grid;
-    grid-template-columns: 54px minmax(0, 1fr) 58px;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
-    padding: 0 0 18px;
-    margin-bottom: 18px;
-    border-bottom: 1px solid #ececec;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #dde8f3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(17, 42, 70, 0.07);
+    transition: transform 180ms var(--ease-standard), box-shadow 180ms var(--ease-standard);
   }
-  .mobile-contact-name { color: #202124; font-size: 1.1rem; line-height: 1.2; font-weight: 500; overflow-wrap: anywhere; }
-  .mobile-contact-block { color: #5e5e5e; font-size: 0.92rem; line-height: 1.25; margin-top: 5px; overflow-wrap: anywhere; }
-  .call-button { width: 48px; height: 48px; font-size: 1.45rem; }
+  .mobile-contact-row:active { transform: scale(0.995); box-shadow: 0 6px 14px rgba(17, 42, 70, 0.09); }
+  .mobile-contact-name { color: #173a63; font-size: 1rem; line-height: 1.2; font-weight: 800; overflow-wrap: anywhere; }
+  .mobile-contact-block { color: #5e5e5e; font-size: 0.86rem; line-height: 1.25; margin-top: 6px; overflow-wrap: anywhere; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .contact-icon { width: 40px; height: 40px; border-width: 1px; background: #f2f7fc; color: #5f6f81; }
+  .contact-icon::before { top: 9px; width: 10px; height: 10px; border-width: 2px; }
+  .contact-icon::after { bottom: 9px; width: 18px; height: 9px; border-width: 2px; border-bottom: 0; }
+  .call-button { width: auto; height: 36px; font-size: 0.82rem; font-weight: 800; border-radius: 999px; padding: 0 12px; background: var(--success); min-width: 68px; }
+  .call-button::after { content: "Call"; margin-left: 6px; }
+  .call-button.disabled::after { content: "N/A"; margin-left: 0; }
+  .dashboard-metrics { display: none; }
 }
 @media (max-width: 560px) {
   .mobile-page-header { grid-template-columns: 44px 1fr 44px; min-height: 76px; padding-left: 16px; padding-right: 16px; }
@@ -133,13 +163,11 @@ tr:last-child td { border-bottom: 0; }
   .contact-tabs { padding-left: 18px; padding-right: 18px; }
   .contact-tabs::after { left: 18px; right: 18px; }
   .contact-tab { min-width: 160px; font-size: 1rem; }
-  .mobile-contact-list { padding: 38px 16px 0; }
-  .mobile-contact-row { grid-template-columns: 50px minmax(0, 1fr) 54px; gap: 9px; padding-bottom: 16px; margin-bottom: 16px; }
-  .contact-icon { width: 40px; height: 40px; }
-  .contact-icon::before { top: 8px; width: 12px; height: 12px; border-width: 2px; }
-  .contact-icon::after { bottom: 8px; width: 22px; height: 11px; border-width: 2px; border-bottom: 0; }
-  .call-button { width: 46px; height: 46px; font-size: 1.35rem; }
-  .mobile-contact-name { font-size: 1.02rem; }
+  .mobile-contact-list { padding: 16px 14px 8px; }
+  .mobile-contact-row { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; padding: 10px; margin-bottom: 9px; }
+  .contact-icon { width: 36px; height: 36px; }
+  .call-button { height: 34px; font-size: 0.78rem; padding: 0 10px; min-width: 62px; }
+  .mobile-contact-name { font-size: 0.96rem; }
 }
 </style>
 </head>
@@ -158,7 +186,7 @@ tr:last-child td { border-bottom: 0; }
     <ul class="main-menu">
       <li><a href="index.html">Payments</a></li>
       <li><a href="owner-tenant.html">Residents</a></li>
-      <li><a class="active" href="emergency-contact.html">Emergency Contact</a></li>
+      <li><a class="active" href="emergency-contact.html">Emergency Contact <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
     </ul>
     <div class="profile-menu">
       <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
@@ -174,6 +202,12 @@ tr:last-child td { border-bottom: 0; }
     <div></div>
   </div>
   <div class="contact-tabs" id="contactTabs"></div>
+  <div class="dashboard-metrics">
+    <div class="metric-card"><div class="metric-label">Total Contacts</div><div class="metric-value" id="metricTotalContacts">0</div><div class="metric-sub">All emergency entries</div></div>
+    <div class="metric-card"><div class="metric-label">Sections</div><div class="metric-value" id="metricSections">0</div><div class="metric-sub">Contact categories</div></div>
+    <div class="metric-card"><div class="metric-label">Dial Ready</div><div class="metric-value" id="metricDialReady">0</div><div class="metric-sub">Contacts with phone numbers</div></div>
+    <div class="metric-card"><div class="metric-label">Missing Number</div><div class="metric-value" id="metricMissing">0</div><div class="metric-sub">Need update</div></div>
+  </div>
 
   <div class="meta" id="metaInfo">Loading contacts...</div>
   <div class="error" id="errorText"></div>
@@ -183,7 +217,7 @@ tr:last-child td { border-bottom: 0; }
 
 <script>
 const AUTH_SESSION_KEY = "society_dashboard_auth";
-if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
 
 const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const CONTACT_TAB_NAME = "emergency-contacts";
@@ -258,12 +292,13 @@ function renderWebSections() {
     <section class="contact-section">
       <h2 class="section-title">${escapeHtml(titleCase(section.title))}</h2>
       <table>
-        <thead><tr><th>Contact Work</th><th>Contact Number</th><th>Contact Name</th></tr></thead>
+        <thead><tr><th>Contact Work</th><th>Contact Number</th><th>Contact Name</th><th>Quick Action</th></tr></thead>
         <tbody>
           ${section.contacts.map(contact => {
             const phone = normalizePhone(contact.number);
             const numberHtml = phone ? `<a class="number-link" href="tel:${phone}">${escapeHtml(contact.number)}</a>` : "";
-            return `<tr><td>${escapeHtml(contact.work)}</td><td>${numberHtml}</td><td>${escapeHtml(contact.name)}</td></tr>`;
+            const actionHtml = phone ? `<a class="desktop-call" href="tel:${phone}">Call</a>` : `<span class="desktop-call disabled">N/A</span>`;
+            return `<tr><td>${escapeHtml(contact.work)}</td><td>${numberHtml}</td><td>${escapeHtml(contact.name)}</td><td>${actionHtml}</td></tr>`;
           }).join("")}
         </tbody>
       </table>
@@ -274,7 +309,7 @@ function renderMobileTabs() {
   const tabs = document.getElementById("contactTabs");
   const allCount = contactSections.reduce((total, section) => total + section.contacts.length, 0);
   const labels = [{ title: "All Contacts", count: allCount }, ...contactSections.map(section => ({ title: titleCase(section.title), count: section.contacts.length }))];
-  tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)}</button>`).join("");
+  tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)} (${tab.count})</button>`).join("");
 }
 function getActiveContacts() {
   if (activeSectionIndex === 0) return contactSections.flatMap(section => section.contacts.map(contact => ({ ...contact, section: section.title })));
@@ -290,13 +325,13 @@ function renderMobileContacts() {
   }
   wrapper.innerHTML = contacts.map(contact => {
     const phone = normalizePhone(contact.number);
-    const subtitle = contact.name || titleCase(contact.section || "");
+    const subtitle = contact.name ? `<span>${escapeHtml(contact.name)}</span>` : "";
     return `
       <div class="mobile-contact-row">
         <span class="contact-icon ${phone ? "" : "muted"}" aria-hidden="true"></span>
         <div>
           <div class="mobile-contact-name">${escapeHtml(contact.work)}</div>
-          <div class="mobile-contact-block">${escapeHtml(subtitle)}</div>
+          <div class="mobile-contact-block">${subtitle}</div>
         </div>
         <a class="call-button ${phone ? "" : "disabled"}" href="${phone ? `tel:${phone}` : "#"}" aria-label="Call ${escapeHtml(contact.work)}">☎</a>
       </div>
@@ -308,6 +343,13 @@ function renderContacts() {
   renderMobileTabs();
   renderMobileContacts();
   const count = contactSections.reduce((total, section) => total + section.contacts.length, 0);
+  const dialReady = contactSections.reduce((total, section) => total + section.contacts.filter(contact => normalizePhone(contact.number)).length, 0);
+  const missing = Math.max(count - dialReady, 0);
+  document.getElementById("metricTotalContacts").textContent = count.toLocaleString("en-IN");
+  document.getElementById("metricSections").textContent = contactSections.length.toLocaleString("en-IN");
+  document.getElementById("metricDialReady").textContent = dialReady.toLocaleString("en-IN");
+  document.getElementById("metricMissing").textContent = missing.toLocaleString("en-IN");
+  document.getElementById("emergencyNavBadge").textContent = count.toLocaleString("en-IN");
   document.getElementById("metaInfo").textContent = `Showing ${count} contacts in ${contactSections.length} sections`;
 }
 async function loadEmergencyContacts() {

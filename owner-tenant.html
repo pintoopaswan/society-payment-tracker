@@ -12,20 +12,35 @@
   --line: #d6e0ec;
   --brand: #1f5ea8;
   --text: #17314f;
+  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-med: 260ms;
+  --accent: #1f5ea8;
+  --accent-soft: #dfefff;
+  --accent-text: #214d7c;
+  --chip-owner-bg: #e6f0ff;
+  --chip-owner-text: #184f91;
+  --chip-owner-border: #bad2f4;
+  --chip-tenant-bg: #e4f7eb;
+  --chip-tenant-text: #1d6f45;
+  --chip-tenant-border: #b9e0c8;
+  --chip-pending-bg: #fbe9ec;
+  --chip-pending-text: #8f2230;
+  --chip-pending-border: #f0c6cd;
 }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--text); min-height: 100vh; padding: 20px; }
 .container { max-width: 1300px; margin: 0 auto; }
-.app-header { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; display: flex; flex-direction: column; align-items: center; }
+.app-header { background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 18px 40px rgba(13, 36, 66, 0.22); position: relative; display: flex; flex-direction: column; align-items: center; }
 .header-title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.header-title h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
-.header-title p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
+.header-title h1 { color: #fff; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.header-title p { color: #fff; margin-top: 0; font-size: 1rem; font-weight: 700; opacity: 0.92; letter-spacing: 0.03em; text-transform: uppercase; }
   .nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
 .mobile-brand-row { display: none; }
 .mobile-menu-mark { display: none; }
 .main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
   .main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
   .main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
-  .main-menu a.active { background: #1f5ea8; border-color: #1f5ea8; color: #fff; }
+  .main-menu a.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   #logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
   .profile-menu { position: relative; }
   .profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
@@ -41,7 +56,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .error { color: #b00020; margin-bottom: 8px; }
 .table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
 .card-list { display: none; margin-top: 16px; }
-  .mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
+  .mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); transition: box-shadow var(--dur-med) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard); }
   .mobile-card.expanded { box-shadow: 0 18px 34px rgba(27, 37, 54, 0.09); }
   .mobile-card-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; min-height: 60px; }
   .mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1rem; line-height: 1.2; letter-spacing: 0; }
@@ -50,12 +65,11 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
   .card-people .owner, .card-people .tenant { font-size: inherit; line-height: inherit; }
   .card-people .owner { color: inherit; font-weight: 400; }
   .card-people .tenant { color: inherit; }
-  .toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
-  .toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
-  .toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
-  .mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
-  .card-details { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef0f4; }
-  .mobile-card.expanded .card-details { display: block; }
+  .toggle-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #bdd4ea; background: #ecf5ff; color: transparent; display: grid; place-items: center; flex: 0 0 auto; position: relative; }
+  .toggle-icon::before { content: ""; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; border-right: 2px solid #1f5ea8; border-bottom: 2px solid #1f5ea8; transform: translate(-50%, -62%) rotate(45deg); border-radius: 1px; transition: transform var(--dur-fast) var(--ease-standard); }
+  .mobile-card.expanded .toggle-icon::before { transform: translate(-50%, -38%) rotate(-135deg); }
+  .card-details { margin-top: 12px; padding-top: 0; border-top: 1px solid transparent; max-height: 0; opacity: 0; overflow: hidden; transition: max-height var(--dur-med) var(--ease-standard), opacity var(--dur-med) var(--ease-standard), padding-top var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard); }
+  .mobile-card.expanded .card-details { max-height: 2200px; opacity: 1; padding-top: 18px; border-color: #eef0f4; }
   .detail-row { display: grid; grid-template-columns: minmax(96px, 0.45fr) minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; margin-bottom: 10px; border: 1px solid #e5ebe8; border-radius: 16px; background: #f8faf9; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
   .detail-row:last-child { margin-bottom: 0; }
 .detail-key { font-size: 0.82rem; color: #686f78; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -69,6 +83,17 @@ th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; whit
 th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; text-transform: uppercase; }
 tr:nth-child(even) { background: #f8fbff; }
 tr:hover { background: #eaf3ff; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(4, minmax(170px, 1fr)); gap: 12px; margin: 0 0 14px; }
+.metric-card { background: #fff; border: 1px solid #d8e4ef; border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(16, 42, 72, 0.08); }
+.metric-label { font-size: 0.74rem; color: #486481; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.metric-value { margin-top: 6px; font-size: 1.3rem; font-weight: 800; color: #16324f; }
+.metric-sub { margin-top: 3px; color: #6a7d91; font-size: 0.82rem; font-weight: 600; }
+.resident-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 0 10px; border-radius: 999px; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; border: 1px solid transparent; }
+.resident-chip.owner { background: var(--chip-owner-bg); color: var(--chip-owner-text); border-color: var(--chip-owner-border); }
+.resident-chip.tenant { background: var(--chip-tenant-bg); color: var(--chip-tenant-text); border-color: var(--chip-tenant-border); }
+.resident-chip.pending { background: var(--chip-pending-bg); color: var(--chip-pending-text); border-color: var(--chip-pending-border); }
+.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-text); }
+.main-menu a.active .menu-badge { background: rgba(255,255,255,0.24); color: #fff; }
 @media (max-width: 768px) {
   body { padding: 0; background: #f5f6f8; }
   .container { padding: 0; }
@@ -76,14 +101,18 @@ tr:hover { background: #eaf3ff; }
   .header-title { text-align: left; align-items: flex-start; }
   .nav-shell {
     position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 40;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
     margin-bottom: 18px;
     padding: 0;
     border-radius: 0;
-    box-shadow: none;
-    border-bottom: 1px solid #e2e2e2;
+    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
+    border-bottom: 0;
+    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
   }
   .mobile-brand-row {
     display: flex;
@@ -91,7 +120,7 @@ tr:hover { background: #eaf3ff; }
     gap: 32px;
     min-height: 72px;
     padding: 0 78px 0 38px;
-    border-bottom: 1px solid #c78b52;
+    border-bottom: 1px solid rgba(255,255,255,0.25);
   }
   .mobile-menu-mark {
     display: inline-flex;
@@ -105,13 +134,13 @@ tr:hover { background: #eaf3ff; }
     display: block;
     height: 5px;
     border-radius: 999px;
-    background: #5fb783;
+    background: rgba(255,255,255,0.9);
   }
   .mobile-menu-mark span:nth-child(1) { width: 34px; }
   .mobile-menu-mark span:nth-child(2) { width: 28px; }
   .mobile-menu-mark span:nth-child(3) { width: 24px; }
   .mobile-brand-title {
-    color: #1f1f24;
+    color: #fff;
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: 0.01em;
@@ -125,9 +154,9 @@ tr:hover { background: #eaf3ff; }
   .profile-button {
     width: 48px;
     height: 48px;
-    border: 3px solid #5fb783;
-    background: #fff;
-    color: #5fb783;
+    border: 2px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
     box-shadow: none;
     font-size: 1.05rem;
   }
@@ -144,20 +173,20 @@ tr:hover { background: #eaf3ff; }
     display: block;
     border: 0;
     border-radius: 0;
-    background: #fff;
-    color: #737373;
+    background: transparent;
+    color: rgba(255,255,255,0.78);
     padding: 20px 12px 16px;
     text-align: center;
     font-size: 1.05rem;
     font-weight: 800;
     transition: none;
   }
-  .main-menu a:hover { background: #fff; transform: none; }
+  .main-menu a:hover { background: transparent; transform: none; }
   .main-menu a.active {
     position: relative;
-    background: #fff;
+    background: transparent;
     border-color: transparent;
-    color: #202024;
+    color: #fff;
   }
   .main-menu a.active::after {
     content: "";
@@ -166,10 +195,13 @@ tr:hover { background: #eaf3ff; }
     right: 0;
     bottom: 0;
     height: 5px;
-    background: #5fb783;
+    background: #fff;
   }
   #logoutBtn { width: 100%; }
   .controls { grid-template-columns: 1fr; gap: 12px; margin: 0 18px 18px; padding: 0; background: transparent; border-radius: 0; box-shadow: none; }
+  .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 18px 14px; }
+  .metric-card { padding: 12px 13px; border-radius: 12px; }
+  .metric-value { font-size: 1.15rem; }
   .search-bar { display: block; }
   .search-bar input, .controls select {
     width: 100%;
@@ -191,8 +223,18 @@ tr:hover { background: #eaf3ff; }
   select, input { width: 100%; }
   .table-wrap { display: none; }
   .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
-  .mobile-card { padding: 18px 20px; border-radius: 20px; margin-bottom: 14px; }
+  .mobile-card { padding: 16px; border-radius: 20px; margin-bottom: 12px; border: 1px solid #dbe6f2; box-shadow: 0 10px 22px rgba(22, 49, 79, 0.09); background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); }
   .mobile-card-header { min-height: 56px; }
+  .mobile-card-header .title { font-size: 1.02rem; color: #15375e; }
+  .card-people { gap: 6px; margin-top: 8px; }
+  .card-people > div:not(:last-child) { color: #476180; font-weight: 600; }
+  .card-details { margin-top: 14px; }
+  .detail-row { grid-template-columns: 1fr; gap: 6px; padding: 11px 12px; border-radius: 13px; margin-bottom: 8px; border-color: #dce8f3; background: #f7fbff; }
+  .detail-key { font-size: 0.72rem; color: #587496; letter-spacing: 0.08em; }
+  .detail-value { text-align: left; font-size: 0.94rem; color: #132f4d; font-weight: 700; }
+  .call-link { justify-content: flex-start; background: #e7f6ed; border: 1px solid #bde0cc; color: #205f3e; border-radius: 999px; padding: 4px 9px; width: fit-content; }
+  .call-icon { width: 22px; height: 22px; font-size: 0.72rem; background: #3cae64; }
+  .toggle-icon { width: 36px; height: 36px; background: #e9f3ff; border-color: #c3d9ee; }
   .meta, .error { margin-left: 12px; margin-right: 12px; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th { padding: 12px 8px; }
@@ -204,10 +246,12 @@ tr:hover { background: #eaf3ff; }
   .profile-menu { right: 28px; }
   .main-menu { gap: 0; }
   .main-menu a { font-size: 0.9rem; padding: 18px 8px 14px; }
+  .menu-badge { min-width: 20px; height: 20px; font-size: 0.68rem; }
   .controls { margin-left: 16px; margin-right: 16px; padding: 0; }
+  .dashboard-metrics { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; }
   .card-list { padding-left: 16px; padding-right: 16px; }
-  .mobile-card { border-radius: 18px; padding: 16px 18px; }
-  .mobile-card-header .title { font-size: 0.98rem; }
+  .mobile-card { border-radius: 18px; padding: 14px; }
+  .mobile-card-header .title { font-size: 0.96rem; }
   .card-people { font-size: 0.9rem; }
 }
 </style>
@@ -228,7 +272,7 @@ tr:hover { background: #eaf3ff; }
     </div>
     <ul class="main-menu">
       <li><a href="index.html">Payments</a></li>
-      <li><a class="active" href="owner-tenant.html">Residents</a></li>
+      <li><a class="active" href="owner-tenant.html">Residents <span class="menu-badge" id="residentNavBadge">0</span></a></li>
       <li><a href="emergency-contact.html">Emergency Contact</a></li>
     </ul>
     <div class="profile-menu">
@@ -251,6 +295,12 @@ tr:hover { background: #eaf3ff; }
       <option value="vehicle">Vehicle</option>
     </select>
   </div>
+  <div class="dashboard-metrics">
+    <div class="metric-card"><div class="metric-label">Residents</div><div class="metric-value" id="metricResidents">0</div><div class="metric-sub">Total flats listed</div></div>
+    <div class="metric-card"><div class="metric-label">Blocks</div><div class="metric-value" id="metricBlocks">0</div><div class="metric-sub">Unique blocks covered</div></div>
+    <div class="metric-card"><div class="metric-label">Tenant Occupied</div><div class="metric-value" id="metricTenant">0</div><div class="metric-sub">Flats with tenant entries</div></div>
+    <div class="metric-card"><div class="metric-label">Needs Update</div><div class="metric-value" id="metricPending">0</div><div class="metric-sub">Missing owner/tenant info</div></div>
+  </div>
 
   <div class="meta" id="metaInfo">Loading data...</div>
   <div class="error" id="errorText"></div>
@@ -266,7 +316,7 @@ tr:hover { background: #eaf3ff; }
 
 <script>
 const AUTH_SESSION_KEY = "society_dashboard_auth";
-if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
 document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
 
 const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
@@ -322,8 +372,14 @@ function renderTable(data) {
   const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
   const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
   const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
-  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
-  tbody.innerHTML = data.map(row => `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}</tr>`).join("");
+  const statusColumnName = "Occupancy Status";
+  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}<th>${statusColumnName}</th></tr>`;
+  tbody.innerHTML = data.map(row => {
+    const ownerValue = ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "";
+    const tenantValue = tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "";
+    const status = tenantValue ? { label: "Tenant Occupied", cls: "tenant" } : ownerValue ? { label: "Owner Occupied", cls: "owner" } : { label: "Needs Update", cls: "pending" };
+    return `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}<td><span class="resident-chip ${status.cls}">${status.label}</span></td></tr>`;
+  }).join("");
   cardList.innerHTML = data.map(row => {
     const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
     const flatValue = row[flatIndex] || "";
@@ -332,11 +388,30 @@ function renderTable(data) {
     const cardTitle = `${blockValue} / Flat ${flatValue}`;
     const ownerLine = ownerValue ? `<div>Owner: ${ownerValue}</div>` : "";
     const tenantLine = tenantValue ? `<div>Tenant: ${tenantValue}</div>` : "";
+    const status = tenantValue ? { label: "Tenant Occupied", cls: "tenant" } : ownerValue ? { label: "Owner Occupied", cls: "owner" } : { label: "Needs Update", cls: "pending" };
     const cardPeople = ownerLine || tenantLine ? `${ownerLine}${tenantLine}` : `<div>Resident details</div>`;
     const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${isPhoneHeader(header) ? renderPhoneLink(row[index]) : (row[index] || "")}</span></div>`).join("");
-    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}</div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}<div><span class="resident-chip ${status.cls}">${status.label}</span></div></div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
   }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
+}
+function updateMetrics() {
+  const blockIndex = findHeaderIndex(["block"]);
+  const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
+  const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
+  const blocks = new Set(rows.map(row => normalizeBlockDisplay(row[blockIndex] || "")).filter(Boolean));
+  let tenantCount = 0, pendingCount = 0;
+  rows.forEach(row => {
+    const owner = ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "";
+    const tenant = tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "";
+    if (tenant) tenantCount += 1;
+    if (!tenant && !owner) pendingCount += 1;
+  });
+  document.getElementById("metricResidents").textContent = rows.length.toLocaleString("en-IN");
+  document.getElementById("metricBlocks").textContent = blocks.size.toLocaleString("en-IN");
+  document.getElementById("metricTenant").textContent = tenantCount.toLocaleString("en-IN");
+  document.getElementById("metricPending").textContent = pendingCount.toLocaleString("en-IN");
+  document.getElementById("residentNavBadge").textContent = rows.length.toLocaleString("en-IN");
 }
 function matchesByType(row, query, type) {
   if (!query) return true;
@@ -364,6 +439,7 @@ async function loadDirectoryData() {
     headers = parseCSV(lines[0]); rows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
     searchIndexes.name = []; searchIndexes.mobile = []; searchIndexes.vehicle = []; collectIndexes();
     updateBlockFilterOptions();
+    updateMetrics();
     filteredRows = rows; renderTable(filteredRows);
   } catch (error) { errorText.textContent = error.message; document.getElementById("metaInfo").textContent = "Failed to load data"; }
 }
