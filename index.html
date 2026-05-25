@@ -18,6 +18,11 @@
   --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --dur-fast: 180ms;
   --dur-med: 260ms;
+  --accent: #1f5ea8;
+  --accent-soft: #dfefff;
+  --accent-text: #214d7c;
+  --success: #2f8d55;
+  --success-dark: #246c41;
 }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; min-height: 100vh; color: #16324f; }
 .container { max-width: 1400px; margin: 0 auto; position: relative; }
@@ -42,8 +47,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .search-controls { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; align-items: center; }
 .search-controls select, .search-controls input { min-width: 160px; }
 input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
-.add-payment-btn { margin-left: auto; border: none; background: #2f8d55; color: #fff; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-weight: 800; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); white-space: nowrap; }
-.add-payment-btn:hover { background: #246c41; }
+.add-payment-btn { margin-left: auto; border: none; background: var(--success); color: #fff; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-weight: 800; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); white-space: nowrap; }
+.add-payment-btn:hover { background: var(--success-dark); }
 .table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
 .card-list { display: none; margin-top: 12px; }
 .mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
@@ -166,7 +171,7 @@ td:nth-child(2) { left: 80px; }
 .message-modal.error .message-modal-title { color: #8f001a; }
 .payment-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; }
 .payment-save-btn, .payment-cancel-btn { min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
-.payment-save-btn { border: none; background: #2f8d55; color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
+.payment-save-btn { border: none; background: var(--success); color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
 .payment-delete-btn { border: 1px solid #e2a7b0; background: #fff4f6; color: #b00020; min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
 .payment-save-btn:disabled { opacity: 0.65; cursor: wait; }
 .payment-cancel-btn { border: 1px solid #c8d8ea; background: #fff; color: #17314f; }
@@ -217,8 +222,9 @@ input:focus, select:focus {
     margin-bottom: 18px;
     padding: 0;
     border-radius: 0;
-    box-shadow: none;
-    border-bottom: 1px solid #e2e2e2;
+    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
+    border-bottom: 0;
+    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
   }
   .mobile-brand-row {
     display: flex;
@@ -226,7 +232,7 @@ input:focus, select:focus {
     gap: 32px;
     min-height: 72px;
     padding: 0 78px 0 38px;
-    border-bottom: 1px solid #c78b52;
+    border-bottom: 1px solid rgba(255,255,255,0.25);
   }
   .mobile-menu-mark {
     display: inline-flex;
@@ -240,13 +246,13 @@ input:focus, select:focus {
     display: block;
     height: 5px;
     border-radius: 999px;
-    background: #5fb783;
+    background: rgba(255,255,255,0.9);
   }
   .mobile-menu-mark span:nth-child(1) { width: 34px; }
   .mobile-menu-mark span:nth-child(2) { width: 28px; }
   .mobile-menu-mark span:nth-child(3) { width: 24px; }
   .mobile-brand-title {
-    color: #1f1f24;
+    color: #fff;
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: 0.01em;
@@ -260,9 +266,9 @@ input:focus, select:focus {
   .profile-button {
     width: 48px;
     height: 48px;
-    border: 3px solid #5fb783;
-    background: #fff;
-    color: #5fb783;
+    border: 2px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
     box-shadow: none;
     font-size: 1.05rem;
   }
@@ -279,8 +285,8 @@ input:focus, select:focus {
     display: block;
     border: 0;
     border-radius: 0;
-    background: #fff;
-    color: #737373;
+    background: transparent;
+    color: rgba(255,255,255,0.78);
     padding: 20px 12px 16px;
     text-align: center;
     font-size: 1.05rem;
@@ -288,9 +294,9 @@ input:focus, select:focus {
   }
   .main-menu a.active {
     position: relative;
-    background: #fff;
+    background: transparent;
     border-color: transparent;
-    color: #202024;
+    color: #fff;
   }
   .main-menu a.active::after {
     content: "";
@@ -299,7 +305,7 @@ input:focus, select:focus {
     right: 0;
     bottom: 0;
     height: 5px;
-    background: #5fb783;
+    background: #fff;
   }
   #logoutBtn { width: 100%; }
   .top-bar { flex-direction: column; align-items: stretch; margin: 0 18px 22px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
@@ -337,10 +343,12 @@ input:focus, select:focus {
   .payment-contact-icon::before { top: 8px; width: 12px; height: 12px; border-width: 2px; }
   .payment-contact-icon::after { bottom: 8px; width: 22px; height: 11px; border-width: 2px; border-bottom: 0; }
   .payment-modal-overlay { align-items: flex-end; padding: 0; }
-  .payment-modal { width: 100%; max-height: 94vh; border-radius: 22px 22px 0 0; }
+  .payment-modal { width: 100%; max-width: 100%; margin: 0; max-height: 94vh; border-radius: 22px 22px 0 0; }
   .payment-modal-header { padding: 18px 18px 14px; }
   .payment-modal-title { font-size: 1.12rem; }
-  .payment-form { grid-template-columns: 1fr; padding: 18px; gap: 13px; }
+  .payment-form { grid-template-columns: 1fr; width: 100%; min-width: 0; padding: 18px; gap: 13px; }
+  .payment-field, .payment-month-dropdown { min-width: 0; }
+  .payment-field input, .payment-field select, .payment-field textarea, .payment-month-trigger { width: 100%; max-width: 100%; min-width: 0; }
   .payment-actions { flex-direction: column-reverse; }
   .payment-save-btn, .payment-cancel-btn { width: 100%; }
   .payment-month-options { position: static; margin-top: 6px; max-height: 260px; overflow: auto; }
@@ -365,6 +373,11 @@ input:focus, select:focus {
   .mobile-card { border-radius: 18px; padding: 16px 18px; }
   .mobile-card-header .title { font-size: 0.98rem; }
   .mobile-card-header .subtitle { font-size: 0.9rem; }
+  .payment-modal-header { padding: 14px 14px 10px; }
+  .payment-form { padding: 14px 12px 16px; gap: 11px; }
+  .payment-field input, .payment-field select, .payment-field textarea, .payment-month-trigger { padding-left: 10px; padding-right: 10px; }
+  .payment-actions { gap: 8px; }
+  .payment-save-btn, .payment-cancel-btn, .payment-delete-btn { min-height: 42px; padding-left: 12px; padding-right: 12px; }
   .month-name, .month-amount { font-size: 0.9rem; }
   .month-date { font-size: 0.8rem; }
   .month-grid { grid-template-columns: 1fr; }
@@ -395,8 +408,8 @@ body {
   background: linear-gradient(120deg, #e9f3ff, #e8f8f2);
   border-color: #95b6d8;
 }
-.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: #dfefff; color: #214d7c; }
-.main-menu a.active .menu-badge { background: rgba(31, 94, 168, 0.14); color: #1f5ea8; }
+.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-text); }
+.main-menu a.active .menu-badge { background: rgba(31, 94, 168, 0.14); color: var(--accent); }
 .dashboard-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(160px, 1fr));
@@ -469,10 +482,32 @@ th {
   .dashboard-metrics { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; }
 }
 @media (max-width: 768px) {
-  .nav-shell { position: sticky; top: 0; z-index: 40; background: #fff; }
+  .nav-shell {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
+  }
+  .main-menu a {
+    background: transparent !important;
+    color: rgba(255,255,255,0.78) !important;
+  }
+  .main-menu a.active {
+    background: transparent !important;
+    color: #fff !important;
+  }
+  .main-menu a.active::after { background: #fff !important; }
   .top-bar { gap: 10px; }
   .search-controls { gap: 10px; }
-  .mobile-card { border: 1px solid #e2e9f1; box-shadow: 0 8px 20px rgba(22, 49, 79, 0.08); }
+  .mobile-card { border: 1px solid #dbe6f2; box-shadow: 0 10px 22px rgba(22, 49, 79, 0.09); background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); padding: 16px; border-radius: 20px; }
+  .mobile-card-header .title { font-size: 1.02rem; color: #15375e; }
+  .mobile-card-header .subtitle { margin-top: 8px; color: #476180; font-weight: 600; }
+  .card-details { margin-top: 14px; }
+  .year-block { border-radius: 14px; border-color: #dce8f3; background: #f7fbff; }
+  .year-row { padding: 12px 13px; }
+  .year-month-details { background: #f4f8fc; }
+  .month-item { border-radius: 12px; border-color: #dce8f3; background: #fff; }
+  .month-summary { border-radius: 13px; border-color: #b6d5c5; }
   .payment-modal-header { padding: 16px 18px; }
   .payment-modal-subtitle { font-size: 0.76rem; }
 }
@@ -533,29 +568,6 @@ th {
       <button class="add-payment-btn" id="openPaymentModalBtn" type="button">+ Add Payment</button>
     </div>
   </div>
-  <div class="dashboard-metrics" id="dashboardMetrics">
-    <div class="metric-card">
-      <div class="metric-label">Total Collected</div>
-      <div class="metric-value" id="metricCollected">₹0</div>
-      <div class="metric-sub" id="metricCollectedYear">Selected year</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Residents Tracked</div>
-      <div class="metric-value" id="metricResidents">0</div>
-      <div class="metric-sub">Flats in payment records</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Emergency Reach</div>
-      <div class="metric-value" id="metricBlocks">0</div>
-      <div class="metric-sub">Blocks represented</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Pending Months</div>
-      <div class="metric-value" id="metricPending">0</div>
-      <div class="metric-sub" id="metricVisible">Visible: 0</div>
-    </div>
-  </div>
-
   <div class="table-container">
     <table id="table">
       <thead>
@@ -774,6 +786,12 @@ function updateMonthHeaderTotals() { document.querySelectorAll("th[data-month-in
 function updateBlockFilterOptions(blocks) { const blockFilter = document.getElementById("blockFilter"); const selected = blockFilter.value; blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(b => `<option value="${b}">${b}</option>`).join(""); if (selected && blocks.includes(selected)) blockFilter.value = selected; }
 function formatCurrencyINR(value) { return `₹${Number(value || 0).toLocaleString("en-IN")}`; }
 function updateDashboardMetrics() {
+  const collectedEl = document.getElementById("metricCollected");
+  const collectedYearEl = document.getElementById("metricCollectedYear");
+  const residentsEl = document.getElementById("metricResidents");
+  const blocksEl = document.getElementById("metricBlocks");
+  const pendingEl = document.getElementById("metricPending");
+  if (!collectedEl || !collectedYearEl || !residentsEl || !blocksEl || !pendingEl) return;
   const selectedYear = document.getElementById("yearFilter").value;
   const residents = Object.keys(groupedData).length;
   const blocks = allBlocks.size;
@@ -787,11 +805,11 @@ function updateDashboardMetrics() {
     });
   });
   const pendingMonths = Math.max((residents * 12) - paidCount, 0);
-  document.getElementById("metricCollected").textContent = formatCurrencyINR(totalCollected);
-  document.getElementById("metricCollectedYear").textContent = `Year ${selectedYear}`;
-  document.getElementById("metricResidents").textContent = residents.toLocaleString("en-IN");
-  document.getElementById("metricBlocks").textContent = blocks.toLocaleString("en-IN");
-  document.getElementById("metricPending").textContent = pendingMonths.toLocaleString("en-IN");
+  collectedEl.textContent = formatCurrencyINR(totalCollected);
+  collectedYearEl.textContent = `Year ${selectedYear}`;
+  residentsEl.textContent = residents.toLocaleString("en-IN");
+  blocksEl.textContent = blocks.toLocaleString("en-IN");
+  pendingEl.textContent = pendingMonths.toLocaleString("en-IN");
   const residentBadge = document.getElementById("residentNavBadge");
   if (residentBadge) residentBadge.textContent = residents.toLocaleString("en-IN");
 }
@@ -885,7 +903,8 @@ function applyFilters() {
     else match = cardText.includes(searchValue);
     card.style.display = match && (!selectedBlock || cardBlock === selectedBlock.toLowerCase()) ? "block" : "none";
   });
-  document.getElementById("metricVisible").textContent = `Visible: ${visibleRows.toLocaleString("en-IN")} flats`;
+  const visibleEl = document.getElementById("metricVisible");
+  if (visibleEl) visibleEl.textContent = `Visible: ${visibleRows.toLocaleString("en-IN")} flats`;
 }
 function downloadReport() { let table = document.getElementById("table"); let wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, "Society_Report.xlsx"); }
 function getTodayInputValue() {
@@ -1347,7 +1366,10 @@ document.getElementById("mobileCards").addEventListener("click", (event) => {
   const icon = card.querySelector(".toggle-icon");
   if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
 });
-document.getElementById("logoutBtn").addEventListener("click", () => { window.location.href = "https://accounts.google.com/Logout"; });
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  window.location.href = "/cdn-cgi/access/logout";
+});
 const profileToggle = document.getElementById("profileToggle");
 const profileDropdown = document.getElementById("profileDropdown");
 if (profileToggle && profileDropdown) {
@@ -1367,6 +1389,7 @@ document.getElementById("paymentDate").max = getTodayInputValue();
 updateEmergencyNavBadge();
 updateAdminPaymentVisibility();
 document.getElementById("yearFilter").value = DEFAULT_YEAR;
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
 showDashboard();
 fetchAllMonthData();
 </script>
