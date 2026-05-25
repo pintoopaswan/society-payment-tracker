@@ -46,8 +46,17 @@ th { color: #17314f; background: #f4f8fc; text-transform: uppercase; font-size: 
 td { color: #1d3249; font-size: 0.95rem; }
 tr:last-child td { border-bottom: 0; }
 .number-link { color: #1f5ea8; font-weight: 700; text-decoration: none; }
+.desktop-call { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; min-width: 78px; border-radius: 999px; background: #e4f7eb; color: #1d6f45; font-weight: 800; text-decoration: none; border: 1px solid #b9e0c8; font-size: 0.82rem; }
+.desktop-call.disabled { background: #f0f2f5; border-color: #dee3ea; color: #8a95a3; pointer-events: none; }
 .empty-state { background: #fff; border: 1px solid #dde6f2; border-radius: 12px; padding: 28px; color: #567; text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
 .mobile-page-header, .contact-tabs, .mobile-contact-list { display: none; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; margin: 0 0 14px; }
+.metric-card { background: #fff; border: 1px solid #d8e4ef; border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(16, 42, 72, 0.08); }
+.metric-label { font-size: 0.74rem; color: #486481; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.metric-value { margin-top: 6px; font-size: 1.3rem; font-weight: 800; color: #16324f; }
+.metric-sub { margin-top: 3px; color: #6a7d91; font-size: 0.82rem; font-weight: 600; }
+.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: #dfefff; color: #214d7c; }
+.main-menu a.active .menu-badge { background: rgba(255,255,255,0.24); color: #fff; }
 .contact-icon, .call-button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
 .contact-icon { width: 44px; height: 44px; color: #60636a; background: #fff; border: 2px solid #c9ccd2; position: relative; }
 .contact-icon::before { content: ""; position: absolute; top: 9px; left: 50%; width: 13px; height: 13px; border: 3px solid currentColor; border-radius: 50%; transform: translateX(-50%); }
@@ -58,6 +67,7 @@ tr:last-child td { border-bottom: 0; }
 @media (max-width: 768px) {
   body { padding: 0; background: #fff; color: #242424; }
   .container { max-width: none; }
+  .nav-shell { position: sticky; top: 0; z-index: 40; }
   .app-header, .nav-shell, .meta, .sections { display: none; }
   .error { padding: 16px 18px; margin: 0; font-size: 0.95rem; }
   .mobile-page-header {
@@ -76,7 +86,7 @@ tr:last-child td { border-bottom: 0; }
     display: flex;
     overflow-x: auto;
     gap: 0;
-    padding: 24px 28px 0;
+    padding: 16px 18px 0;
     background: #fff;
     scrollbar-width: none;
   }
@@ -93,11 +103,11 @@ tr:last-child td { border-bottom: 0; }
   .contact-tab {
     position: relative;
     flex: 0 0 50%;
-    min-width: 178px;
+    min-width: 164px;
     border: 0;
     background: #fff;
     color: #252525;
-    padding: 0 8px 24px;
+    padding: 0 8px 16px;
     font-size: 1.08rem;
     font-weight: 650;
     text-align: center;
@@ -113,19 +123,20 @@ tr:last-child td { border-bottom: 0; }
     background: var(--mobile-ink);
     z-index: 1;
   }
-  .mobile-contact-list { display: block; padding: 44px 18px 0; background: #fff; }
+  .mobile-contact-list { display: block; padding: 24px 16px 0; background: #fff; }
   .mobile-contact-row {
     display: grid;
     grid-template-columns: 54px minmax(0, 1fr) 58px;
     align-items: center;
     gap: 10px;
-    padding: 0 0 18px;
-    margin-bottom: 18px;
+    padding: 0 0 14px;
+    margin-bottom: 14px;
     border-bottom: 1px solid #ececec;
   }
   .mobile-contact-name { color: #202124; font-size: 1.1rem; line-height: 1.2; font-weight: 500; overflow-wrap: anywhere; }
   .mobile-contact-block { color: #5e5e5e; font-size: 0.92rem; line-height: 1.25; margin-top: 5px; overflow-wrap: anywhere; }
-  .call-button { width: 48px; height: 48px; font-size: 1.45rem; }
+  .call-button { width: 46px; height: 46px; font-size: 1.35rem; }
+  .dashboard-metrics { display: none; }
 }
 @media (max-width: 560px) {
   .mobile-page-header { grid-template-columns: 44px 1fr 44px; min-height: 76px; padding-left: 16px; padding-right: 16px; }
@@ -133,7 +144,7 @@ tr:last-child td { border-bottom: 0; }
   .contact-tabs { padding-left: 18px; padding-right: 18px; }
   .contact-tabs::after { left: 18px; right: 18px; }
   .contact-tab { min-width: 160px; font-size: 1rem; }
-  .mobile-contact-list { padding: 38px 16px 0; }
+  .mobile-contact-list { padding: 18px 14px 0; }
   .mobile-contact-row { grid-template-columns: 50px minmax(0, 1fr) 54px; gap: 9px; padding-bottom: 16px; margin-bottom: 16px; }
   .contact-icon { width: 40px; height: 40px; }
   .contact-icon::before { top: 8px; width: 12px; height: 12px; border-width: 2px; }
@@ -158,7 +169,7 @@ tr:last-child td { border-bottom: 0; }
     <ul class="main-menu">
       <li><a href="index.html">Payments</a></li>
       <li><a href="owner-tenant.html">Residents</a></li>
-      <li><a class="active" href="emergency-contact.html">Emergency Contact</a></li>
+      <li><a class="active" href="emergency-contact.html">Emergency Contact <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
     </ul>
     <div class="profile-menu">
       <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
@@ -174,6 +185,12 @@ tr:last-child td { border-bottom: 0; }
     <div></div>
   </div>
   <div class="contact-tabs" id="contactTabs"></div>
+  <div class="dashboard-metrics">
+    <div class="metric-card"><div class="metric-label">Total Contacts</div><div class="metric-value" id="metricTotalContacts">0</div><div class="metric-sub">All emergency entries</div></div>
+    <div class="metric-card"><div class="metric-label">Sections</div><div class="metric-value" id="metricSections">0</div><div class="metric-sub">Contact categories</div></div>
+    <div class="metric-card"><div class="metric-label">Dial Ready</div><div class="metric-value" id="metricDialReady">0</div><div class="metric-sub">Contacts with phone numbers</div></div>
+    <div class="metric-card"><div class="metric-label">Missing Number</div><div class="metric-value" id="metricMissing">0</div><div class="metric-sub">Need update</div></div>
+  </div>
 
   <div class="meta" id="metaInfo">Loading contacts...</div>
   <div class="error" id="errorText"></div>
@@ -258,12 +275,13 @@ function renderWebSections() {
     <section class="contact-section">
       <h2 class="section-title">${escapeHtml(titleCase(section.title))}</h2>
       <table>
-        <thead><tr><th>Contact Work</th><th>Contact Number</th><th>Contact Name</th></tr></thead>
+        <thead><tr><th>Contact Work</th><th>Contact Number</th><th>Contact Name</th><th>Quick Action</th></tr></thead>
         <tbody>
           ${section.contacts.map(contact => {
             const phone = normalizePhone(contact.number);
             const numberHtml = phone ? `<a class="number-link" href="tel:${phone}">${escapeHtml(contact.number)}</a>` : "";
-            return `<tr><td>${escapeHtml(contact.work)}</td><td>${numberHtml}</td><td>${escapeHtml(contact.name)}</td></tr>`;
+            const actionHtml = phone ? `<a class="desktop-call" href="tel:${phone}">Call</a>` : `<span class="desktop-call disabled">N/A</span>`;
+            return `<tr><td>${escapeHtml(contact.work)}</td><td>${numberHtml}</td><td>${escapeHtml(contact.name)}</td><td>${actionHtml}</td></tr>`;
           }).join("")}
         </tbody>
       </table>
@@ -274,7 +292,7 @@ function renderMobileTabs() {
   const tabs = document.getElementById("contactTabs");
   const allCount = contactSections.reduce((total, section) => total + section.contacts.length, 0);
   const labels = [{ title: "All Contacts", count: allCount }, ...contactSections.map(section => ({ title: titleCase(section.title), count: section.contacts.length }))];
-  tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)}</button>`).join("");
+  tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)} (${tab.count})</button>`).join("");
 }
 function getActiveContacts() {
   if (activeSectionIndex === 0) return contactSections.flatMap(section => section.contacts.map(contact => ({ ...contact, section: section.title })));
@@ -308,6 +326,13 @@ function renderContacts() {
   renderMobileTabs();
   renderMobileContacts();
   const count = contactSections.reduce((total, section) => total + section.contacts.length, 0);
+  const dialReady = contactSections.reduce((total, section) => total + section.contacts.filter(contact => normalizePhone(contact.number)).length, 0);
+  const missing = Math.max(count - dialReady, 0);
+  document.getElementById("metricTotalContacts").textContent = count.toLocaleString("en-IN");
+  document.getElementById("metricSections").textContent = contactSections.length.toLocaleString("en-IN");
+  document.getElementById("metricDialReady").textContent = dialReady.toLocaleString("en-IN");
+  document.getElementById("metricMissing").textContent = missing.toLocaleString("en-IN");
+  document.getElementById("emergencyNavBadge").textContent = count.toLocaleString("en-IN");
   document.getElementById("metaInfo").textContent = `Showing ${count} contacts in ${contactSections.length} sections`;
 }
 async function loadEmergencyContacts() {
