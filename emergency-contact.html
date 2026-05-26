@@ -45,6 +45,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .profile-dropdown button:hover { background: #eef4fb; }
 .meta { margin: 10px 0 16px; color: #2a4a67; font-size: 14px; font-weight: 600; }
 .error { color: #b00020; margin-bottom: 8px; }
+.search-tools { display: flex; gap: 10px; margin: 0 0 14px; }
+.search-tools input { flex: 1; min-width: 0; border: 2px solid #d6e0ec; border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; }
 .sections { display: grid; gap: 18px; }
 .contact-section { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); border: 1px solid #dde6f2; }
 .section-title { background: #1f2a3b; color: #fff; padding: 14px 16px; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -77,6 +79,7 @@ tr:last-child td { border-bottom: 0; }
   .container { max-width: none; }
   .nav-shell { position: sticky; top: 0; z-index: 40; }
   .app-header, .nav-shell, .meta, .sections { display: none; }
+  .search-tools { display: none; }
   .error { padding: 16px 18px; margin: 0; font-size: 0.95rem; }
   .mobile-page-header {
     display: grid;
@@ -169,6 +172,26 @@ tr:last-child td { border-bottom: 0; }
   .call-button { height: 34px; font-size: 0.78rem; padding: 0 10px; min-width: 62px; }
   .mobile-contact-name { font-size: 0.96rem; }
 }
+/* Premium consistency overrides */
+body { font-family: Manrope, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; color: #17314f; }
+.app-header {
+  background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(13, 36, 66, 0.2);
+}
+.app-header h1, .app-header p { color: #fff; }
+.nav-shell { border: 1px solid #d7e4f1; }
+.main-menu a {
+  color: #1f4f7e;
+  border: 1px solid rgba(31, 94, 168, 0.16);
+  background: #eef6ff;
+}
+.main-menu a.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 </style>
 </head>
 <body>
@@ -184,7 +207,8 @@ tr:last-child td { border-bottom: 0; }
       <div class="mobile-brand-title">MIG-1 Society</div>
     </div>
     <ul class="main-menu">
-      <li><a href="index.html">Payments</a></li>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="payments.html">Payments</a></li>
       <li><a href="owner-tenant.html">Residents</a></li>
       <li><a class="active" href="emergency-contact.html">Emergency Contact <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
     </ul>
@@ -208,6 +232,9 @@ tr:last-child td { border-bottom: 0; }
     <div class="metric-card"><div class="metric-label">Dial Ready</div><div class="metric-value" id="metricDialReady">0</div><div class="metric-sub">Contacts with phone numbers</div></div>
     <div class="metric-card"><div class="metric-label">Missing Number</div><div class="metric-value" id="metricMissing">0</div><div class="metric-sub">Need update</div></div>
   </div>
+  <div class="search-tools">
+    <input id="contactSearchInput" type="text" placeholder="Search work, name, or number" />
+  </div>
 
   <div class="meta" id="metaInfo">Loading contacts...</div>
   <div class="error" id="errorText"></div>
@@ -224,6 +251,7 @@ const CONTACT_TAB_NAME = "emergency-contacts";
 const SECTION_ORDER = ["SECURITY GUARD", "HOUSING BOARD & NRDA", "EMERGENCY HELPLINE", "HOSPITALS", "DAILY HELPS"];
 let contactSections = [];
 let activeSectionIndex = 0;
+let searchQuery = "";
 
 function escapeHtml(value) {
   return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -284,11 +312,20 @@ function buildSections(rows) {
 }
 function renderWebSections() {
   const wrapper = document.getElementById("sections");
-  if (!contactSections.length) {
+  const query = String(searchQuery || "").trim().toLowerCase();
+  const visibleSections = contactSections.map(section => {
+    if (!query) return section;
+    const contacts = section.contacts.filter(contact => {
+      const hay = `${contact.work || ""} ${contact.name || ""} ${contact.number || ""} ${titleCase(section.title || "")}`.toLowerCase();
+      return hay.includes(query);
+    });
+    return { title: section.title, contacts };
+  }).filter(section => section.contacts.length);
+  if (!visibleSections.length) {
     wrapper.innerHTML = `<div class="empty-state">No emergency contacts found.</div>`;
     return;
   }
-  wrapper.innerHTML = contactSections.map(section => `
+  wrapper.innerHTML = visibleSections.map(section => `
     <section class="contact-section">
       <h2 class="section-title">${escapeHtml(titleCase(section.title))}</h2>
       <table>
@@ -312,9 +349,15 @@ function renderMobileTabs() {
   tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)} (${tab.count})</button>`).join("");
 }
 function getActiveContacts() {
-  if (activeSectionIndex === 0) return contactSections.flatMap(section => section.contacts.map(contact => ({ ...contact, section: section.title })));
-  const section = contactSections[activeSectionIndex - 1];
-  return section ? section.contacts.map(contact => ({ ...contact, section: section.title })) : [];
+  const all = activeSectionIndex === 0
+    ? contactSections.flatMap(section => section.contacts.map(contact => ({ ...contact, section: section.title })))
+    : ((contactSections[activeSectionIndex - 1] || { contacts: [], title: "" }).contacts.map(contact => ({ ...contact, section: contactSections[activeSectionIndex - 1].title })));
+  const query = String(searchQuery || "").trim().toLowerCase();
+  if (!query) return all;
+  return all.filter(contact => {
+    const hay = `${contact.work || ""} ${contact.name || ""} ${contact.number || ""} ${titleCase(contact.section || "")}`.toLowerCase();
+    return hay.includes(query);
+  });
 }
 function renderMobileContacts() {
   const wrapper = document.getElementById("mobileContactList");
@@ -342,15 +385,16 @@ function renderContacts() {
   renderWebSections();
   renderMobileTabs();
   renderMobileContacts();
-  const count = contactSections.reduce((total, section) => total + section.contacts.length, 0);
+  const count = getActiveContacts().length;
+  const allCount = contactSections.reduce((total, section) => total + section.contacts.length, 0);
   const dialReady = contactSections.reduce((total, section) => total + section.contacts.filter(contact => normalizePhone(contact.number)).length, 0);
   const missing = Math.max(count - dialReady, 0);
-  document.getElementById("metricTotalContacts").textContent = count.toLocaleString("en-IN");
+  document.getElementById("metricTotalContacts").textContent = allCount.toLocaleString("en-IN");
   document.getElementById("metricSections").textContent = contactSections.length.toLocaleString("en-IN");
   document.getElementById("metricDialReady").textContent = dialReady.toLocaleString("en-IN");
   document.getElementById("metricMissing").textContent = missing.toLocaleString("en-IN");
-  document.getElementById("emergencyNavBadge").textContent = count.toLocaleString("en-IN");
-  document.getElementById("metaInfo").textContent = `Showing ${count} contacts in ${contactSections.length} sections`;
+  document.getElementById("emergencyNavBadge").textContent = allCount.toLocaleString("en-IN");
+  document.getElementById("metaInfo").textContent = `Showing ${count} contact(s)`;
 }
 async function loadEmergencyContacts() {
   const errorText = document.getElementById("errorText");
@@ -381,6 +425,20 @@ document.getElementById("contactTabs").addEventListener("click", event => {
   activeSectionIndex = Number(tab.dataset.index || 0);
   renderMobileTabs();
   renderMobileContacts();
+});
+function applyContactSearch() {
+  searchQuery = document.getElementById("contactSearchInput").value || "";
+  renderWebSections();
+  renderMobileContacts();
+  const visibleCount = getActiveContacts().length;
+  document.getElementById("metaInfo").textContent = `Showing ${visibleCount} contact(s)`;
+}
+document.getElementById("contactSearchInput").addEventListener("input", applyContactSearch);
+document.getElementById("contactSearchInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    applyContactSearch();
+  }
 });
 document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
 const profileToggle = document.getElementById("profileToggle");

@@ -3,534 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Society Guard Payment Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<title>MIG Society Admin Dashboard</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-  --bg: #f3f7fb;
-  --card: #ffffff;
-  --line: #d9e2ee;
-  --brand: #1f5ea8;
-  --brand-dark: #123d70;
-  --ok: #d4edda;
-  --bad: #f8d7da;
-  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --dur-fast: 180ms;
-  --dur-med: 260ms;
-  --accent: #1f5ea8;
-  --accent-soft: #dfefff;
-  --accent-text: #214d7c;
-  --success: #2f8d55;
-  --success-dark: #246c41;
+  --page: #eef3f7;
+  --panel: #ffffff;
+  --ink: #172f49;
+  --muted: #61758a;
+  --line: #d8e4ef;
+  --blue: #1f5ea8;
+  --blue-dark: #163a64;
+  --green: #2f8d55;
+  --green-soft: #e4f5eb;
+  --red: #a73345;
+  --red-soft: #fae8eb;
+  --amber: #b46d12;
+  --amber-soft: #fff3d9;
+  --teal: #2a7562;
+  --shadow: 0 14px 34px rgba(18, 45, 76, 0.1);
 }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; min-height: 100vh; color: #16324f; }
-.container { max-width: 1400px; margin: 0 auto; position: relative; }
-.app-header { background: #fff; border-radius: 14px; padding: 12px 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); position: relative; }
-.app-header h1 { color: #0066cc; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
-.app-header p { color: #0066cc; margin-top: 0; font-size: 1.3rem; font-weight: 500; }
-.header-title { text-align: center; }
-.nav-shell { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 18px rgba(20, 40, 75, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+body {
+  font-family: Manrope, "Segoe UI", Tahoma, sans-serif;
+  background:
+    linear-gradient(180deg, rgba(21, 58, 102, 0.08), transparent 280px),
+    var(--page);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 20px;
+}
+body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+a { color: inherit; }
+button, select { font: inherit; }
+.container { max-width: 1480px; margin: 0 auto; }
+.app-header {
+  background: linear-gradient(120deg, var(--blue-dark), var(--blue) 52%, var(--teal));
+  color: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 16px 38px rgba(13, 36, 66, 0.22);
+  text-align: center;
+}
+.app-header h1 { font-size: 2rem; font-weight: 800; }
+.app-header p { margin-top: 6px; font-size: 1rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; opacity: 0.92; }
+.nav-shell {
+  background: var(--panel);
+  border: 1px solid #d7e4f1;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
 .mobile-brand-row { display: none; }
 .mobile-menu-mark { display: none; }
-.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.main-menu a { text-decoration: none; color: var(--brand-dark); border: 1px solid var(--line); background: #f8fbff; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
-.main-menu a.active { background: #e3f0ff; border-color: #9dc0ed; }
-#logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
+.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; }
+.main-menu a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  text-decoration: none;
+  color: #1f4f7e;
+  border: 1px solid rgba(31, 94, 168, 0.16);
+  background: #eef6ff;
+  padding: 0 15px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.94rem;
+  transition: all 0.22s ease;
+}
+.main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
+.main-menu a.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.menu-badge {
+  margin-left: 8px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfefff;
+  color: #214d7c;
+}
+.main-menu a.active .menu-badge { background: rgba(255,255,255,0.24); color: #fff; }
 .profile-menu { position: relative; }
-.profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
-.profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
-.profile-dropdown.visible { display: block; }
-.profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
-.profile-dropdown button:hover { background: #eef4fb; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); }
-.search-controls { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; align-items: center; }
-.search-controls select, .search-controls input { min-width: 160px; }
-input, select { padding: 12px 14px; width: 260px; border: 2px solid #c8d8ea; border-radius: 8px; font-size: 15px; outline: none; }
-.add-payment-btn { margin-left: auto; border: none; background: var(--success); color: #fff; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-weight: 800; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); white-space: nowrap; }
-.add-payment-btn:hover { background: var(--success-dark); }
-.table-container { overflow-x: auto; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 40, 75, 0.08); max-height: 90vh; }
-.card-list { display: none; margin-top: 12px; }
-.mobile-card { background: #fff; border-radius: 20px; border: 0; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 14px 30px rgba(27, 37, 54, 0.07); }
-.mobile-card-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 0; cursor: pointer; min-height: 60px; }
-.mobile-card-header .title { font-weight: 700; color: #202124; font-size: 1rem; line-height: 1.2; letter-spacing: 0; }
-.mobile-card-header .subtitle { color: #646464; font-size: 0.92rem; font-weight: 400; line-height: 1.35; margin-top: 6px; }
-.mobile-card-copy { min-width: 0; }
-.payment-add-icon { width: 44px; height: 44px; border-radius: 50%; border: none; background: #eaf7ef; color: #2f8d55; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; box-shadow: 0 8px 18px rgba(47, 141, 85, 0.16); position: relative; }
-.payment-add-icon::before, .payment-add-icon::after { content: ""; position: absolute; background: currentColor; border-radius: 999px; }
-.payment-add-icon::before { width: 18px; height: 3px; }
-.payment-add-icon::after { width: 3px; height: 18px; }
-.payment-add-icon:hover { background: #d9f1e3; }
-.payment-add-text { display: none; }
-.payment-contact-icon { width: 44px; height: 44px; color: #60636a; background: #fff; border: 2px solid #c9ccd2; border-radius: 50%; position: relative; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; }
-.payment-contact-icon::before { content: ""; position: absolute; top: 9px; left: 50%; width: 13px; height: 13px; border: 3px solid currentColor; border-radius: 50%; transform: translateX(-50%); }
-.payment-contact-icon::after { content: ""; position: absolute; left: 50%; bottom: 9px; width: 24px; height: 12px; border: 3px solid currentColor; border-bottom: 0; border-radius: 999px 999px 0 0; transform: translateX(-50%); }
-.mobile-payment-actions { display: none; }
-.toggle-icon { width: 24px; height: 30px; border-radius: 7px; border: 2px solid #7b7b7b; display: grid; place-items: center; color: transparent; background: #fff; flex: 0 0 auto; position: relative; transition: transform 0.2s ease; }
-.toggle-icon::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; border: 2px solid #7b7b7b; border-radius: 50%; transform: translateX(-50%); }
-.toggle-icon::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 12px; height: 6px; border: 2px solid #7b7b7b; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom: 0; transform: translateX(-50%); }
-.mobile-card.expanded .toggle-icon { transform: translateY(-1px); }
-.card-details {
-  margin-top: 12px;
-  padding-top: 0;
-  border-top: 1px solid transparent;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height var(--dur-med) var(--ease-standard), opacity var(--dur-med) var(--ease-standard), padding-top var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+.profile-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18);
 }
-.mobile-card.expanded .card-details { max-height: 2200px; opacity: 1; padding-top: 18px; border-color: #eef0f4; }
-.month-grid { display: grid; gap: 10px; }
-.month-item { background: #fff; border-radius: 14px; border: 1px solid #e5ebe8; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 10px; box-shadow: 0 8px 18px rgba(27, 37, 54, 0.04); }
-.month-name { font-weight: 700; color: #202124; font-size: 0.95rem; }
-.month-amount { font-size: 0.95rem; color: #2f8d55; font-weight: 700; text-align: right; }
-.payment-mode { grid-column: 2; grid-row: 2; align-self: center; justify-self: end; color: #686f78; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
-.month-date { grid-column: 1; grid-row: 2; align-self: center; font-size: 0.85rem; color: #686f78; text-align: left; }
-.paid-months-row { grid-column: 1 / -1; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-.year-list { display: grid; gap: 10px; }
-.year-block { background: #f8faf9; border-radius: 18px; border: 1px solid #e2ebe5; padding: 0; overflow: hidden; }
-.year-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; font-weight: 700; color: #202124; }
-.year-row:hover { background: #f1f7f3; }
-.year-total { color: #2f8d55; }
-.year-toggle { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #b9dcc8; align-items: center; justify-content: center; color: #2f8d55; font-weight: 700; background: #eaf7ef; }
-.year-month-details {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  padding: 0 14px;
-  border-top: 1px solid transparent;
-  background: #f6f8f7;
-  transition: max-height var(--dur-med) var(--ease-standard), opacity var(--dur-med) var(--ease-standard), padding var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
-}
-.year-row.expanded + .year-month-details { max-height: 1300px; opacity: 1; padding: 14px; border-color: #e2ebe5; }
-.month-summary { margin-top: 14px; padding: 14px 16px; background: #eaf7ef; border-radius: 16px; border: 1px solid #b9dcc8; color: #246c41; font-weight: 700; }
-.total-chip { background: #ffe4b5; color: #4a2a03; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
-table { width: 100%; border-collapse: collapse; background: #fff; }
-/* Fixed table layout so month columns stay uniform */
-table { table-layout: fixed; }
-th, td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-th[data-month-index], td.month-cell { width: calc((100% - 160px) / 12); min-width: 70px; }
-th:first-child, td:first-child { width: 80px; min-width: 80px; }
-th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; }
-.month-cell-content { display:flex; flex-direction:column; align-items:center; gap:4px; }
-.editable-payment { cursor: pointer; }
-.paid-months-compact { font-size:0.72em; color:#1f5ea8; text-transform:uppercase; letter-spacing:0.6px; background:#eef6ff; padding:3px 8px; border-radius:999px; border:1px solid #d7e9ff; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-th { background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%); color: #fff; padding: 14px 8px; text-align: center; font-size: 14px; border-bottom: 3px solid #5c8ec9; position: sticky; top: 0; z-index: 10; text-transform: uppercase; }
-.month-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; white-space: normal; }
-.month-total { font-size: 12px; color: #ffd87b; }
-th:nth-child(1), th:nth-child(2) { position: sticky; z-index: 11; left: 0; top: 0; }
-th:nth-child(2) { left: 80px; }
-td { border: 1px solid #edf1f6; padding: 12px 8px; text-align: center; font-size: 14px; }
-td:nth-child(1), td:nth-child(2) { position: sticky; background: #fff; z-index: 5; left: 0; color: #1d3249; }
-td:nth-child(2) { left: 80px; }
-.paid { background: var(--ok); color: #155724; }
-.empty { background: var(--bad); color: #721c24; font-weight: 600; }
-.total-row { background: #ffe4b5; font-weight: 700; }
-.hidden { display: none; }
-.payment-modal-overlay { position: fixed; inset: 0; background: rgba(12, 25, 42, 0.52); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 18px; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity var(--dur-med) var(--ease-standard), visibility 0s linear var(--dur-med); }
-.payment-modal-overlay.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity var(--dur-med) var(--ease-standard), visibility 0s linear 0s; }
-.payment-modal { width: min(680px, 100%); max-height: 92vh; overflow: auto; background: #fff; border-radius: 18px; box-shadow: 0 30px 70px rgba(12, 25, 42, 0.28); transform: translateY(14px) scale(0.985); transition: transform var(--dur-med) var(--ease-standard); }
-.payment-modal-overlay.visible .payment-modal { transform: translateY(0) scale(1); }
-.payment-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 18px; border-bottom: 1px solid #e6edf5; background: #f8fbff; }
-.payment-modal-title { color: #17314f; font-size: 1.12rem; font-weight: 800; }
-.payment-modal-close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #c8d8ea; background: #fff; color: #17314f; cursor: pointer; font-size: 1.22rem; line-height: 1; }
-.payment-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; padding: 14px 18px 16px; }
-.payment-field { display: grid; gap: 5px; }
-.payment-field.full { grid-column: 1 / -1; }
-.payment-field.hidden { display: none; }
-.payment-field label { color: #36536f; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-.payment-field input, .payment-field select, .payment-field textarea { width: 100%; max-width: none; border: 2px solid #d6e0ec; border-radius: 10px; background: #fff; color: #1f314a; box-shadow: none; font-size: 0.92rem; padding: 9px 11px; }
-.payment-month-dropdown { position: relative; }
-.payment-month-trigger { width: 100%; min-height: 40px; border: 2px solid #d6e0ec; border-radius: 10px; background: #fff; color: #1f314a; padding: 9px 38px 9px 11px; text-align: left; font-size: 0.92rem; font-weight: 700; cursor: pointer; position: relative; }
-.payment-month-trigger::after { content: ""; position: absolute; right: 14px; top: 50%; width: 9px; height: 9px; border-right: 2px solid #536170; border-bottom: 2px solid #536170; transform: translateY(-65%) rotate(45deg); }
-.payment-month-dropdown.open .payment-month-trigger { border-color: #2f8d55; box-shadow: 0 0 0 3px rgba(47, 141, 85, 0.1); }
-.payment-month-options { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 130; display: none; max-height: 246px; overflow: auto; padding: 6px; border: 1px solid #d6e0ec; border-radius: 12px; background: #fff; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.14); }
-.payment-month-dropdown.open .payment-month-options { display: block; }
-.payment-month-option { min-height: 36px; border-radius: 8px; background: #fff; color: #1f314a; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px 0 12px; font-size: 0.88rem; font-weight: 750; cursor: pointer; }
-.payment-month-option input { position: absolute; opacity: 0; pointer-events: none; }
-.payment-month-option:hover { background: #f3f7fb; }
-.payment-month-option:has(input:checked) { background: #eaf7ef; color: #246c41; }
-.payment-month-option::after { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c8d8ea; flex: 0 0 auto; }
-.payment-month-option:has(input:checked)::after { content: "✓"; display: inline-flex; align-items: center; justify-content: center; border-color: #2f8d55; background: #2f8d55; color: #fff; font-size: 0.75rem; font-weight: 900; line-height: 1; }
-.payment-field textarea { min-height: 58px; resize: vertical; font-family: inherit; }
-.payment-field input[readonly] { background: #f3f7fb; color: #4f6176; }
-.payment-hint { color: #6a7a8c; font-size: 0.72rem; line-height: 1.25; }
-.payment-message { grid-column: 1 / -1; min-height: 18px; color: #b00020; font-weight: 700; font-size: 0.85rem; }
-.payment-message.success { color: #246c41; }
-.message-modal-overlay { position: fixed; inset: 0; z-index: 240; background: rgba(12, 25, 42, 0.48); display: flex; align-items: center; justify-content: center; padding: 18px; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity var(--dur-med) var(--ease-standard), visibility 0s linear var(--dur-med); }
-.message-modal-overlay.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity var(--dur-med) var(--ease-standard), visibility 0s linear 0s; }
-.message-modal { width: min(420px, 100%); background: #fff; border-radius: 14px; box-shadow: 0 22px 50px rgba(12, 25, 42, 0.28); border: 1px solid #e5eaf0; overflow: hidden; transform: translateY(10px) scale(0.99); transition: transform var(--dur-med) var(--ease-standard); }
-.message-modal-overlay.visible .message-modal { transform: translateY(0) scale(1); }
-.message-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #ecf0f5; background: #f8fbff; }
-.message-modal-title { font-weight: 800; color: #17314f; font-size: 0.98rem; }
-.message-modal-close { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #d1dbe6; background: #fff; color: #1f314a; font-size: 1rem; cursor: pointer; line-height: 1; }
-.message-modal-body { padding: 16px 14px 14px; color: #2a3f57; font-weight: 700; line-height: 1.45; }
-.message-modal-actions { display: flex; justify-content: flex-end; padding: 0 14px 14px; }
-.message-modal-ok { min-height: 38px; border: none; border-radius: 9px; padding: 0 16px; font-weight: 800; cursor: pointer; background: #1f5ea8; color: #fff; }
-.message-modal.success .message-modal-title { color: #1f6d42; }
-.message-modal.error .message-modal-title { color: #8f001a; }
-.payment-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; }
-.payment-save-btn, .payment-cancel-btn { min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
-.payment-save-btn { border: none; background: var(--success); color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
-.payment-delete-btn { border: 1px solid #e2a7b0; background: #fff4f6; color: #b00020; min-height: 40px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
-.payment-save-btn:disabled { opacity: 0.65; cursor: wait; }
-.payment-cancel-btn { border: 1px solid #c8d8ea; background: #fff; color: #17314f; }
-#loginScreen { max-width: 460px; margin: 70px auto; background: #fff; border-radius: 24px; padding: 28px; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.08); }
-#loginScreen h3 { color: #202124; font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
-#loginScreen p { color: #646464 !important; font-size: 1rem; line-height: 1.4; }
-#loginForm { display: grid; gap: 14px; }
-#loginForm input { width: 100%; }
-#loginError { color: #b00020; font-size: 0.92rem; min-height: 18px; }
-#loginForm button { min-height: 52px; border: none !important; border-radius: 14px !important; background: #1f5ea8 !important; color: #fff !important; font-weight: 700 !important; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
-#loginForm input {
-  max-width: none;
-  min-height: 52px;
-  border: 2px solid #d6e0ec;
-  border-radius: 14px;
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
   background: #fff;
-  color: #1f314a;
-  box-shadow: none;
-  font-size: 0.98rem;
+  border: 1px solid #d9e3ec;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12);
+  min-width: 140px;
+  display: none;
+  z-index: 20;
 }
-input, select {
-  padding: 14px 18px;
+.profile-dropdown.visible { display: block; }
+.profile-dropdown button {
   width: 100%;
-  max-width: 360px;
-  border: 3px solid #667eea;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  outline: none;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  border: none;
+  background: transparent;
+  padding: 12px 14px;
+  text-align: left;
+  color: #1f314a;
+  font-weight: 800;
+  cursor: pointer;
 }
-.top-bar input, .top-bar select { width: auto; max-width: 220px; }
-input:focus, select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.dashboard-hero { margin-bottom: 16px; }
+.command-panel, .section-panel, .quick-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+.command-panel {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  min-height: 132px;
+}
+.eyebrow { color: var(--teal); font-size: 0.78rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.hero-title { margin-top: 8px; font-size: 2.25rem; line-height: 1.08; font-weight: 900; color: #122c45; }
+.dashboard-controls { display: grid; gap: 10px; min-width: 190px; }
+.dashboard-controls select, .dashboard-controls button {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid #cbdced;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 12px;
+  font-weight: 850;
+}
+.dashboard-controls button {
+  border: none;
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(47, 141, 85, 0.18);
+}
+.quick-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.quick-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  text-decoration: none;
+  min-height: 112px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.quick-card:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(18, 45, 76, 0.13); }
+.quick-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  color: #fff;
+  background: var(--blue);
+  font-weight: 900;
+}
+.quick-card:nth-child(2) .quick-icon { background: var(--green); }
+.quick-card:nth-child(3) .quick-icon { background: var(--amber); }
+.quick-card:nth-child(4) .quick-icon { background: var(--teal); }
+.quick-title { font-weight: 900; color: #142f49; }
+.quick-copy { color: var(--muted); font-size: 0.88rem; line-height: 1.35; font-weight: 650; }
+.dashboard-grid { display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 16px; align-items: start; }
+.section-panel { padding: 16px; min-width: 0; }
+.section-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+.section-title { font-size: 1.05rem; font-weight: 950; color: #132f4d; }
+.section-meta { color: var(--muted); font-size: 0.82rem; font-weight: 800; }
+.trend-chart { height: 250px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; align-items: end; padding-top: 12px; }
+.trend-bar { min-width: 0; display: grid; grid-template-rows: 1fr auto; gap: 8px; height: 100%; }
+.bar-fill {
+  align-self: end;
+  min-height: 8px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #1f5ea8, #2a7562);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.bar-label { color: var(--muted); text-align: center; font-size: 0.72rem; font-weight: 850; }
+.split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.rank-list, .activity-list { display: grid; gap: 10px; }
+.rank-item, .activity-item {
+  border: 1px solid #e1ebf4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fbfdff;
+}
+.rank-top, .activity-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.rank-name, .activity-title { font-weight: 900; color: #17314f; }
+.rank-amount, .activity-amount { font-weight: 950; color: var(--green); white-space: nowrap; }
+.rank-track { height: 7px; margin-top: 8px; background: #e8eff6; border-radius: 999px; overflow: hidden; }
+.rank-fill { height: 100%; width: 0%; background: var(--blue); border-radius: inherit; }
+.activity-sub { margin-top: 5px; color: var(--muted); font-size: 0.84rem; line-height: 1.35; font-weight: 700; }
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pill { min-height: 28px; display: inline-flex; align-items: center; border-radius: 999px; padding: 0 10px; font-size: 0.78rem; font-weight: 900; }
+.pill.green { background: var(--green-soft); color: #1e6f42; }
+.pill.amber { background: var(--amber-soft); color: var(--amber); }
+.pill.red { background: var(--red-soft); color: var(--red); }
+.empty-state { color: var(--muted); font-weight: 750; padding: 18px 0; }
+.side-stack { display: grid; gap: 16px; }
+.mode-grid { display: grid; gap: 10px; }
+.mode-row { display: grid; grid-template-columns: 78px 1fr auto; gap: 10px; align-items: center; color: var(--muted); font-weight: 850; }
+.mode-track { height: 9px; background: #e8eff6; border-radius: 999px; overflow: hidden; }
+.mode-fill { height: 100%; background: var(--green); border-radius: inherit; }
+.resident-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.resident-mini { border-radius: 8px; padding: 10px; background: #f7fbff; border: 1px solid #e1ebf4; }
+.resident-mini .label { color: var(--muted); font-size: 0.72rem; font-weight: 900; text-transform: uppercase; }
+.resident-mini .value { margin-top: 6px; font-size: 1.25rem; font-weight: 950; }
+.loading .skeleton { position: relative; overflow: hidden; color: transparent !important; background: #edf3f8; border-radius: 6px; }
+.loading .skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@media (max-width: 1180px) {
+  .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
   body { padding: 0; background: #f5f6f8; }
-  #loginScreen { margin: 76px 18px 0; padding: 24px 28px; }
-  .container { padding: 0; }
+  .container { max-width: none; }
   .app-header { display: none; }
-  .header-title { text-align: left; }
-  .nav-shell {
-    position: relative;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    margin-bottom: 18px;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
-    border-bottom: 0;
-    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
-  }
-  .mobile-brand-row {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    min-height: 72px;
-    padding: 0 78px 0 38px;
-    border-bottom: 1px solid rgba(255,255,255,0.25);
-  }
-  .mobile-menu-mark {
-    display: inline-flex;
-    width: 34px;
-    height: 28px;
-    flex: 0 0 auto;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  .mobile-menu-mark span {
-    display: block;
-    height: 5px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.9);
-  }
-  .mobile-menu-mark span:nth-child(1) { width: 34px; }
-  .mobile-menu-mark span:nth-child(2) { width: 28px; }
-  .mobile-menu-mark span:nth-child(3) { width: 24px; }
-  .mobile-brand-title {
-    color: #fff;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-  }
-  .profile-menu {
-    position: absolute;
-    top: 15px;
-    right: 34px;
-    z-index: 25;
-  }
-  .profile-button {
-    width: 48px;
-    height: 48px;
-    border: 2px solid rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.12);
-    color: #fff;
-    box-shadow: none;
-    font-size: 1.05rem;
-  }
-  .profile-dropdown { top: calc(100% + 8px); }
-  .main-menu {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    justify-content: stretch;
-    gap: 0;
-    border-bottom: 1px solid #e5e5e5;
-  }
-  .main-menu a {
-    display: block;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: rgba(255,255,255,0.78);
-    padding: 20px 12px 16px;
-    text-align: center;
-    font-size: 1.05rem;
-    font-weight: 800;
-  }
-  .main-menu a.active {
-    position: relative;
-    background: transparent;
-    border-color: transparent;
-    color: #fff;
-  }
-  .main-menu a.active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 5px;
-    background: #fff;
-  }
-  #logoutBtn { width: 100%; }
-  .top-bar { flex-direction: column; align-items: stretch; margin: 0 18px 22px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
-  .search-controls { flex-direction: column; align-items: stretch; gap: 12px; }
-  .top-bar .add-payment-btn { display: none; }
-  .mobile-payment-actions { display: flex; justify-content: flex-end; padding: 0 18px 12px; }
-  .mobile-payment-actions .add-payment-btn { display: inline-flex; margin-left: 0; }
-  .top-bar input, .top-bar select {
-    width: 100%;
-    max-width: none;
-    min-width: 0;
-    min-height: 52px;
-    border: 2px solid #d6e0ec;
-    border-radius: 14px;
-    background: #fff;
-    color: #1f314a;
-    box-shadow: none;
-    font-size: 0.98rem;
-    font-weight: 600;
-  }
-  .top-bar input:focus, .top-bar select:focus {
-    border-color: #1f5ea8;
-    box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1);
-  }
-  input, select { width: 100%; }
-  .table-container { display: none; }
-  .card-list { display: block; padding: 0 18px 18px; margin-top: 0; }
-  .mobile-card { padding: 18px 20px; border-radius: 20px; margin-bottom: 14px; }
-  .mobile-card-header { min-height: 56px; }
-  .payment-add-icon { width: auto; min-width: 108px; height: 40px; border-radius: 999px; gap: 8px; padding: 0 14px 0 34px; font-size: 0.86rem; font-weight: 800; }
-  .payment-add-icon::before { left: 15px; width: 13px; height: 2px; }
-  .payment-add-icon::after { left: 20.5px; width: 2px; height: 13px; }
-  .payment-add-text { display: inline; color: #246c41; }
-  .payment-contact-icon { width: 40px; height: 40px; }
-  .payment-contact-icon::before { top: 8px; width: 12px; height: 12px; border-width: 2px; }
-  .payment-contact-icon::after { bottom: 8px; width: 22px; height: 11px; border-width: 2px; border-bottom: 0; }
-  .payment-modal-overlay { align-items: flex-end; padding: 0; }
-  .payment-modal { width: 100%; max-width: 100%; margin: 0; max-height: 94vh; border-radius: 22px 22px 0 0; }
-  .payment-modal-header { padding: 18px 18px 14px; }
-  .payment-modal-title { font-size: 1.12rem; }
-  .payment-form { grid-template-columns: 1fr; width: 100%; min-width: 0; padding: 18px; gap: 13px; }
-  .payment-field, .payment-month-dropdown { min-width: 0; }
-  .payment-field input, .payment-field select, .payment-field textarea, .payment-month-trigger { width: 100%; max-width: 100%; min-width: 0; }
-  .payment-actions { flex-direction: column-reverse; }
-  .payment-save-btn, .payment-cancel-btn { width: 100%; }
-  .payment-month-options { position: static; margin-top: 6px; max-height: 260px; overflow: auto; }
-  .payment-month-dropdown:not(.open) .payment-month-options { display: none; }
-  .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .month-item { font-size: 0.9rem; }
-  .card-details .paid-months-compact { color:#246c41; background:#eaf7ef; border-color:#b9dcc8; }
-  th, td { white-space: normal; font-size: 0.95rem; }
-  th[data-month-index] { min-width: 90px; }
-  .month-head { gap: 6px; }
-}
-@media (max-width: 560px) {
-  .app-header { border-radius: 10px; }
-  .mobile-brand-row { gap: 28px; padding-left: 30px; padding-right: 82px; }
-  .mobile-brand-title { font-size: 1.18rem; }
-  .profile-menu { right: 28px; }
-  .main-menu { gap: 0; }
-  .main-menu a { font-size: 0.9rem; padding: 18px 8px 14px; }
-  .top-bar { margin-left: 16px; margin-right: 16px; padding: 0; }
-  .mobile-payment-actions { padding-left: 16px; padding-right: 16px; }
-  .card-list { padding-left: 16px; padding-right: 16px; }
-  .mobile-card { border-radius: 18px; padding: 16px 18px; }
-  .mobile-card-header .title { font-size: 0.98rem; }
-  .mobile-card-header .subtitle { font-size: 0.9rem; }
-  .payment-modal-header { padding: 14px 14px 10px; }
-  .payment-form { padding: 14px 12px 16px; gap: 11px; }
-  .payment-field input, .payment-field select, .payment-field textarea, .payment-month-trigger { padding-left: 10px; padding-right: 10px; }
-  .payment-actions { gap: 8px; }
-  .payment-save-btn, .payment-cancel-btn, .payment-delete-btn { min-height: 42px; padding-left: 12px; padding-right: 12px; }
-  .month-name, .month-amount { font-size: 0.9rem; }
-  .month-date { font-size: 0.8rem; }
-  .month-grid { grid-template-columns: 1fr; }
-}
-
-/* Refreshed dashboard look */
-body {
-  font-family: "Plus Jakarta Sans", "Segoe UI", Tahoma, sans-serif;
-  background:
-    radial-gradient(circle at 8% 8%, rgba(33, 94, 164, 0.12), transparent 36%),
-    radial-gradient(circle at 92% 0%, rgba(27, 146, 98, 0.12), transparent 30%),
-    #edf3f8;
-}
-.container { max-width: 1500px; }
-.app-header {
-  background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
-  box-shadow: 0 18px 40px rgba(13, 36, 66, 0.22);
-}
-.app-header h1, .app-header p { color: #fff; }
-.app-header p { opacity: 0.92; font-size: 1rem; letter-spacing: 0.03em; text-transform: uppercase; }
-.nav-shell, .top-bar, .table-container {
-  border: 1px solid #d8e4ef;
-  box-shadow: 0 10px 26px rgba(17, 46, 79, 0.08);
-}
-.top-bar { border-radius: 16px; }
-.main-menu a { background: #f3f8ff; }
-.main-menu a.active {
-  background: linear-gradient(120deg, #e9f3ff, #e8f8f2);
-  border-color: #95b6d8;
-}
-.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-text); }
-.main-menu a.active .menu-badge { background: rgba(31, 94, 168, 0.14); color: var(--accent); }
-.dashboard-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.metric-card {
-  background: #fff;
-  border: 1px solid #d8e4ef;
-  border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 10px 24px rgba(16, 42, 72, 0.08);
-}
-.metric-label {
-  font-size: 0.74rem;
-  color: #486481;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 800;
-}
-.metric-value {
-  margin-top: 6px;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #16324f;
-}
-.metric-sub {
-  margin-top: 3px;
-  color: #6a7d91;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-th {
-  background: linear-gradient(120deg, #1e3f67, #142b46);
-  border-bottom-color: #8eb5e6;
-}
-.month-total { color: #ffd488; }
-.paid { background: #dbf4e5; color: #165f3e; }
-.empty { background: #f9e3e5; color: #7f1d2e; }
-
-/* Modal and collapsible card refresh */
-.payment-modal { border: 1px solid #d6e4f2; background: linear-gradient(180deg, #f8fbff 0%, #ffffff 16%); }
-.payment-modal-header { padding: 16px 20px; background: linear-gradient(125deg, #163a64, #1f5ea8 55%, #2a7562); border-bottom: 0; }
-.payment-modal-title-wrap { display: grid; gap: 3px; }
-.payment-modal-title, .payment-modal-subtitle { color: #fff; }
-.payment-modal-subtitle { font-size: 0.82rem; letter-spacing: 0.03em; opacity: 0.9; text-transform: uppercase; font-weight: 700; }
-.payment-modal-close { border-color: rgba(255,255,255,0.4); color: #fff; background: rgba(255,255,255,0.08); }
-.payment-form { gap: 12px 14px; padding: 16px 20px 20px; }
-.payment-field label { color: #2b4f73; }
-.payment-field input, .payment-field select, .payment-field textarea, .payment-month-trigger { min-height: 44px; border-radius: 12px; border-color: #cbdced; background: #fff; }
-.payment-field textarea { min-height: 84px; }
-.payment-actions { padding-top: 6px; }
-.payment-save-btn, .payment-cancel-btn, .payment-delete-btn { min-height: 44px; border-radius: 12px; }
-.mobile-card { border: 1px solid #dde8f3; box-shadow: 0 12px 26px rgba(15, 41, 69, 0.09); }
-.mobile-card-header { align-items: flex-start; }
-.mobile-card-copy { flex: 1; }
-.card-header-right { display: flex; align-items: center; gap: 9px; }
-.toggle-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #bdd4ea; background: #ecf5ff; color: transparent; }
-.toggle-icon::before, .toggle-icon::after { content: ""; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; border-right: 2px solid #1f5ea8; border-bottom: 2px solid #1f5ea8; transform: translate(-50%, -62%) rotate(45deg); border-radius: 1px; }
-.toggle-icon::after { display: none; }
-.mobile-card.expanded .toggle-icon::before { transform: translate(-50%, -38%) rotate(-135deg); }
-.year-row { border-bottom: 1px solid #e5ece6; }
-.year-toggle { width: 30px; height: 30px; border-color: #acd3bf; background: #e7f6ef; color: transparent; position: relative; }
-.year-toggle::before { content: ""; width: 8px; height: 8px; border-right: 2px solid #2f8d55; border-bottom: 2px solid #2f8d55; transform: rotate(45deg); position: absolute; top: 9px; left: 10px; }
-.year-row.expanded .year-toggle::before { transform: rotate(-135deg); top: 13px; }
-@media (max-width: 900px) {
-  .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 18px 14px; }
-}
-@media (max-width: 560px) {
-  .dashboard-metrics { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; }
-}
-@media (max-width: 768px) {
   .nav-shell {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 14px;
+    padding: 0;
+    border-radius: 0;
+    border: 0;
+    background: linear-gradient(120deg, var(--blue-dark), var(--blue) 52%, var(--teal));
+    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
   }
+  .mobile-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    min-height: 72px;
+    padding: 0 78px 0 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.25);
+  }
+  .mobile-menu-mark { display: inline-flex; width: 34px; height: 28px; flex-direction: column; justify-content: space-between; }
+  .mobile-menu-mark span { display: block; height: 5px; border-radius: 999px; background: rgba(255,255,255,0.9); }
+  .mobile-menu-mark span:nth-child(2) { width: 28px; }
+  .mobile-menu-mark span:nth-child(3) { width: 24px; }
+  .mobile-brand-title { color: #fff; font-size: 1.18rem; font-weight: 900; }
+  .main-menu { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
   .main-menu a {
-    background: transparent !important;
-    color: rgba(255,255,255,0.78) !important;
+    justify-content: center;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.78);
+    padding: 18px 6px 14px;
+    min-height: 54px;
+    font-size: 0.82rem;
   }
-  .main-menu a.active {
-    background: transparent !important;
-    color: #fff !important;
-  }
-  .main-menu a.active::after { background: #fff !important; }
-  .top-bar { gap: 10px; }
-  .search-controls { gap: 10px; }
-  .mobile-card { border: 1px solid #dbe6f2; box-shadow: 0 10px 22px rgba(22, 49, 79, 0.09); background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); padding: 16px; border-radius: 20px; }
-  .mobile-card-header .title { font-size: 1.02rem; color: #15375e; }
-  .mobile-card-header .subtitle { margin-top: 8px; color: #476180; font-weight: 600; }
-  .card-details { margin-top: 14px; }
-  .year-block { border-radius: 14px; border-color: #dce8f3; background: #f7fbff; }
-  .year-row { padding: 12px 13px; }
-  .year-month-details { background: #f4f8fc; }
-  .month-item { border-radius: 12px; border-color: #dce8f3; background: #fff; }
-  .month-summary { border-radius: 13px; border-color: #b6d5c5; }
-  .payment-modal-header { padding: 16px 18px; }
-  .payment-modal-subtitle { font-size: 0.76rem; }
+  .main-menu a.active { position: relative; background: transparent; color: #fff; }
+  .main-menu a.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #fff; }
+  .menu-badge { display: none; }
+  .profile-menu { position: absolute; top: 15px; right: 28px; }
+  .profile-button { width: 48px; height: 48px; border: 2px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.12); box-shadow: none; }
+  .dashboard-hero, .quick-actions, .dashboard-grid { margin-left: 14px; margin-right: 14px; }
+  .command-panel { grid-template-columns: 1fr; padding: 16px; min-height: 0; }
+  .hero-title { font-size: 1.58rem; }
+  .quick-actions, .split-grid { grid-template-columns: 1fr; }
+  .trend-chart { height: 190px; gap: 5px; }
+  .section-panel { padding: 14px; }
+  .resident-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<div id="loginScreen" class="hidden">
-  <h3>Authorized Access</h3>
-  <p style="margin:10px 0 14px; color:#4c6178;">Please sign in to open the guard payment dashboard.</p>
-  <form id="loginForm">
-    <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username" />
-    <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
-    <button type="submit" style="padding:12px;border:none;border-radius:8px;background:#1f5ea8;color:#fff;font-weight:700;cursor:pointer;">Login</button>
-    <div id="loginError"></div>
-  </form>
-</div>
-
-<div class="container hidden" id="appContent">
+<div class="container loading" id="dashboardShell">
   <div class="app-header">
-    <div class="header-title">
-      <h1>MIG Society, Sector-29</h1>
-      <p>Guard Payment Dashboard</p>
-    </div>
+    <h1>MIG Society, Sector-29</h1>
+    <p>Admin Dashboard</p>
   </div>
 
   <div class="nav-shell">
@@ -539,9 +315,10 @@ th {
       <div class="mobile-brand-title">MIG-1 Society</div>
     </div>
     <ul class="main-menu">
-      <li><a class="active" href="index.html">Payments</a></li>
+      <li><a class="active" href="index.html">Dashboard</a></li>
+      <li><a href="payments.html">Payments</a></li>
       <li><a href="owner-tenant.html">Residents <span class="menu-badge" id="residentNavBadge">0</span></a></li>
-      <li><a href="emergency-contact.html">Emergency Contact <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
+      <li><a href="emergency-contact.html">Emergency <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
     </ul>
     <div class="profile-menu">
       <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
@@ -551,847 +328,398 @@ th {
     </div>
   </div>
 
-  <div class="top-bar">
-    <div class="search-controls">
-      <select id="yearFilter">
-        <option value="2026">YEAR 2026</option>
-        <option value="2025">YEAR 2025</option>
-      </select>
-      <select id="blockFilter"><option value="">ALL BLOCKS</option></select>
-      <select id="searchType">
-        <option value="all">Search: All</option>
-        <option value="block">Block</option>
-        <option value="flat">Flat</option>
-        <option value="amount">Amount</option>
-      </select>
-      <input type="text" id="search" placeholder="Search block, flat or amount..." />
-      <button class="add-payment-btn" id="openPaymentModalBtn" type="button">+ Add Payment</button>
-    </div>
-  </div>
-  <div class="table-container">
-    <table id="table">
-      <thead>
-      <tr>
-        <th>BLOCK</th><th>FLAT</th>
-        <th data-month-index="0"><div class="month-head"><span>Jan</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="1"><div class="month-head"><span>Feb</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="2"><div class="month-head"><span>Mar</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="3"><div class="month-head"><span>Apr</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="4"><div class="month-head"><span>May</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="5"><div class="month-head"><span>Jun</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="6"><div class="month-head"><span>Jul</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="7"><div class="month-head"><span>Aug</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="8"><div class="month-head"><span>Sep</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="9"><div class="month-head"><span>Oct</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="10"><div class="month-head"><span>Nov</span><span class="month-total">₹0</span></div></th>
-        <th data-month-index="11"><div class="month-head"><span>Dec</span><span class="month-total">₹0</span></div></th>
-        <th>TOTAL</th>
-      </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <div class="mobile-payment-actions">
-    <button class="add-payment-btn" id="openPaymentModalMobileBtn" type="button">+ Add Payment</button>
-  </div>
-  <div id="mobileCards" class="card-list"></div>
-</div>
-
-<div class="payment-modal-overlay" id="paymentModalOverlay" aria-hidden="true">
-  <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
-    <div class="payment-modal-header">
-      <div class="payment-modal-title-wrap">
-        <div class="payment-modal-title" id="paymentModalTitle">Add Payment</div>
-        <div class="payment-modal-subtitle" id="paymentModalSubtitle">Create a new payment entry</div>
+  <section class="dashboard-hero">
+    <div class="command-panel">
+      <div>
+        <div class="eyebrow">Society command center</div>
+        <h2 class="hero-title">Collections, residents, and operational updates in one view.</h2>
       </div>
-      <button class="payment-modal-close" id="closePaymentModalBtn" type="button" aria-label="Close">×</button>
-    </div>
-    <form class="payment-form" id="paymentForm">
-      <div class="payment-field">
-        <label for="paymentBlock">Block</label>
-        <select id="paymentBlock" required></select>
-        <input id="paymentBlockReadonly" type="text" readonly class="hidden" />
-      </div>
-      <div class="payment-field">
-        <label for="paymentFlat">Flat No</label>
-        <select id="paymentFlat" required></select>
-        <input id="paymentFlatReadonly" type="text" readonly class="hidden" />
-      </div>
-      <div class="payment-field">
-        <label for="paymentAmount">Amount</label>
-        <input id="paymentAmount" type="number" min="1" step="1" inputmode="numeric" required />
-      </div>
-      <div class="payment-field">
-        <label for="paymentMode">Payment Mode</label>
-        <select id="paymentMode" required>
-          <option value="ONLINE">ONLINE</option>
-          <option value="CASH">CASH</option>
+      <div class="dashboard-controls">
+        <select id="yearFilter" aria-label="Dashboard year">
+          <option value="2026">YEAR 2026</option>
+          <option value="2025">YEAR 2025</option>
         </select>
+        <button id="refreshDashboardBtn" type="button">Refresh Dashboard</button>
       </div>
-      <div class="payment-field hidden" id="receivedByField">
-        <label for="paymentReceivedBy">Received By</label>
-        <input id="paymentReceivedBy" type="text" />
-      </div>
-      <div class="payment-field">
-        <label for="paymentDate">Payment Date</label>
-        <input id="paymentDate" type="date" required />
-      </div>
-      <div class="payment-field full">
-        <label id="paymentMonthsLabel">Payment For Which Month</label>
-        <div class="payment-month-dropdown" id="paymentMonthDropdown">
-          <button class="payment-month-trigger" id="paymentMonthTrigger" type="button" aria-expanded="false">Select months</button>
-          <div class="payment-month-options" id="paymentMonths" role="group" aria-labelledby="paymentMonthsLabel"></div>
+    </div>
+  </section>
+
+  <section class="quick-actions" aria-label="Quick actions">
+    <a class="quick-card" href="payments.html">
+      <span class="quick-icon">+</span>
+      <span class="quick-title">Add or edit payments</span>
+      <span class="quick-copy">Open the payment register, update dues, and review month-wise entries.</span>
+    </a>
+    <a class="quick-card" href="owner-tenant.html">
+      <span class="quick-icon">R</span>
+      <span class="quick-title">Manage residents</span>
+      <span class="quick-copy">Update owner, tenant, phone, vehicle, and occupancy records.</span>
+    </a>
+    <a class="quick-card" href="payment-status.html">
+      <span class="quick-icon">S</span>
+      <span class="quick-title">Payment status</span>
+      <span class="quick-copy">Scan paid and pending status by block, flat, and month.</span>
+    </a>
+    <a class="quick-card" href="emergency-contact.html">
+      <span class="quick-icon">!</span>
+      <span class="quick-title">Emergency contacts</span>
+      <span class="quick-copy">Open priority contacts for vendors, guards, and services.</span>
+    </a>
+  </section>
+
+  <main class="dashboard-grid">
+    <div>
+      <section class="section-panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Monthly Collection Trend</div>
+            <div class="section-meta" id="trendMeta">Payment amount by month</div>
+          </div>
         </div>
+        <div class="trend-chart" id="monthlyTrend"></div>
+      </section>
+
+      <div class="split-grid">
+        <section class="section-panel">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Collection by Block</div>
+              <div class="section-meta">All blocks for the selected year</div>
+            </div>
+          </div>
+          <div class="rank-list" id="blockLeaderboard"></div>
+        </section>
+
+        <section class="section-panel">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Recently Added / Updated Payments</div>
+              <div class="section-meta">Latest dated payment entries</div>
+            </div>
+          </div>
+          <div class="activity-list" id="recentPayments"></div>
+        </section>
       </div>
-      <div class="payment-field full">
-        <label for="paymentNotes">Notes</label>
-        <textarea id="paymentNotes" placeholder="Add remarks"></textarea>
-      </div>
-      <div class="payment-message" id="paymentMessage"></div>
-      <div class="payment-actions">
-        <button class="payment-cancel-btn" id="cancelPaymentBtn" type="button">Cancel</button>
-        <button class="payment-delete-btn hidden" id="deletePaymentBtn" type="button">Delete Record</button>
-        <button class="payment-save-btn" id="savePaymentBtn" type="submit">Save Payment</button>
-      </div>
-    </form>
-  </div>
-</div>
-<div id="messageModalOverlay" class="message-modal-overlay" aria-hidden="true">
-  <div id="messageModal" class="message-modal error" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
-    <div class="message-modal-header">
-      <div id="messageModalTitle" class="message-modal-title">Message</div>
-      <button id="messageModalCloseBtn" class="message-modal-close" type="button" aria-label="Close">×</button>
     </div>
-    <div id="messageModalBody" class="message-modal-body"></div>
-    <div class="message-modal-actions">
-      <button id="messageModalOkBtn" class="message-modal-ok" type="button">OK</button>
-    </div>
-  </div>
+
+    <aside class="side-stack">
+      <section class="section-panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Payment Modes</div>
+            <div class="section-meta">Online vs cash mix</div>
+          </div>
+        </div>
+        <div class="mode-grid" id="paymentModeBreakdown"></div>
+      </section>
+
+      <section class="section-panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Resident Health</div>
+            <div class="section-meta">Occupancy and profile quality</div>
+          </div>
+        </div>
+        <div class="resident-grid">
+          <div class="resident-mini"><div class="label">Owner</div><div class="value" id="residentOwner">0</div></div>
+          <div class="resident-mini"><div class="label">Tenant</div><div class="value" id="residentTenant">0</div></div>
+          <div class="resident-mini"><div class="label">Pending</div><div class="value" id="residentPending">0</div></div>
+        </div>
+        <div class="pill-row">
+          <span class="pill green" id="residentCompleteness">0% complete</span>
+          <span class="pill amber" id="vehicleCoverage">0 vehicle records</span>
+        </div>
+      </section>
+
+      <section class="section-panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Recently Updated Residents</div>
+            <div class="section-meta" id="residentRecentMeta">Latest directory rows</div>
+          </div>
+        </div>
+        <div class="activity-list" id="recentResidents"></div>
+      </section>
+    </aside>
+  </main>
 </div>
 
 <script>
+const AUTH_SESSION_KEY = "society_dashboard_auth";
+if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
+
 const SHEET_IDS_BY_YEAR = { "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
 const DEFAULT_YEAR = "2026";
-const AUTH_SESSION_KEY = "society_dashboard_auth";
-const AUTH_CREDENTIALS = { username: "admin", password: "MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbz04sTGzbddL7rNtYkR9n_Bt7HN7JXpVNaLFXxjZ76p1hEJ59afLrtE9TltW4Ame5bzcA/exec";
-const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
-const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-const paymentMonthLabels = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
-const monthSheetNamesByYear = { "2026": months, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
-const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH_TABS_BY_YEAR = { "2026": MONTHS, "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"] };
+const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME = "Sheet1";
 const CONTACT_TAB_NAME = "emergency-contacts";
-let groupedData = {}, monthlyTotals = new Array(12).fill(0), processedRecords = new Set(), allBlocks = new Set(), allFlats = {};
-let paymentModalAction = "create";
-let activePaymentEditContext = null;
-function normalizeBlockName(value) { const digits = String(value || "").replace(/[^0-9]/g, ""); return digits ? `Block-${Number(digits)}` : String(value || "").trim(); }
-function resetDataState() { groupedData = {}; monthlyTotals = new Array(12).fill(0); processedRecords = new Set(); allBlocks = new Set(); allFlats = {}; document.querySelector("#table tbody").innerHTML = ""; }
-function showDashboard() { document.getElementById("loginScreen").classList.add("hidden"); document.getElementById("appContent").classList.remove("hidden"); }
-function showLogin() { document.getElementById("loginScreen").classList.remove("hidden"); document.getElementById("appContent").classList.add("hidden"); }
-function setLoginError(message) { document.getElementById("loginError").textContent = message; }
-function handleLogin(event) {
-  event.preventDefault();
-  const username = document.getElementById("loginUsername").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
-    sessionStorage.setItem(AUTH_SESSION_KEY, "true"); setLoginError(""); showDashboard(); fetchAllMonthData(); return;
-  }
-  setLoginError("Invalid username or password.");
-}
-function logout() { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; }
-function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
-function formatPaidMonthLabel(value) {
-  const raw = String(value || "").trim().toUpperCase();
-  const monthIndex = months.findIndex(month => month === raw || month.substring(0, 3) === raw.substring(0, 3));
-  return monthIndex >= 0 ? paymentMonthLabels[monthIndex] : raw;
-}
-function processRow(block, flat, amount, date, year, monthIndex, paidMonthsRaw, paymentModeRaw, receivedByRaw, notesRaw) {
-  if (!block || block === "TOTAL" || !flat || !amount) return;
-  const normalizedBlock = normalizeBlockName(block);
-  const recordId = `${year}-${monthIndex}-${normalizedBlock}-${flat}`;
-  if (processedRecords.has(recordId)) return;
-  processedRecords.add(recordId);
-  let parts = String(date).trim().split("/"); if (parts.length !== 3) return;
-  let month = parseInt(parts[0]), day = parseInt(parts[1]), parsedYear = parseInt(parts[2]);
-  if (isNaN(day) || isNaN(month) || isNaN(parsedYear) || monthIndex < 0 || monthIndex > 11) return;
-  let key = normalizedBlock + "-" + flat;
-  let flatNum = parseInt(flat);
-  if(!groupedData[key]) groupedData[key] = { Block: normalizedBlock, Flat: flatNum, years: {}, months: {}, total: 0 };
-  if(!groupedData[key].years[year]) groupedData[key].years[year] = { total: 0, months: {} };
-  let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${parsedYear}`;
-  let amountNum = Number(amount || 0);
-  const paymentMode = String(paymentModeRaw || "").trim().toUpperCase();
-  let paidMonthsHtml = "";
-  if (paidMonthsRaw) {
-    const parts = String(paidMonthsRaw).split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean);
-    if (parts.length) {
-      const short = parts.map(formatPaidMonthLabel).join(', ');
-      const full = parts.join(', ');
-      paidMonthsHtml = `<span class="paid-months-compact" title="${full}">${short}</span>`;
-    }
-  }
-  groupedData[key].years[year].months[monthIndex] = {
-    amount: amountNum,
-    date: formattedDate,
-    paidMonthsHtml,
-    paymentMode,
-    receivedBy: String(receivedByRaw || "").trim(),
-    notes: String(notesRaw || "").trim(),
-    paidMonths: String(paidMonthsRaw || "").trim(),
-  };
-  groupedData[key].years[year].total += amountNum;
-  if (!groupedData[key].months[monthIndex]) {
-    groupedData[key].months[monthIndex] = { amount: 0, date: formattedDate, paidMonthsHtml: "", paymentMode: "", receivedBy: "", notes: "", paidMonths: "" };
-  }
-  groupedData[key].months[monthIndex].amount += amountNum;
-  groupedData[key].months[monthIndex].paidMonthsHtml = groupedData[key].months[monthIndex].paidMonthsHtml || paidMonthsHtml;
-  groupedData[key].months[monthIndex].paymentMode = groupedData[key].months[monthIndex].paymentMode || paymentMode;
-  groupedData[key].months[monthIndex].receivedBy = groupedData[key].months[monthIndex].receivedBy || String(receivedByRaw || "").trim();
-  groupedData[key].months[monthIndex].notes = groupedData[key].months[monthIndex].notes || String(notesRaw || "").trim();
-  groupedData[key].months[monthIndex].paidMonths = groupedData[key].months[monthIndex].paidMonths || String(paidMonthsRaw || "").trim();
-  groupedData[key].total += amountNum; monthlyTotals[monthIndex] += amountNum;
-}
-async function fetchAllMonthData() {
-  const selectedYear = document.getElementById("yearFilter").value;
-  const selectedYears = selectedYear === "all" ? Object.keys(SHEET_IDS_BY_YEAR) : [selectedYear];
-  resetDataState();
-  const fetchPromises = selectedYears.flatMap(currYear => {
-    const selectedSheetId = SHEET_IDS_BY_YEAR[currYear];
-    const monthSheetNames = monthSheetNamesByYear[currYear] || months;
-    if (!selectedSheetId) return [];
-    return monthSheetNames.map((sheetName, monthIndex) => {
-      if (!sheetName) return Promise.resolve();
-      const url = `https://docs.google.com/spreadsheets/d/${selectedSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-      return fetch(url).then(res => res.text()).then(csv => {
-        const preview = csv.trim().slice(0, 120).toLowerCase();
-        if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return;
-        csv.split("\n").slice(1).forEach(r => {
-          let cols = parseCSV(r);
-          let block = cols[0], flat = cols[1], amount = cols[2], paymentMode = cols[3], date = cols[4], status = cols[5], receivedBy = cols[6], notes = cols[7], paidMonths = cols[8];
-          if(!block || !flat) return;
-          const normalizedBlock = normalizeBlockName(block);
-          allBlocks.add(normalizedBlock);
-          if(!allFlats[normalizedBlock]) allFlats[normalizedBlock] = new Set();
-          allFlats[normalizedBlock].add(flat);
-          if(!amount || status?.toUpperCase().trim() !== "DONE") return;
-          processRow(block, flat, amount, date, currYear, monthIndex, paidMonths, paymentMode, receivedBy, notes);
-        });
-      });
-    });
-  });
-  await Promise.all(fetchPromises);
-  renderTable();
-}
-function updateMonthHeaderTotals() { document.querySelectorAll("th[data-month-index]").forEach(th => { const i = Number(th.dataset.monthIndex); const t = monthlyTotals[i] || 0; const el = th.querySelector(".month-total"); if (el) el.textContent = `₹${t}`; }); }
-function updateBlockFilterOptions(blocks) { const blockFilter = document.getElementById("blockFilter"); const selected = blockFilter.value; blockFilter.innerHTML = `<option value="">All Blocks</option>` + blocks.map(b => `<option value="${b}">${b}</option>`).join(""); if (selected && blocks.includes(selected)) blockFilter.value = selected; }
-function formatCurrencyINR(value) { return `₹${Number(value || 0).toLocaleString("en-IN")}`; }
-function updateDashboardMetrics() {
-  const collectedEl = document.getElementById("metricCollected");
-  const collectedYearEl = document.getElementById("metricCollectedYear");
-  const residentsEl = document.getElementById("metricResidents");
-  const blocksEl = document.getElementById("metricBlocks");
-  const pendingEl = document.getElementById("metricPending");
-  if (!collectedEl || !collectedYearEl || !residentsEl || !blocksEl || !pendingEl) return;
-  const selectedYear = document.getElementById("yearFilter").value;
-  const residents = Object.keys(groupedData).length;
-  const blocks = allBlocks.size;
-  const totalCollected = monthlyTotals.reduce((sum, value) => sum + Number(value || 0), 0);
-  let paidCount = 0;
-  Object.values(groupedData).forEach(row => {
-    const yearData = row.years?.[selectedYear];
-    if (!yearData || !yearData.months) return;
-    Object.values(yearData.months).forEach(monthEntry => {
-      if (Number(monthEntry?.amount || 0) > 0) paidCount += 1;
-    });
-  });
-  const pendingMonths = Math.max((residents * 12) - paidCount, 0);
-  collectedEl.textContent = formatCurrencyINR(totalCollected);
-  collectedYearEl.textContent = `Year ${selectedYear}`;
-  residentsEl.textContent = residents.toLocaleString("en-IN");
-  blocksEl.textContent = blocks.toLocaleString("en-IN");
-  pendingEl.textContent = pendingMonths.toLocaleString("en-IN");
-  const residentBadge = document.getElementById("residentNavBadge");
-  if (residentBadge) residentBadge.textContent = residents.toLocaleString("en-IN");
-}
-async function updateEmergencyNavBadge() {
-  try {
-    const url = `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`;
-    const res = await fetch(url);
-    const csv = await res.text();
-    const rows = csv.split(/\r?\n/).filter(Boolean).map(line => parseCSV(line));
-    const count = rows.filter(cols => (cols[0] || cols[1] || cols[2]) && (cols[1] || cols[2])).length;
-    const badge = document.getElementById("emergencyNavBadge");
-    if (badge) badge.textContent = count.toLocaleString("en-IN");
-  } catch (_) {}
-}
-function renderTable() {
-  let tbody = document.querySelector("#table tbody");
-  let cardContainer = document.getElementById("mobileCards");
-  const selectedYearForEdit = document.getElementById("yearFilter").value;
-  const canEditFromWebTable = selectedYearForEdit !== "all";
-  const sortedBlocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
-  sortedBlocks.forEach(block => {
-    const flats = Array.from(allFlats[block] || []).map(f => ({ flat: parseInt(f), display: f })).sort((a,b)=>a.flat-b.flat);
-    flats.forEach(flatObj => { const key = block + "-" + flatObj.display; if (!groupedData[key]) groupedData[key] = { Block: block, Flat: flatObj.flat, months: {}, total: 0 }; });
-  });
-  const sortedData = Object.values(groupedData).sort((a,b)=>{ const c = a.Block.localeCompare(b.Block, undefined, {numeric:true}); return c !== 0 ? c : a.Flat - b.Flat; });
-  let html = "";
-  let cardHtml = "";
-  sortedData.forEach(row => {
-    html += `<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
-    months.forEach((_,i)=>{
-      if (row.months[i] && row.months[i].amount > 0) {
-        const cellClass = canEditFromWebTable ? "paid month-cell editable-payment" : "paid month-cell";
-        const editAttrs = canEditFromWebTable ? ` data-action="edit-payment" data-year="${selectedYearForEdit}" data-month-index="${i}" data-block="${row.Block}" data-flat="${row.Flat}"` : "";
-        html += `<td class="${cellClass}"${editAttrs}><div class="month-cell-content"><div style="font-weight:600;color:#2d3436;">₹${row.months[i].amount}</div><div style="font-size:0.8em;color:#536170;margin-top:4px;">${row.months[i].date}</div>${row.months[i].paidMonthsHtml || ""}</div></td>`;
-      } else {
-        html += `<td class="empty month-cell">-</td>`;
-      }
-    });
-    html += `<td><b>₹${row.total}</b></td></tr>`;
+const MONTHLY_DUE = 200;
 
-    cardHtml += `<div class="mobile-card" data-block="${row.Block}" data-flat="${row.Flat}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${row.Block} / Flat ${row.Flat}</div><div class="subtitle">Payment total ₹${row.total}</div></div><div class="card-header-right"><span class="payment-contact-icon" aria-hidden="true"></span><span class="toggle-icon" aria-hidden="true">+</span></div></div><div class="card-details"><div class="year-list">`;
-    const years = Object.keys(row.years || {}).sort((a,b)=>b-a);
-    years.forEach(year => {
-      const yearData = row.years[year] || { total: 0, months: {} };
-      cardHtml += `<div class="year-block"><div class="year-row" data-year="${year}"><span class="year-label">${year}</span><span class="year-total">₹${yearData.total}</span><span class="year-toggle">+</span></div><div class="year-month-details"><div class="month-grid">`;
-      months.forEach((month, i) => {
-        const monthLabel = month.substring(0,3);
-        const monthValue = yearData.months[i];
-        const monthItemClass = monthValue?.amount ? "month-item editable-payment" : "month-item";
-        const monthItemAttrs = monthValue?.amount ? ` data-action="edit-payment" data-year="${year}" data-month-index="${i}" data-block="${row.Block}" data-flat="${row.Flat}"` : "";
-        cardHtml += `<div class="${monthItemClass}"${monthItemAttrs}><div class="month-name">${monthLabel}</div><div class="month-amount">${monthValue?.amount ? `₹${monthValue.amount}` : '-'}</div>${monthValue?.paymentMode ? `<div class="payment-mode">${monthValue.paymentMode}</div>` : ''}<div class="month-date">${monthValue?.date || ''}</div>${monthValue?.paidMonthsHtml ? `<div class="paid-months-row">${monthValue.paidMonthsHtml}</div>` : ''}</div>`;
-      });
-      cardHtml += `</div><div class="month-summary">Paid amount: ₹${yearData.total}</div></div></div>`;
+function parseCSV(line) {
+  return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(value => value.replace(/(^"|"$)/g, "")) || [];
+}
+function normalize(value) { return String(value || "").trim().toLowerCase(); }
+function normalizeBlockName(value) {
+  const digits = String(value || "").replace(/[^0-9]/g, "");
+  return digits ? `Block-${Number(digits)}` : String(value || "").trim();
+}
+function formatCurrency(value) { return `₹${Number(value || 0).toLocaleString("en-IN")}`; }
+function formatNumber(value) { return Number(value || 0).toLocaleString("en-IN"); }
+function findHeaderIndex(headers, includePatterns, excludePatterns = []) {
+  return headers.findIndex(header => {
+    const label = normalize(header);
+    return includePatterns.some(pattern => label.includes(pattern)) && !excludePatterns.some(pattern => label.includes(pattern));
+  });
+}
+function findPersonHeaderIndex(headers, personPatterns, fallbackPatterns = []) {
+  const preferred = headers.findIndex(header => {
+    const label = normalize(header);
+    return personPatterns.some(pattern => label.includes(pattern)) && !label.includes("contact") && !label.includes("mobile") && !label.includes("phone");
+  });
+  if (preferred >= 0) return preferred;
+  return fallbackPatterns.length ? findHeaderIndex(headers, fallbackPatterns) : -1;
+}
+function parseSheetDate(value) {
+  const parts = String(value || "").trim().split(/[\/-]/).map(part => Number(part));
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  const [first, second, third] = parts;
+  const year = third < 100 ? 2000 + third : third;
+  const month = first > 12 ? second : first;
+  const day = first > 12 ? first : second;
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function displayDate(value) {
+  const date = parseSheetDate(value);
+  if (!date) return String(value || "-");
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value;
+}
+function renderEmpty(containerId, message) {
+  document.getElementById(containerId).innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+async function fetchCsv(sheetId, tabName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+  const response = await fetch(url);
+  const csv = await response.text();
+  const preview = csv.trim().slice(0, 120).toLowerCase();
+  if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) return "";
+  return csv;
+}
+
+async function loadPayments(year) {
+  const sheetId = SHEET_IDS_BY_YEAR[year];
+  const tabs = MONTH_TABS_BY_YEAR[year] || MONTHS;
+  const payments = [];
+  const allFlats = new Set();
+  const allBlocks = new Set();
+  const monthlyTotals = new Array(12).fill(0);
+  const blockTotals = new Map();
+  const modeTotals = new Map();
+
+  if (!sheetId) return { payments, allFlats, allBlocks, monthlyTotals, blockTotals, modeTotals };
+
+  await Promise.all(tabs.map(async (tabName, monthIndex) => {
+    if (!tabName) return;
+    const csv = await fetchCsv(sheetId, tabName);
+    if (!csv) return;
+    csv.split(/\r?\n/).slice(1).forEach(line => {
+      const cols = parseCSV(line);
+      const block = normalizeBlockName(cols[0]);
+      const flat = String(cols[1] || "").trim();
+      const amount = Number(cols[2] || 0);
+      const mode = String(cols[3] || "UNKNOWN").trim().toUpperCase() || "UNKNOWN";
+      const date = String(cols[4] || "").trim();
+      const status = String(cols[5] || "").trim().toUpperCase();
+      const receivedBy = String(cols[6] || "").trim();
+      const notes = String(cols[7] || "").trim();
+      const paidMonths = String(cols[8] || "").trim();
+      if (!block || !flat) return;
+      allBlocks.add(block);
+      allFlats.add(`${block}-${flat}`);
+      if (status !== "DONE" || amount <= 0) return;
+      monthlyTotals[monthIndex] += amount;
+      blockTotals.set(block, (blockTotals.get(block) || 0) + amount);
+      modeTotals.set(mode, (modeTotals.get(mode) || 0) + amount);
+      payments.push({ block, flat, amount, mode, date, status, receivedBy, notes, paidMonths, monthIndex, year });
     });
-    cardHtml += `</div></div></div>`;
+  }));
+
+  return { payments, allFlats, allBlocks, monthlyTotals, blockTotals, modeTotals };
+}
+
+async function loadResidents() {
+  const csv = await fetchCsv(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
+  if (!csv) return { headers: [], rows: [], stats: { total: 0, owner: 0, tenant: 0, pending: 0, vehicles: 0 }, recent: [], hasUpdatedColumn: false };
+  const parsedRows = csv.split(/\r?\n/).filter(line => line.trim()).map(parseCSV);
+  const headers = parsedRows.shift() || [];
+  const blockIndex = findHeaderIndex(headers, ["block"]);
+  const flatIndex = findHeaderIndex(headers, ["flat", "house", "apartment"]);
+  const ownerIndex = findPersonHeaderIndex(headers, ["owner"], ["resident name", "name"]);
+  const tenantIndex = findPersonHeaderIndex(headers, ["tenant"], ["occupant"]);
+  const vehicleIndex = findHeaderIndex(headers, ["vehicle", "car", "bike", "registration", "veh no"]);
+  const updatedIndex = findHeaderIndex(headers, ["updated", "modified", "timestamp", "date"]);
+  const rows = parsedRows.filter(row => row.some(Boolean));
+  const stats = { total: rows.length, owner: 0, tenant: 0, pending: 0, vehicles: 0 };
+
+  rows.forEach(row => {
+    const owner = ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "";
+    const tenant = tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "";
+    const vehicle = vehicleIndex >= 0 ? String(row[vehicleIndex] || "").trim() : "";
+    if (tenant) stats.tenant += 1;
+    else if (owner) stats.owner += 1;
+    else stats.pending += 1;
+    if (vehicle) stats.vehicles += 1;
   });
-  html += `<tr class="total-row" data-is-total="true"><td colspan="2">TOTAL</td>`;
-  monthlyTotals.forEach(t => { html += `<td>₹${t}</td>`; });
-  html += `<td>-</td></tr>`;
-  updateMonthHeaderTotals(); updateBlockFilterOptions(sortedBlocks); tbody.innerHTML = html; cardContainer.innerHTML = cardHtml; updateDashboardMetrics(); applyFilters();
+
+  const mapped = rows.map((row, index) => ({
+    block: blockIndex >= 0 ? normalizeBlockName(row[blockIndex]) : "",
+    flat: flatIndex >= 0 ? String(row[flatIndex] || "").trim() : "",
+    owner: ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "",
+    tenant: tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "",
+    updated: updatedIndex >= 0 ? String(row[updatedIndex] || "").trim() : "",
+    updatedDate: updatedIndex >= 0 ? parseSheetDate(row[updatedIndex]) : null,
+    index
+  }));
+  const hasUpdatedColumn = updatedIndex >= 0;
+  const recent = mapped
+    .sort((a, b) => {
+      if (a.updatedDate || b.updatedDate) return (b.updatedDate?.getTime() || 0) - (a.updatedDate?.getTime() || 0);
+      return b.index - a.index;
+    })
+    .slice(0, 6);
+
+  return { headers, rows, stats, recent, hasUpdatedColumn };
 }
-function applyFilters() {
-  const searchValue = document.getElementById("search").value.toLowerCase();
-  const selectedBlock = document.getElementById("blockFilter").value;
-  const searchType = document.getElementById("searchType").value;
-  let visibleRows = 0;
-  document.querySelectorAll("#table tbody tr").forEach(tr => {
-    if (tr.dataset.isTotal === "true") { tr.style.display = ""; return; }
-    const rowBlock = (tr.dataset.block || "").toLowerCase();
-    const rowFlat = (tr.dataset.flat || "").toLowerCase();
-    const rowText = tr.innerText.toLowerCase();
-    let match = false;
-    if (!searchValue) match = true;
-    else if (searchType === "block") match = rowBlock.includes(searchValue);
-    else if (searchType === "flat") match = rowFlat.includes(searchValue);
-    else if (searchType === "amount") match = rowText.includes(searchValue);
-    else match = rowText.includes(searchValue);
-    const showRow = match && (!selectedBlock || rowBlock === selectedBlock.toLowerCase());
-    tr.style.display = showRow ? "" : "none";
-    if (showRow) visibleRows += 1;
-  });
-  document.querySelectorAll("#mobileCards .mobile-card").forEach(card => {
-    const cardBlock = (card.dataset.block || "").toLowerCase();
-    const cardFlat = (card.dataset.flat || "").toLowerCase();
-    const cardText = card.innerText.toLowerCase();
-    let match = false;
-    if (!searchValue) match = true;
-    else if (searchType === "block") match = cardBlock.includes(searchValue);
-    else if (searchType === "flat") match = cardFlat.includes(searchValue);
-    else if (searchType === "amount") match = cardText.includes(searchValue);
-    else match = cardText.includes(searchValue);
-    card.style.display = match && (!selectedBlock || cardBlock === selectedBlock.toLowerCase()) ? "block" : "none";
-  });
-  const visibleEl = document.getElementById("metricVisible");
-  if (visibleEl) visibleEl.textContent = `Visible: ${visibleRows.toLocaleString("en-IN")} flats`;
+
+async function loadEmergencyCount() {
+  const csv = await fetchCsv(DIRECTORY_SHEET_ID, CONTACT_TAB_NAME);
+  if (!csv) return 0;
+  return csv.split(/\r?\n/).filter(Boolean).map(parseCSV).filter(cols => (cols[0] || cols[1] || cols[2]) && (cols[1] || cols[2])).length;
 }
-function downloadReport() { let table = document.getElementById("table"); let wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, "Society_Report.xlsx"); }
-function getTodayInputValue() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+
+function renderTrend(monthlyTotals) {
+  const max = Math.max(...monthlyTotals, 1);
+  document.getElementById("monthlyTrend").innerHTML = monthlyTotals.map((total, index) => {
+    const height = Math.max(4, Math.round((total / max) * 100));
+    return `<div class="trend-bar" title="${MONTH_SHORT[index]}: ${formatCurrency(total)}"><div class="bar-fill" style="height:${height}%"></div><div class="bar-label">${MONTH_SHORT[index]}</div></div>`;
+  }).join("");
 }
-function isAppsScriptRuntime() {
-  return !!(window.google && google.script && google.script.run);
+
+function renderLeaderboard(blockTotals, allBlocks) {
+  const blocks = Array.from(allBlocks).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const entries = blocks.map(block => [block, blockTotals.get(block) || 0]);
+  if (!entries.length) { renderEmpty("blockLeaderboard", "No block collection data found yet."); return; }
+  const max = Math.max(...entries.map(([, amount]) => amount), 1);
+  document.getElementById("blockLeaderboard").innerHTML = entries.map(([block, amount]) => `
+    <div class="rank-item">
+      <div class="rank-top"><span class="rank-name">${block}</span><span class="rank-amount">${formatCurrency(amount)}</span></div>
+      <div class="rank-track"><div class="rank-fill" style="width:${Math.round((amount / max) * 100)}%"></div></div>
+    </div>
+  `).join("");
 }
-function canUseAdminPayments() {
-  return true;
+
+function renderRecentPayments(payments) {
+  const recent = payments
+    .slice()
+    .sort((a, b) => (parseSheetDate(b.date)?.getTime() || 0) - (parseSheetDate(a.date)?.getTime() || 0))
+    .slice(0, 7);
+  if (!recent.length) { renderEmpty("recentPayments", "No recent payment entries found."); return; }
+  document.getElementById("recentPayments").innerHTML = recent.map(payment => `
+    <div class="activity-item">
+      <div class="activity-top"><span class="activity-title">${payment.block} / Flat ${payment.flat}</span><span class="activity-amount">${formatCurrency(payment.amount)}</span></div>
+      <div class="activity-sub">${displayDate(payment.date)} · ${payment.mode}${payment.paidMonths ? ` · For ${payment.paidMonths}` : ""}</div>
+    </div>
+  `).join("");
 }
-function updateAdminPaymentVisibility() {
-  const canUse = canUseAdminPayments();
-  document.getElementById("openPaymentModalBtn").classList.toggle("hidden", !canUse);
+
+function renderPaymentModes(modeTotals) {
+  const entries = Array.from(modeTotals.entries()).sort((a, b) => b[1] - a[1]);
+  const total = entries.reduce((sum, [, amount]) => sum + amount, 0);
+  if (!entries.length) { renderEmpty("paymentModeBreakdown", "No payment modes recorded yet."); return; }
+  document.getElementById("paymentModeBreakdown").innerHTML = entries.map(([mode, amount]) => {
+    const percent = total ? Math.round((amount / total) * 100) : 0;
+    return `<div class="mode-row"><span>${mode}</span><div class="mode-track"><div class="mode-fill" style="width:${percent}%"></div></div><strong>${percent}%</strong></div>`;
+  }).join("");
 }
-function formatSheetDate(inputValue) {
-  const [year, month, day] = String(inputValue || "").split("-");
-  if (!year || !month || !day) return "";
-  return `${month}/${day}/${year}`;
+
+function renderRecentResidents(residentData) {
+  setText("residentRecentMeta", residentData.hasUpdatedColumn ? "Latest updated entries" : "Latest directory rows");
+  if (!residentData.recent.length) { renderEmpty("recentResidents", "No resident records found."); return; }
+  document.getElementById("recentResidents").innerHTML = residentData.recent.map(resident => {
+    const name = resident.tenant || resident.owner || "Profile needs update";
+    const dateText = resident.updated ? displayDate(resident.updated) : "Directory row";
+    return `<div class="activity-item"><div class="activity-top"><span class="activity-title">${resident.block} / Flat ${resident.flat}</span></div><div class="activity-sub">${name} · ${dateText}</div></div>`;
+  }).join("");
 }
-function monthFromInputDate(inputValue) {
-  const monthIndex = Number(String(inputValue || "").split("-")[1]) - 1;
-  return monthIndex >= 0 && monthIndex < paymentMonthLabels.length ? paymentMonthLabels[monthIndex] : "";
+
+function renderDashboard({ paymentData, residentData, emergencyCount, year }) {
+  const totalCollected = paymentData.monthlyTotals.reduce((sum, amount) => sum + amount, 0);
+  const completeness = residentData.stats.total ? Math.round(((residentData.stats.total - residentData.stats.pending) / residentData.stats.total) * 100) : 0;
+
+  setText("residentOwner", formatNumber(residentData.stats.owner));
+  setText("residentTenant", formatNumber(residentData.stats.tenant));
+  setText("residentPending", formatNumber(residentData.stats.pending));
+  setText("residentCompleteness", `${completeness}% complete`);
+  setText("vehicleCoverage", `${formatNumber(residentData.stats.vehicles)} vehicle records`);
+  setText("residentNavBadge", formatNumber(residentData.stats.total));
+  setText("emergencyNavBadge", formatNumber(emergencyCount));
+  setText("trendMeta", `${formatCurrency(totalCollected)} collected across ${MONTH_SHORT.length} months`);
+
+  renderTrend(paymentData.monthlyTotals);
+  renderLeaderboard(paymentData.blockTotals, paymentData.allBlocks);
+  renderRecentPayments(paymentData.payments);
+  renderPaymentModes(paymentData.modeTotals);
+  renderRecentResidents(residentData);
+  document.getElementById("dashboardShell").classList.remove("loading");
 }
-function selectedPaymentMonths() {
-  return Array.from(document.querySelectorAll('#paymentMonths input[type="checkbox"]:checked')).map(input => input.value);
-}
-function updatePaymentMonthSummary() {
-  const selected = selectedPaymentMonths();
-  document.getElementById("paymentMonthTrigger").textContent = selected.length ? selected.join(" ") : "Select months";
-}
-function setPaymentMonthDropdownOpen(open) {
-  const dropdown = document.getElementById("paymentMonthDropdown");
-  const trigger = document.getElementById("paymentMonthTrigger");
-  dropdown.classList.toggle("open", open);
-  trigger.setAttribute("aria-expanded", open ? "true" : "false");
-}
-function setPaymentMessage(message, isSuccess = false) {
-  const messageEl = document.getElementById("paymentMessage");
-  messageEl.textContent = message;
-  messageEl.classList.toggle("success", isSuccess);
-}
-function showMessageModal(message, isSuccess = false) {
-  const overlay = document.getElementById("messageModalOverlay");
-  const modal = document.getElementById("messageModal");
-  const title = document.getElementById("messageModalTitle");
-  const body = document.getElementById("messageModalBody");
-  modal.classList.toggle("success", isSuccess);
-  modal.classList.toggle("error", !isSuccess);
-  title.textContent = isSuccess ? "Success" : "Error";
-  body.textContent = message;
-  overlay.classList.add("visible");
-  overlay.setAttribute("aria-hidden", "false");
-}
-function closeMessageModal() {
-  const overlay = document.getElementById("messageModalOverlay");
-  overlay.classList.remove("visible");
-  overlay.setAttribute("aria-hidden", "true");
-}
-function populatePaymentMonths() {
-  const monthGroup = document.getElementById("paymentMonths");
-  if (monthGroup.children.length) return;
-  monthGroup.innerHTML = paymentMonthLabels.map(month => `<label class="payment-month-option"><input type="checkbox" value="${month}" /> <span>${month}</span></label>`).join("");
-  monthGroup.addEventListener("change", updatePaymentMonthSummary);
-}
-function populatePaymentBlockOptions(selectedBlock = "") {
-  const blockSelect = document.getElementById("paymentBlock");
-  const blocks = Array.from(allBlocks).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
-  blockSelect.innerHTML = `<option value="">Select Block</option>` + blocks.map(block => `<option value="${block}">${block}</option>`).join("");
-  if (selectedBlock && blocks.includes(selectedBlock)) blockSelect.value = selectedBlock;
-  populatePaymentFlatOptions(blockSelect.value);
-}
-function populatePaymentFlatOptions(selectedBlock, selectedFlat = "") {
-  const flatSelect = document.getElementById("paymentFlat");
-  const flats = Array.from(allFlats[selectedBlock] || []).sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true}));
-  flatSelect.innerHTML = `<option value="">Select Flat</option>` + flats.map(flat => `<option value="${flat}">${flat}</option>`).join("");
-  if (selectedFlat && flats.includes(String(selectedFlat))) flatSelect.value = String(selectedFlat);
-}
-function setPaymentFormMode(mode, block = "", flat = "") {
-  const isMobileFlatMode = mode === "mobile";
-  const blockSelect = document.getElementById("paymentBlock");
-  const flatSelect = document.getElementById("paymentFlat");
-  const blockReadonly = document.getElementById("paymentBlockReadonly");
-  const flatReadonly = document.getElementById("paymentFlatReadonly");
-  blockSelect.classList.toggle("hidden", isMobileFlatMode);
-  flatSelect.classList.toggle("hidden", isMobileFlatMode);
-  blockReadonly.classList.toggle("hidden", !isMobileFlatMode);
-  flatReadonly.classList.toggle("hidden", !isMobileFlatMode);
-  blockSelect.required = !isMobileFlatMode;
-  flatSelect.required = !isMobileFlatMode;
-  if (isMobileFlatMode) {
-    blockReadonly.value = block;
-    flatReadonly.value = flat;
-    blockSelect.value = block;
-    populatePaymentFlatOptions(block, flat);
-  } else {
-    blockReadonly.value = "";
-    flatReadonly.value = "";
-    populatePaymentBlockOptions();
-  }
-}
-function resetPaymentForm() {
-  const form = document.getElementById("paymentForm");
-  form.reset();
-  const today = getTodayInputValue();
-  const paymentDateInput = document.getElementById("paymentDate");
-  paymentDateInput.max = today;
-  paymentDateInput.value = today;
-  document.getElementById("paymentMode").value = "ONLINE";
-  document.getElementById("receivedByField").classList.add("hidden");
-  setPaymentMessage("");
-  setPaymentMonthDropdownOpen(false);
-  populatePaymentMonths();
-  const currentMonth = monthFromInputDate(document.getElementById("paymentDate").value);
-  document.querySelectorAll('#paymentMonths input[type="checkbox"]').forEach(input => { input.checked = input.value === currentMonth; });
-  updatePaymentMonthSummary();
-  paymentModalAction = "create";
-  activePaymentEditContext = null;
-  document.getElementById("paymentModalTitle").textContent = "Add Payment";
-  document.getElementById("paymentModalSubtitle").textContent = "Create a new payment entry";
-  document.getElementById("savePaymentBtn").textContent = "Save Payment";
-  document.getElementById("deletePaymentBtn").classList.add("hidden");
-}
-function openPaymentModal({ mode = "web", block = "", flat = "" } = {}) {
-  resetPaymentForm();
-  setPaymentFormMode(mode, block, flat);
-  const overlay = document.getElementById("paymentModalOverlay");
-  overlay.classList.add("visible");
-  overlay.setAttribute("aria-hidden", "false");
-  setTimeout(() => document.getElementById("paymentAmount").focus(), 0);
-}
-function toInputDateFromDisplay(displayDate) {
-  const parts = String(displayDate || "").split("/");
-  if (parts.length !== 3) return "";
-  const month = String(parts[1]).padStart(2, "0");
-  const day = String(parts[0]).padStart(2, "0");
-  const year = String(parts[2]);
-  return `${year}-${month}-${day}`;
-}
-function findPaymentContext(block, flat, year, monthIndex) {
-  let row = groupedData[`${block}-${flat}`];
-  if (!row) {
-    row = Object.values(groupedData).find(item => item.Block === block && String(item.Flat) === String(flat));
-  }
-  if (!row || !row.years || !row.years[year] || !row.years[year].months[monthIndex]) return null;
-  const monthData = row.years[year].months[monthIndex];
-  return {
-    block,
-    flat: String(flat),
-    year: String(year),
-    monthIndex: Number(monthIndex),
-    amount: Number(monthData.amount || 0),
-    date: monthData.date || "",
-    paymentMode: monthData.paymentMode || "ONLINE",
-    receivedBy: monthData.receivedBy || "",
-    notes: monthData.notes || "",
-    paidMonths: String(monthData.paidMonths || "").split(/[,;|\/]+|\s+/).map(s => s.trim()).filter(Boolean),
-  };
-}
-function openPaymentEditModal(context) {
-  if (!context) return;
-  openPaymentModal({ mode: "web" });
-  paymentModalAction = "update";
-  activePaymentEditContext = context;
-  document.getElementById("paymentModalTitle").textContent = "Edit Payment";
-  document.getElementById("paymentModalSubtitle").textContent = "Update existing payment details";
-  document.getElementById("savePaymentBtn").textContent = "Update Record";
-  document.getElementById("deletePaymentBtn").classList.remove("hidden");
-  populatePaymentBlockOptions(context.block);
-  populatePaymentFlatOptions(context.block, context.flat);
-  document.getElementById("paymentBlock").value = context.block;
-  document.getElementById("paymentFlat").value = context.flat;
-  document.getElementById("paymentAmount").value = String(context.amount || "");
-  document.getElementById("paymentMode").value = context.paymentMode || "ONLINE";
-  document.getElementById("paymentReceivedBy").value = context.receivedBy || "";
-  document.getElementById("receivedByField").classList.toggle("hidden", (context.paymentMode || "ONLINE") !== "CASH");
-  const inputDate = toInputDateFromDisplay(context.date);
-  if (inputDate) document.getElementById("paymentDate").value = inputDate;
-  document.getElementById("paymentNotes").value = context.notes || "";
-  const selected = new Set((context.paidMonths || []).map(value => formatPaidMonthLabel(value)));
-  document.querySelectorAll('#paymentMonths input[type="checkbox"]').forEach(input => { input.checked = selected.has(input.value); });
-  updatePaymentMonthSummary();
-}
-function closePaymentModal() {
-  const overlay = document.getElementById("paymentModalOverlay");
-  setPaymentMonthDropdownOpen(false);
-  overlay.classList.remove("visible");
-  overlay.setAttribute("aria-hidden", "true");
-}
-function getPaymentPayload() {
-  const blockSelect = document.getElementById("paymentBlock");
-  const flatSelect = document.getElementById("paymentFlat");
-  const blockReadonly = document.getElementById("paymentBlockReadonly");
-  const flatReadonly = document.getElementById("paymentFlatReadonly");
-  const block = blockSelect.classList.contains("hidden") ? blockReadonly.value : blockSelect.value;
-  const flatNo = flatSelect.classList.contains("hidden") ? flatReadonly.value : flatSelect.value;
-  const paymentDate = document.getElementById("paymentDate").value;
-  const paidMonths = selectedPaymentMonths();
-  return {
-    secret: PAYMENT_WRITE_SECRET,
-    actionType: paymentModalAction,
-    block,
-    flatNo,
-    amount: Number(document.getElementById("paymentAmount").value),
-    paymentMode: document.getElementById("paymentMode").value,
-    receivedBy: document.getElementById("paymentReceivedBy").value.trim(),
-    paymentDate: formatSheetDate(paymentDate),
-    paymentDateInput: paymentDate,
-    paymentMonthSheet: monthFromInputDate(paymentDate),
-    paidMonths,
-    notes: document.getElementById("paymentNotes").value.trim(),
-    paymentStatus: "DONE",
-  };
-}
-function validatePaymentPayload(payload) {
-  if (!payload.block) return "Please select a block.";
-  if (!payload.flatNo) return "Please select a flat number.";
-  if (!Number.isInteger(payload.amount) || payload.amount <= 0) return "Please enter a valid amount without decimals.";
-  if (!payload.paymentDate || !payload.paymentMonthSheet) return "Please select a valid payment date.";
-  if (payload.paymentDateInput > getTodayInputValue()) return "Payment date cannot be after today.";
-  if (!payload.paidMonths.length) return "Please select at least one paid month.";
-  return "";
-}
-function submitPaymentPayload(payload) {
-  if (isAppsScriptRuntime()) {
-    return new Promise((resolve, reject) => {
-      google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(reject)
-        .savePaymentFromAdmin(payload);
-    });
-  }
-  const sameAppUrl = window.location.href.split("?")[0];
-  const isAppsScriptHost = /script\.google\.com|googleusercontent\.com/i.test(window.location.host);
-  if (!isAppsScriptHost) {
-    return submitPaymentPayloadViaJsonp(payload);
-  }
-  return fetch(sameAppUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  }).then(async (response) => {
-    const raw = await response.text();
-    let data = null;
+
+async function loadDashboard() {
+  const year = document.getElementById("yearFilter").value;
+  document.getElementById("dashboardShell").classList.add("loading");
     try {
-      data = JSON.parse(raw);
-    } catch (parseError) {
-      const looksLikeHtml = /^\s*</.test(raw);
-      if (looksLikeHtml) {
-        throw new Error("Payment service returned HTML instead of JSON. Check Apps Script deployment URL and access settings.");
-      }
-      throw new Error("Payment service returned invalid response.");
-    }
-    if (!response.ok) {
-      throw new Error((data && data.error) || `Payment service returned ${response.status}.`);
-    }
-    return data;
-  });
-}
-function submitPaymentPayloadViaJsonp(payload) {
-  return new Promise((resolve, reject) => {
-    const callbackName = `paymentWriteCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-    let script;
-    let timeoutId;
-    const cleanup = () => {
-      if (window[callbackName]) delete window[callbackName];
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-    window[callbackName] = (result) => {
-      cleanup();
-      resolve(result || { ok: false, error: "Empty response from payment service." });
-    };
-    const query = new URLSearchParams({
-      action: "savePayment",
-      callback: callbackName,
-      payload: JSON.stringify(payload),
-      _: String(Date.now()),
-    });
-    script = document.createElement("script");
-    script.src = `${PAYMENT_WRITE_URL}?${query.toString()}`;
-    script.async = true;
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("Payment service URL is unreachable or blocked."));
-    };
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(new Error("Payment service did not respond in time."));
-    }, 20000);
-    document.body.appendChild(script);
-  });
-}
-function restoreScrollPosition(x, y) {
-  const apply = () => window.scrollTo(x, y);
-  apply();
-  requestAnimationFrame(apply);
-  setTimeout(apply, 0);
-  setTimeout(apply, 80);
-  setTimeout(apply, 220);
-}
-async function refreshDataWithoutScroll(scrollState) {
-  const x = scrollState ? scrollState.x : window.scrollX;
-  const y = scrollState ? scrollState.y : window.scrollY;
-  await fetchAllMonthData();
-  restoreScrollPosition(x, y);
-}
-async function savePayment(event) {
-  event.preventDefault();
-  const scrollState = { x: window.scrollX, y: window.scrollY };
-  const payload = getPaymentPayload();
-  const validationError = validatePaymentPayload(payload);
-  if (validationError) { setPaymentMessage(validationError); return; }
-  const saveBtn = document.getElementById("savePaymentBtn");
-  saveBtn.disabled = true;
-  setPaymentMessage("Saving payment...");
-  try {
-    const result = await submitPaymentPayload(payload);
-    if (!result.ok) throw new Error(result.error || "Unable to save payment.");
-    setPaymentMessage("Payment saved successfully.", true);
-    showMessageModal(paymentModalAction === "update" ? "Payment updated successfully." : "Payment saved successfully.", true);
-    await refreshDataWithoutScroll(scrollState);
-    closePaymentModal();
-    restoreScrollPosition(scrollState.x, scrollState.y);
+    const [paymentData, residentData, emergencyCount] = await Promise.all([
+      loadPayments(year),
+      loadResidents(),
+      loadEmergencyCount()
+    ]);
+    renderDashboard({ paymentData, residentData, emergencyCount, year });
   } catch (error) {
-    setPaymentMessage(error.message || "Unable to save payment.");
-    showMessageModal(error.message || "Unable to save payment.");
-  } finally {
-    saveBtn.disabled = false;
+    setText("trendMeta", error.message || "Unable to load dashboard data.");
+    document.getElementById("dashboardShell").classList.remove("loading");
   }
 }
-async function deletePayment() {
-  if (!activePaymentEditContext) return;
-  const scrollState = { x: window.scrollX, y: window.scrollY };
-  const payload = getPaymentPayload();
-  payload.actionType = "delete";
-  const saveBtn = document.getElementById("savePaymentBtn");
-  const deleteBtn = document.getElementById("deletePaymentBtn");
-  saveBtn.disabled = true;
-  deleteBtn.disabled = true;
-  setPaymentMessage("Deleting payment...");
-  try {
-    const result = await submitPaymentPayload(payload);
-    if (!result.ok) throw new Error(result.error || "Unable to delete payment.");
-    setPaymentMessage("Payment deleted successfully.", true);
-    showMessageModal("Payment deleted successfully.", true);
-    await refreshDataWithoutScroll(scrollState);
-    closePaymentModal();
-    restoreScrollPosition(scrollState.x, scrollState.y);
-  } catch (error) {
-    setPaymentMessage(error.message || "Unable to delete payment.");
-    showMessageModal(error.message || "Unable to delete payment.");
-  } finally {
-    saveBtn.disabled = false;
-    deleteBtn.disabled = false;
-  }
-}
-document.getElementById("search").addEventListener("input", applyFilters);
-document.getElementById("searchType").addEventListener("change", applyFilters);
-document.getElementById("blockFilter").addEventListener("change", applyFilters);
-document.getElementById("openPaymentModalBtn").addEventListener("click", () => openPaymentModal({ mode: "web" }));
-document.getElementById("openPaymentModalMobileBtn").addEventListener("click", () => openPaymentModal({ mode: "web" }));
-document.getElementById("closePaymentModalBtn").addEventListener("click", closePaymentModal);
-document.getElementById("cancelPaymentBtn").addEventListener("click", closePaymentModal);
-document.getElementById("deletePaymentBtn").addEventListener("click", deletePayment);
-document.getElementById("messageModalCloseBtn").addEventListener("click", closeMessageModal);
-document.getElementById("messageModalOkBtn").addEventListener("click", closeMessageModal);
-document.getElementById("paymentForm").addEventListener("submit", savePayment);
-document.getElementById("paymentBlock").addEventListener("change", (event) => populatePaymentFlatOptions(event.target.value));
-document.getElementById("paymentMode").addEventListener("change", (event) => {
-  const isCash = event.target.value === "CASH";
-  document.getElementById("receivedByField").classList.toggle("hidden", !isCash);
-});
-document.getElementById("paymentDate").addEventListener("change", (event) => {
-  const today = getTodayInputValue();
-  if (event.target.value > today) event.target.value = today;
-  const currentMonth = monthFromInputDate(event.target.value);
-  if (!selectedPaymentMonths().length && currentMonth) {
-    document.querySelectorAll('#paymentMonths input[type="checkbox"]').forEach(input => { input.checked = input.value === currentMonth; });
-    updatePaymentMonthSummary();
-  }
-});
-document.getElementById("paymentMonthTrigger").addEventListener("click", (event) => {
-  event.stopPropagation();
-  const dropdown = document.getElementById("paymentMonthDropdown");
-  setPaymentMonthDropdownOpen(!dropdown.classList.contains("open"));
-});
-document.getElementById("paymentMonthDropdown").addEventListener("click", (event) => {
-  event.stopPropagation();
-});
-document.addEventListener("click", (event) => {
-  if (!event.target.closest("#paymentMonthDropdown")) setPaymentMonthDropdownOpen(false);
-});
-document.getElementById("paymentModalOverlay").addEventListener("click", (event) => {
-  if (event.target.id === "paymentModalOverlay") closePaymentModal();
-});
-document.getElementById("messageModalOverlay").addEventListener("click", (event) => {
-  if (event.target.id === "messageModalOverlay") closeMessageModal();
-});
-document.querySelector("#table tbody").addEventListener("click", (event) => {
-  const target = event.target.closest('[data-action="edit-payment"]');
-  if (!target) return;
-  const context = findPaymentContext(
-    target.dataset.block || "",
-    target.dataset.flat || "",
-    target.dataset.year || "",
-    Number(target.dataset.monthIndex || -1)
-  );
-  if (!context) return;
-  openPaymentEditModal(context);
-});
-const yearFilter = document.getElementById("yearFilter");
-const mobileAllYearsOption = document.createElement("option");
-mobileAllYearsOption.value = "all";
-mobileAllYearsOption.textContent = "ALL YEARS";
-yearFilter.addEventListener("change", fetchAllMonthData);
-function updateYearFilterForMobile() {
-  const hasAll = !!yearFilter.querySelector('option[value="all"]');
-  if (window.innerWidth <= 768) {
-    if (!hasAll) yearFilter.insertBefore(mobileAllYearsOption, yearFilter.firstChild);
-  } else if (hasAll) {
-    if (yearFilter.value === "all") yearFilter.value = DEFAULT_YEAR;
-    yearFilter.removeChild(yearFilter.querySelector('option[value="all"]'));
-  }
-}
-window.addEventListener("resize", updateYearFilterForMobile);
-updateYearFilterForMobile();
-document.getElementById("mobileCards").addEventListener("click", (event) => {
-  const editableItem = event.target.closest('[data-action="edit-payment"]');
-  if (editableItem) {
-    event.stopPropagation();
-    const context = findPaymentContext(
-      editableItem.dataset.block || "",
-      editableItem.dataset.flat || "",
-      editableItem.dataset.year || "",
-      Number(editableItem.dataset.monthIndex || -1)
-    );
-    if (context) openPaymentEditModal(context);
-    return;
-  }
-  const yearRow = event.target.closest(".year-row");
-  if (yearRow) {
-    const details = yearRow.nextElementSibling;
-    if (!details || !details.classList.contains("year-month-details")) return;
-    yearRow.classList.toggle("expanded");
-    const toggle = yearRow.querySelector(".year-toggle");
-    if (toggle) toggle.textContent = yearRow.classList.contains("expanded") ? "−" : "+";
-    return;
-  }
-  const header = event.target.closest(".mobile-card-header");
-  if (!header) return;
-  const card = header.closest(".mobile-card");
-  if (!card) return;
-  card.classList.toggle("expanded");
-  const icon = card.querySelector(".toggle-icon");
-  if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
-});
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  sessionStorage.removeItem(AUTH_SESSION_KEY);
-  window.location.href = "/cdn-cgi/access/logout";
-});
+
 const profileToggle = document.getElementById("profileToggle");
 const profileDropdown = document.getElementById("profileDropdown");
 if (profileToggle && profileDropdown) {
-  profileToggle.addEventListener("click", (event) => {
+  profileToggle.addEventListener("click", event => {
     event.stopPropagation();
     const visible = profileDropdown.classList.toggle("visible");
-    profileToggle.setAttribute("aria-expanded", visible);
+    profileToggle.setAttribute("aria-expanded", visible ? "true" : "false");
   });
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", event => {
     if (!event.target.closest(".profile-menu")) {
       profileDropdown.classList.remove("visible");
-      profileToggle?.setAttribute("aria-expanded", "false");
+      profileToggle.setAttribute("aria-expanded", "false");
     }
   });
 }
-document.getElementById("paymentDate").max = getTodayInputValue();
-updateEmergencyNavBadge();
-updateAdminPaymentVisibility();
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  window.location.href = "index.html";
+});
 document.getElementById("yearFilter").value = DEFAULT_YEAR;
-if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
-showDashboard();
-fetchAllMonthData();
+document.getElementById("yearFilter").addEventListener("change", loadDashboard);
+document.getElementById("refreshDashboardBtn").addEventListener("click", loadDashboard);
+loadDashboard();
 </script>
 </body>
 </html>

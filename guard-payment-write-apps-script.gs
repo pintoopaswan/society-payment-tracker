@@ -1,6 +1,8 @@
 const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "amitm876@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME = "Sheet1";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 
@@ -10,6 +12,9 @@ function doGet(e) {
   }
   if (isApiSaveRequest(e)) {
     return handleApiSaveRequest(e);
+  }
+  if (isApiResidentSaveRequest(e)) {
+    return handleApiResidentSaveRequest(e);
   }
   const email = getSignedInEmail();
   if (!isAllowedEmail(email)) {
@@ -53,6 +58,12 @@ function doPost(e) {
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
     }
+    if (String(payload.action || "").toLowerCase() === "saveresident") {
+      return jsonResponse(saveResidentPayload(payload));
+    }
+    if (String(payload.action || "").toLowerCase() === "deleteresidentfields") {
+      return jsonResponse(deleteResidentFieldsPayload(payload));
+    }
     return jsonResponse(handlePaymentMutation(payload));
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
@@ -62,6 +73,12 @@ function doPost(e) {
 function isApiSaveRequest(e) {
   const params = (e && e.parameter) || {};
   return String(params.action || "").toLowerCase() === "savepayment";
+}
+
+function isApiResidentSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  const action = String(params.action || "").toLowerCase();
+  return action === "saveresident" || action === "deleteresidentfields";
 }
 
 function handleApiSaveRequest(e) {
@@ -74,6 +91,31 @@ function handleApiSaveRequest(e) {
       result = { ok: false, error: "Unauthorized" };
     } else {
       result = handlePaymentMutation(payload);
+    }
+  } catch (error) {
+    result = { ok: false, error: error.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+function handleApiResidentSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const payload = parseApiPayload(params.payload);
+  const action = String(params.action || payload.action || "").toLowerCase();
+  let result;
+  try {
+    if (payload.secret !== PAYMENT_WRITE_SECRET) {
+      result = { ok: false, error: "Unauthorized" };
+    } else if (action === "deleteresidentfields") {
+      result = deleteResidentFieldsPayload(payload);
+    } else {
+      result = saveResidentPayload(payload);
     }
   } catch (error) {
     result = { ok: false, error: error.message };
@@ -251,6 +293,80 @@ function deletePaymentPayload(payload) {
   return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete" };
 }
 
+function saveResidentPayload(payload) {
+  const headers = Array.isArray(payload.headers) ? payload.headers.map(function(h) { return String(h || "").trim(); }) : [];
+  const rowValues = Array.isArray(payload.rowValues) ? payload.rowValues.map(function(v) { return v === null || v === undefined ? "" : String(v); }) : [];
+  if (!headers.length || !rowValues.length || headers.length !== rowValues.length) {
+    return { ok: false, error: "Invalid resident row payload." };
+  }
+
+  const blockIndex = findHeaderIndex(headers, ["block"]);
+  const flatIndex = findHeaderIndex(headers, ["flat", "house", "apartment"]);
+  if (blockIndex < 0 || flatIndex < 0) {
+    return { ok: false, error: "Block/Flat columns not found in resident data." };
+  }
+
+  const block = rowValues[blockIndex];
+  const flat = rowValues[flatIndex];
+  if (!block || !flat) {
+    return { ok: false, error: "Block and Flat are required." };
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(DIRECTORY_SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(DIRECTORY_TAB_NAME);
+  if (!sheet) {
+    return { ok: false, error: "Missing resident sheet tab: " + DIRECTORY_TAB_NAME };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findResidentRow(sheet, block, flat, blockIndex + 1, flatIndex + 1);
+    if (!targetRow) {
+      return { ok: false, error: "Resident row not found for " + block + " / Flat " + flat + "." };
+    }
+    sheet.getRange(targetRow, 1, 1, rowValues.length).setValues([rowValues]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, updatedRow: targetRow, action: "saveResident" };
+}
+
+function deleteResidentFieldsPayload(payload) {
+  const headers = Array.isArray(payload.headers) ? payload.headers.map(function(h) { return String(h || "").trim(); }) : [];
+  if (!headers.length) return { ok: false, error: "Invalid resident headers." };
+  const blockIndex = findHeaderIndex(headers, ["block"]);
+  const flatIndex = findHeaderIndex(headers, ["flat", "house", "apartment"]);
+  if (blockIndex < 0 || flatIndex < 0) {
+    return { ok: false, error: "Block/Flat columns not found in resident data." };
+  }
+  const block = String(payload.block || "").trim();
+  const flat = String(payload.flat || "").trim();
+  if (!block || !flat) return { ok: false, error: "Block and Flat are required." };
+
+  const spreadsheet = SpreadsheetApp.openById(DIRECTORY_SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(DIRECTORY_TAB_NAME);
+  if (!sheet) return { ok: false, error: "Missing resident sheet tab: " + DIRECTORY_TAB_NAME };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findResidentRow(sheet, block, flat, blockIndex + 1, flatIndex + 1);
+    if (!targetRow) return { ok: false, error: "Resident row not found for " + block + " / Flat " + flat + "." };
+    const width = headers.length;
+    const existing = sheet.getRange(targetRow, 1, 1, width).getValues()[0];
+    for (let i = 0; i < width; i++) {
+      if (i !== blockIndex && i !== flatIndex) existing[i] = "";
+    }
+    sheet.getRange(targetRow, 1, 1, width).setValues([existing]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, updatedRow: targetRow, action: "deleteResidentFields" };
+}
+
 function assertAllowedUser() {
   const email = getSignedInEmail();
   if (!isAllowedEmail(email)) {
@@ -360,6 +476,32 @@ function findPaymentRow(sheet, block, flatNo) {
     }
   }
   return 0;
+}
+
+function findResidentRow(sheet, block, flatNo, blockColumn, flatColumn) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const rowCount = lastRow - 1;
+  const maxCol = Math.max(blockColumn, flatColumn);
+  const values = sheet.getRange(2, 1, rowCount, maxCol).getValues();
+  const targetBlock = normalizeBlock(block);
+  const targetFlat = normalizeFlat(flatNo);
+  for (let index = 0; index < values.length; index++) {
+    const rowBlock = normalizeBlock(values[index][blockColumn - 1]);
+    const rowFlat = normalizeFlat(values[index][flatColumn - 1]);
+    if (rowBlock === targetBlock && rowFlat === targetFlat) return index + 2;
+  }
+  return 0;
+}
+
+function findHeaderIndex(headers, patterns) {
+  for (let i = 0; i < headers.length; i++) {
+    const value = String(headers[i] || "").trim().toLowerCase();
+    for (let j = 0; j < patterns.length; j++) {
+      if (value.indexOf(patterns[j]) >= 0) return i;
+    }
+  }
+  return -1;
 }
 
 function normalizeBlock(value) {

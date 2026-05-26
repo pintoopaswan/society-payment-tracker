@@ -29,6 +29,7 @@
   --chip-pending-border: #f0c6cd;
 }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--text); min-height: 100vh; padding: 20px; }
+body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 .container { max-width: 1300px; margin: 0 auto; }
 .app-header { background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 18px 40px rgba(13, 36, 66, 0.22); position: relative; display: flex; flex-direction: column; align-items: center; }
 .header-title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -77,9 +78,64 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .call-link { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; color: inherit; text-decoration: none; font-weight: inherit; }
 .call-link:hover { text-decoration: none; }
 .call-icon { width: 28px; height: 28px; border-radius: 50%; background: #cfcfcf; color: #fff; display: inline-grid; place-items: center; font-size: 0.9rem; line-height: 1; font-weight: 700; flex: 0 0 auto; }
-.table-wrap { background: #fff; border-radius: 12px; overflow: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
-table { width: 100%; border-collapse: collapse; min-width: 680px; }
-th, td { border-bottom: 1px solid #edf1f7; padding: 10px; text-align: left; white-space: nowrap; }
+.edit-resident-btn { min-height: 32px; border: 1px solid #c6d9ee; background: #edf5ff; color: #1e5788; border-radius: 999px; padding: 0 12px; font-weight: 800; cursor: pointer; }
+.edit-resident-btn:hover { background: #deedff; }
+.action-btn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid #cfe0f1; background: #f4f9ff; color: #1e5788; font-weight: 900; cursor: pointer; margin-right: 4px; }
+.action-btn.view { color: #225a86; }
+.action-btn.edit { color: #1e5788; }
+.action-btn.delete { color: #9a1f34; border-color: #efc8cf; background: #fff3f5; }
+.action-btn:hover { filter: brightness(0.96); }
+.resident-modal-overlay { position: fixed; inset: 0; background: rgba(12, 25, 42, 0.55); z-index: 240; display: none; align-items: center; justify-content: center; padding: 16px; }
+.resident-modal-overlay.visible { display: flex; }
+.resident-modal { width: min(760px, 100%); max-height: 92vh; overflow: hidden; border-radius: 18px; border: 1px solid #d6e4f2; background: #fff; box-shadow: 0 30px 70px rgba(12, 25, 42, 0.28); display: flex; flex-direction: column; }
+.resident-modal-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: linear-gradient(125deg, #163a64, #1f5ea8 55%, #2a7562); }
+.resident-modal-title-wrap { display: grid; gap: 3px; }
+.resident-modal-title { color: #fff; font-weight: 800; font-size: 1.06rem; }
+.resident-modal-subtitle { color: rgba(255,255,255,0.9); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.resident-modal-close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); color: #fff; font-size: 1.1rem; cursor: pointer; }
+.resident-form { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.resident-form-scroll { flex: 1; min-height: 0; overflow: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; padding: 14px 18px 10px; }
+.resident-form-fields { display: contents; }
+.resident-field { display: grid; gap: 5px; }
+.resident-field.full { grid-column: 1 / -1; }
+.resident-field label { color: #2b4f73; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.resident-field input { min-height: 42px; width: 100%; border: 2px solid #d2e0ed; border-radius: 11px; padding: 0 11px; font-size: 0.92rem; }
+.resident-field select { min-height: 44px; width: 100%; border: 2px solid #cbdced; border-radius: 12px; padding: 0 11px; font-size: 0.92rem; background: #fff; color: #1f314a; font-weight: 700; }
+.resident-field select:focus { border-color: #1f5ea8; box-shadow: 0 0 0 3px rgba(31, 94, 168, 0.1); outline: none; }
+.resident-field select[multiple] { min-height: 112px; padding: 7px 8px; }
+.resident-field select[multiple] option { border-radius: 8px; padding: 6px 8px; margin: 2px 0; }
+.resident-field select[multiple] option:checked { background: linear-gradient(120deg, #e9f3ff, #e8f8f2); color: #1b4c7b; }
+.resident-month-dropdown { position: relative; }
+.resident-month-trigger { width: 100%; min-height: 44px; border: 2px solid #cbdced; border-radius: 12px; background: #fff; color: #1f314a; padding: 9px 38px 9px 11px; text-align: left; font-size: 0.92rem; font-weight: 700; cursor: pointer; position: relative; }
+.resident-month-trigger::after { content: ""; position: absolute; right: 14px; top: 50%; width: 9px; height: 9px; border-right: 2px solid #536170; border-bottom: 2px solid #536170; transform: translateY(-65%) rotate(45deg); }
+.resident-month-dropdown.open .resident-month-trigger { border-color: #2f8d55; box-shadow: 0 0 0 3px rgba(47, 141, 85, 0.1); }
+.resident-month-options { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 260; display: none; max-height: 246px; overflow: auto; padding: 6px; border: 1px solid #d6e0ec; border-radius: 12px; background: #fff; box-shadow: 0 18px 38px rgba(27, 37, 54, 0.14); }
+.resident-month-dropdown.open .resident-month-options { display: block; }
+.resident-month-option { min-height: 36px; border-radius: 8px; background: #fff; color: #1f314a; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 10px 0 12px; font-size: 0.88rem; font-weight: 750; cursor: pointer; }
+.resident-month-option input { position: absolute; opacity: 0; pointer-events: none; }
+.resident-month-option:hover { background: #f3f7fb; }
+.resident-month-option:has(input:checked) { background: #eaf7ef; color: #246c41; }
+.resident-month-option::after { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c8d8ea; flex: 0 0 auto; }
+.resident-month-option:has(input:checked)::after { content: "✓"; display: inline-flex; align-items: center; justify-content: center; border-color: #2f8d55; background: #2f8d55; color: #fff; font-size: 0.75rem; font-weight: 900; line-height: 1; }
+.resident-field input[readonly] { background: #f3f7fb; color: #4f6176; }
+.resident-message { grid-column: 1 / -1; min-height: 18px; color: #b00020; font-weight: 700; font-size: 0.85rem; }
+.resident-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #e6edf5; background: #fff; }
+.resident-save-btn, .resident-cancel-btn { min-height: 42px; border-radius: 11px; padding: 0 16px; font-weight: 800; cursor: pointer; }
+.resident-save-btn { border: none; background: #2f8d55; color: #fff; box-shadow: 0 10px 24px rgba(47, 141, 85, 0.18); }
+.resident-save-btn:disabled { opacity: 0.65; cursor: wait; }
+.resident-cancel-btn { border: 1px solid #c8d8ea; background: #fff; color: #17314f; }
+.view-modal-overlay { position: fixed; inset: 0; background: rgba(12, 25, 42, 0.55); z-index: 230; display: none; align-items: center; justify-content: center; padding: 16px; }
+.view-modal-overlay.visible { display: flex; }
+.view-modal { width: min(760px, 100%); max-height: 92vh; overflow: auto; border-radius: 16px; background: #fff; border: 1px solid #d6e4f2; box-shadow: 0 24px 60px rgba(12, 25, 42, 0.26); }
+.view-modal-header { padding: 12px 14px; display:flex; justify-content:space-between; align-items:center; background: #f5f9ff; border-bottom:1px solid #dbe7f3; }
+.view-modal-close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #c7d8ea; background: #fff; color: #1e4f7b; font-size: 1.1rem; cursor: pointer; }
+.view-grid { padding: 12px 14px 14px; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.view-item { border: 1px solid #e0ebf6; border-radius: 10px; padding: 9px 10px; background: #fbfdff; }
+.view-key { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: #5d7591; font-weight: 800; }
+.view-value { margin-top: 5px; color: #17314f; font-weight: 700; overflow-wrap: anywhere; }
+.table-wrap { background: #fff; border-radius: 12px; overflow-x: hidden; overflow-y: auto; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-height: 75vh; border: 1px solid #dde6f2; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th, td { border-bottom: 1px solid #edf1f7; padding: 5px 5px; text-align: left; white-space: normal; font-size: 0.72rem; line-height: 1.18; overflow-wrap: anywhere; word-break: break-word; }
 th { position: sticky; top: 0; background: #1f2a3b; color: #fff; z-index: 5; text-transform: uppercase; }
 tr:nth-child(even) { background: #f8fbff; }
 tr:hover { background: #eaf3ff; }
@@ -164,7 +220,7 @@ tr:hover { background: #eaf3ff; }
   .main-menu {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     justify-content: stretch;
     gap: 0;
     border-bottom: 1px solid #e5e5e5;
@@ -235,6 +291,15 @@ tr:hover { background: #eaf3ff; }
   .call-link { justify-content: flex-start; background: #e7f6ed; border: 1px solid #bde0cc; color: #205f3e; border-radius: 999px; padding: 4px 9px; width: fit-content; }
   .call-icon { width: 22px; height: 22px; font-size: 0.72rem; background: #3cae64; }
   .toggle-icon { width: 36px; height: 36px; background: #e9f3ff; border-color: #c3d9ee; }
+  .edit-resident-btn { min-height: 34px; }
+  .resident-modal-overlay { align-items: flex-end; padding: 0; }
+  .resident-modal { width: 100%; max-height: 94vh; border-radius: 20px 20px 0 0; }
+  .resident-form-scroll { grid-template-columns: 1fr; padding: 16px 16px 10px; }
+  .resident-actions { flex-direction: column-reverse; }
+  .resident-save-btn, .resident-cancel-btn { width: 100%; }
+  .view-modal-overlay { align-items: flex-end; padding: 0; }
+  .view-modal { width: 100%; max-height: 94vh; border-radius: 18px 18px 0 0; }
+  .view-grid { grid-template-columns: 1fr; }
   .meta, .error { margin-left: 12px; margin-right: 12px; }
   th, td { white-space: normal; font-size: 0.95rem; }
   th { padding: 12px 8px; }
@@ -254,6 +319,52 @@ tr:hover { background: #eaf3ff; }
   .mobile-card-header .title { font-size: 0.96rem; }
   .card-people { font-size: 0.9rem; }
 }
+/* Premium consistency overrides */
+body { font-family: Manrope, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; color: #17314f; }
+.app-header {
+  background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(13, 36, 66, 0.2);
+}
+.app-header h1, .app-header p { color: #fff; }
+.nav-shell { border: 1px solid #d7e4f1; }
+.table-wrap table th:last-child,
+.table-wrap table td:last-child {
+  width: 118px;
+  text-align: center;
+  white-space: nowrap;
+}
+.table-wrap table th:first-child,
+.table-wrap table td:first-child { width: 7%; }
+.table-wrap table th:nth-child(2),
+.table-wrap table td:nth-child(2) { width: 5%; }
+.table-wrap table th:nth-last-child(2),
+.table-wrap table td:nth-last-child(2) { width: 12%; text-align: center; }
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #c6d8eb;
+  background: #f2f8ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.84rem;
+  line-height: 1;
+}
+.action-btn:hover { background: #e4effc; }
+.action-btn.delete { border-color: #e2a7b0; background: #fff2f4; color: #9a1f34; }
+.action-btn.delete:hover { background: #ffe4e8; }
+.mobile-card .action-btn { width: 30px; height: 30px; }
+.table-wrap .resident-chip { min-height: 21px; padding: 0 6px; font-size: 0.58rem; letter-spacing: 0; }
 </style>
 </head>
 <body>
@@ -271,7 +382,8 @@ tr:hover { background: #eaf3ff; }
       <div class="mobile-brand-title">MIG-1 Society</div>
     </div>
     <ul class="main-menu">
-      <li><a href="index.html">Payments</a></li>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="payments.html">Payments</a></li>
       <li><a class="active" href="owner-tenant.html">Residents <span class="menu-badge" id="residentNavBadge">0</span></a></li>
       <li><a href="emergency-contact.html">Emergency Contact</a></li>
     </ul>
@@ -295,12 +407,6 @@ tr:hover { background: #eaf3ff; }
       <option value="vehicle">Vehicle</option>
     </select>
   </div>
-  <div class="dashboard-metrics">
-    <div class="metric-card"><div class="metric-label">Residents</div><div class="metric-value" id="metricResidents">0</div><div class="metric-sub">Total flats listed</div></div>
-    <div class="metric-card"><div class="metric-label">Blocks</div><div class="metric-value" id="metricBlocks">0</div><div class="metric-sub">Unique blocks covered</div></div>
-    <div class="metric-card"><div class="metric-label">Tenant Occupied</div><div class="metric-value" id="metricTenant">0</div><div class="metric-sub">Flats with tenant entries</div></div>
-    <div class="metric-card"><div class="metric-label">Needs Update</div><div class="metric-value" id="metricPending">0</div><div class="metric-sub">Missing owner/tenant info</div></div>
-  </div>
 
   <div class="meta" id="metaInfo">Loading data...</div>
   <div class="error" id="errorText"></div>
@@ -313,6 +419,36 @@ tr:hover { background: #eaf3ff; }
   </div>
   <div class="card-list" id="cardList"></div>
 </div>
+<div class="resident-modal-overlay" id="residentModalOverlay" aria-hidden="true">
+  <div class="resident-modal" role="dialog" aria-modal="true" aria-labelledby="residentModalTitle">
+    <div class="resident-modal-header">
+      <div class="resident-modal-title-wrap">
+        <div class="resident-modal-title" id="residentModalTitle">Update Resident</div>
+        <div class="resident-modal-subtitle" id="residentModalSubtitle">Edit owner / tenant profile details</div>
+      </div>
+      <button class="resident-modal-close" id="closeResidentModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form class="resident-form" id="residentForm">
+      <div class="resident-form-scroll">
+        <div id="residentFormFields" class="resident-form-fields full"></div>
+        <div class="resident-message" id="residentMessage"></div>
+      </div>
+      <div class="resident-actions">
+        <button class="resident-cancel-btn" id="cancelResidentBtn" type="button">Cancel</button>
+        <button class="resident-save-btn" id="saveResidentBtn" type="submit">Save Details</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="view-modal-overlay" id="viewModalOverlay" aria-hidden="true">
+  <div class="view-modal" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+    <div class="view-modal-header">
+      <div style="font-weight:800;color:#17314f;" id="viewModalTitle">Resident Details</div>
+      <button class="view-modal-close" id="closeViewModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="view-grid" id="viewModalGrid"></div>
+  </div>
+</div>
 
 <script>
 const AUTH_SESSION_KEY = "society_dashboard_auth";
@@ -321,12 +457,20 @@ document.getElementById("logoutBtn").addEventListener("click", () => { sessionSt
 
 const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
+const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbw2kvmc_dYgsicE00YDMPOx8icRxE8eIRbjJ1k9pRszPRwml-t6oU1C2W7gkmuq2Qqe/exec";
+const RESIDENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 let headers = [], rows = [], filteredRows = [];
 const searchIndexes = { name: [], mobile: [], vehicle: [] };
+let activeResidentContext = null;
+const RESIDENT_OCCUPIED_OPTIONS = ["UNOCCUPIED", "TENANT", "OWNER", "PHQ"];
+const VEHICLE_TYPE_OPTIONS = ["BIKE", "SCOOTY", "CAR"];
 function parseCSV(line) { return line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(s => s.replace(/(^"|"$)/g, "")) || []; }
 function normalize(value) { return String(value || "").trim().toLowerCase(); }
 function normalizeBlockDisplay(value) { const digits = String(value || "").match(/\d+/); return digits ? `Block-${Number(digits[0])}` : String(value || ""); }
 function normalizePhone(value) { return String(value || "").replace(/[^\d+]/g, ""); }
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+}
 function renderPhoneLink(value) {
   const phone = normalizePhone(value);
   if (!phone) return value || "";
@@ -358,6 +502,82 @@ function collectIndexes() {
   const namePatterns = ["name", "owner", "tenant", "resident"], mobilePatterns = ["mobile", "phone", "contact", "whatsapp"], vehiclePatterns = ["vehicle", "car", "bike", "number plate", "registration", "veh no", "vehicle no"];
   headers.forEach((header, index) => { const h = normalize(header); if (namePatterns.some(p => h.includes(p))) searchIndexes.name.push(index); if (mobilePatterns.some(p => h.includes(p))) searchIndexes.mobile.push(index); if (vehiclePatterns.some(p => h.includes(p))) searchIndexes.vehicle.push(index); });
 }
+function sanitizeResidentColumns(rawHeaders, rawRows) {
+  const keepIndexes = [];
+  rawHeaders.forEach((header, index) => {
+    if (String(header || "").trim()) keepIndexes.push(index);
+  });
+  const cleanedHeaders = keepIndexes.map(index => String(rawHeaders[index] || "").trim());
+  const cleanedRows = rawRows.map(row => keepIndexes.map(index => row[index] || ""));
+  return { cleanedHeaders, cleanedRows };
+}
+function findColumnIndexByTokens(tokens) {
+  const normalized = headers.map(h => normalize(h));
+  return normalized.findIndex(h => tokens.some(token => h.includes(token)));
+}
+function displayColumnIndices() {
+  return [
+    findColumnIndexByTokens(["block"]),
+    findColumnIndexByTokens(["flat", "house", "apartment"]),
+    findColumnIndexByTokens(["owner name", "owner"]),
+    findColumnIndexByTokens(["owner contact", "owner mobile", "owner phone", "owner whatsapp"]),
+    findColumnIndexByTokens(["tenant name", "tenant"]),
+    findColumnIndexByTokens(["tenant contact", "tenant mobile", "tenant phone", "tenant whatsapp"]),
+  ].filter(i => i >= 0);
+}
+function occupiedByColumnIndex() {
+  return findColumnIndexByTokens(["occupied by", "occupiedby", "occupancy"]);
+}
+function vehicleTypeColumnIndex() {
+  return findColumnIndexByTokens(["vehicle type", "veh type", "vehicle"]);
+}
+function tenantNameColumnIndex() {
+  return findColumnIndexByTokens(["tenant name", "tenant"]);
+}
+function tenantContactColumnIndex() {
+  return findColumnIndexByTokens(["tenant contact", "tenant mobile", "tenant phone", "tenant whatsapp"]);
+}
+function selectedResidentVehicleTypes() {
+  return Array.from(document.querySelectorAll('#residentFormFields .resident-month-options input[type="checkbox"]:checked')).map(input => input.value);
+}
+function updateResidentVehicleSummary() {
+  const selected = selectedResidentVehicleTypes();
+  const trigger = document.getElementById("residentVehicleTrigger");
+  if (!trigger) return;
+  trigger.textContent = selected.length ? selected.join(", ") : "Select vehicle type";
+}
+function setResidentVehicleDropdownOpen(open) {
+  const dropdown = document.getElementById("residentVehicleDropdown");
+  if (!dropdown) return;
+  dropdown.classList.toggle("open", open);
+  const trigger = document.getElementById("residentVehicleTrigger");
+  if (trigger) trigger.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function validateResidentPayload(payload) {
+  const rowValues = payload.rowValues || [];
+  const occIndex = occupiedByColumnIndex();
+  const vehIndex = vehicleTypeColumnIndex();
+  if (occIndex >= 0) {
+    const value = String(rowValues[occIndex] || "").trim().toUpperCase();
+    if (!RESIDENT_OCCUPIED_OPTIONS.includes(value)) return "Occupied By must be UNOCCUPIED, TENANT, OWNER or PHQ.";
+  }
+  if (vehIndex >= 0) {
+    const raw = String(rowValues[vehIndex] || "").trim();
+    if (raw) {
+      const values = raw.split(/[,;|/]+/).map(v => String(v || "").trim().toUpperCase()).filter(Boolean);
+      const invalid = values.find(v => !VEHICLE_TYPE_OPTIONS.includes(v));
+      if (invalid) return "Vehicle Type must use BIKE, SCOOTY or CAR values only.";
+    }
+  }
+  for (let i = 0; i < headers.length; i++) {
+    const label = normalize(headers[i]);
+    const value = String(rowValues[i] || "").trim();
+    if (label.includes("contact") || label.includes("mobile") || label.includes("phone") || label.includes("whatsapp")) {
+      if (value && !/^[0-9+\-\s()]{7,20}$/.test(value)) return `Invalid contact number for ${headers[i]}.`;
+    }
+  }
+  return "";
+}
 function updateBlockFilterOptions() {
   const blockFilter = document.getElementById("blockFilter");
   const blockIndex = findHeaderIndex(["block"]);
@@ -373,12 +593,15 @@ function renderTable(data) {
   const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
   const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
   const statusColumnName = "Occupancy Status";
-  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}<th>${statusColumnName}</th></tr>`;
+  const shownCols = displayColumnIndices();
+  thead.innerHTML = `<tr>${shownCols.map(i => `<th>${headers[i]}</th>`).join("")}<th>${statusColumnName}</th><th>Action</th></tr>`;
   tbody.innerHTML = data.map(row => {
     const ownerValue = ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "";
     const tenantValue = tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "";
     const status = tenantValue ? { label: "Tenant Occupied", cls: "tenant" } : ownerValue ? { label: "Owner Occupied", cls: "owner" } : { label: "Needs Update", cls: "pending" };
-    return `<tr>${headers.map((_, i) => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}<td><span class="resident-chip ${status.cls}">${status.label}</span></td></tr>`;
+    const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
+    const flatValue = row[flatIndex] || "";
+    return `<tr>${shownCols.map(i => `<td>${i === blockIndex ? normalizeBlockDisplay(row[i] || "") : (row[i] || "")}</td>`).join("")}<td><span class="resident-chip ${status.cls}">${status.label}</span></td><td><div class="action-group"><button class="action-btn view" type="button" title="View" data-action="view-resident" data-block="${escapeHtml(blockValue)}" data-flat="${escapeHtml(flatValue)}">👁</button><button class="action-btn edit" type="button" title="Edit" data-action="edit-resident" data-block="${escapeHtml(blockValue)}" data-flat="${escapeHtml(flatValue)}">✎</button><button class="action-btn delete" type="button" title="Delete details" data-action="delete-resident-fields" data-block="${escapeHtml(blockValue)}" data-flat="${escapeHtml(flatValue)}">🗑</button></div></td></tr>`;
   }).join("");
   cardList.innerHTML = data.map(row => {
     const blockValue = normalizeBlockDisplay(row[blockIndex] || "");
@@ -391,27 +614,13 @@ function renderTable(data) {
     const status = tenantValue ? { label: "Tenant Occupied", cls: "tenant" } : ownerValue ? { label: "Owner Occupied", cls: "owner" } : { label: "Needs Update", cls: "pending" };
     const cardPeople = ownerLine || tenantLine ? `${ownerLine}${tenantLine}` : `<div>Resident details</div>`;
     const detailsHtml = headers.map((header, index) => `<div class="detail-row"><span class="detail-key">${header}</span><span class="detail-value">${isPhoneHeader(header) ? renderPhoneLink(row[index]) : (row[index] || "")}</span></div>`).join("");
-    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}<div><span class="resident-chip ${status.cls}">${status.label}</span></div></div></div><span class="toggle-icon">+</span></div><div class="card-details">${detailsHtml}</div></div>`;
+    return `<div class="mobile-card" data-block="${blockValue}" data-flat="${flatValue}"><div class="mobile-card-header"><div class="mobile-card-copy"><div class="title">${cardTitle}</div><div class="card-people">${cardPeople}<div><span class="resident-chip ${status.cls}">${status.label}</span></div></div></div><div style="display:flex;align-items:center;gap:6px;"><button class="action-btn edit" type="button" title="Edit" data-action="edit-resident" data-block="${escapeHtml(blockValue)}" data-flat="${escapeHtml(flatValue)}">✎</button><button class="action-btn delete" type="button" title="Delete details" data-action="delete-resident-fields" data-block="${escapeHtml(blockValue)}" data-flat="${escapeHtml(flatValue)}">🗑</button><span class="toggle-icon">+</span></div></div><div class="card-details">${detailsHtml}</div></div>`;
   }).join("");
   document.getElementById("metaInfo").textContent = `Showing ${data.length} of ${rows.length} records`;
 }
 function updateMetrics() {
-  const blockIndex = findHeaderIndex(["block"]);
-  const ownerIndex = findPersonHeaderIndex(["owner"], ["resident name", "name"]);
-  const tenantIndex = findPersonHeaderIndex(["tenant"], ["occupant"]);
-  const blocks = new Set(rows.map(row => normalizeBlockDisplay(row[blockIndex] || "")).filter(Boolean));
-  let tenantCount = 0, pendingCount = 0;
-  rows.forEach(row => {
-    const owner = ownerIndex >= 0 ? String(row[ownerIndex] || "").trim() : "";
-    const tenant = tenantIndex >= 0 ? String(row[tenantIndex] || "").trim() : "";
-    if (tenant) tenantCount += 1;
-    if (!tenant && !owner) pendingCount += 1;
-  });
-  document.getElementById("metricResidents").textContent = rows.length.toLocaleString("en-IN");
-  document.getElementById("metricBlocks").textContent = blocks.size.toLocaleString("en-IN");
-  document.getElementById("metricTenant").textContent = tenantCount.toLocaleString("en-IN");
-  document.getElementById("metricPending").textContent = pendingCount.toLocaleString("en-IN");
-  document.getElementById("residentNavBadge").textContent = rows.length.toLocaleString("en-IN");
+  const badge = document.getElementById("residentNavBadge");
+  if (badge) badge.textContent = rows.length.toLocaleString("en-IN");
 }
 function matchesByType(row, query, type) {
   if (!query) return true;
@@ -429,6 +638,204 @@ function applySearch() {
   });
   renderTable(filteredRows);
 }
+function findResidentRowByBlockFlat(block, flat) {
+  const targetBlock = normalizeBlockDisplay(block);
+  const targetFlat = String(flat || "").trim();
+  const blockIndex = findHeaderIndex(["block"]);
+  const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
+  return rows.find(row => normalizeBlockDisplay(row[blockIndex] || "") === targetBlock && String(row[flatIndex] || "").trim() === targetFlat) || null;
+}
+function setResidentMessage(message, isSuccess = false) {
+  const el = document.getElementById("residentMessage");
+  el.textContent = message;
+  el.style.color = isSuccess ? "#1f6d42" : "#b00020";
+}
+function lockBodyScroll() {
+  if (document.body.classList.contains("modal-open")) return;
+  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.dataset.scrollY = String(scrollY);
+  document.body.style.top = `-${scrollY}px`;
+  document.body.classList.add("modal-open");
+}
+function unlockBodyScroll() {
+  if (!document.body.classList.contains("modal-open")) return;
+  const scrollY = Number(document.body.dataset.scrollY || "0");
+  document.body.classList.remove("modal-open");
+  document.body.style.top = "";
+  delete document.body.dataset.scrollY;
+  window.scrollTo(0, scrollY);
+}
+function openResidentModal(block, flat) {
+  const row = findResidentRowByBlockFlat(block, flat);
+  if (!row) return;
+  activeResidentContext = { block, flat, row: row.slice() };
+  const blockIndex = findHeaderIndex(["block"]);
+  const flatIndex = findHeaderIndex(["flat", "house", "apartment"]);
+  const fieldsWrap = document.getElementById("residentFormFields");
+  const occIndex = occupiedByColumnIndex();
+  const vehIndex = vehicleTypeColumnIndex();
+  fieldsWrap.innerHTML = headers.map((header, i) => {
+    const isReadonly = i === blockIndex || i === flatIndex;
+    const value = String(row[i] || "");
+    if (i === occIndex) {
+      const options = RESIDENT_OCCUPIED_OPTIONS.map(option => `<option value="${option}" ${String(value).trim().toUpperCase() === option ? "selected" : ""}>${option}</option>`).join("");
+      return `<div class="resident-field"><label>${escapeHtml(header)}</label><select data-col-index="${i}" ${isReadonly ? "disabled" : ""}>${options}</select></div>`;
+    }
+    if (i === vehIndex) {
+      const selected = new Set(String(value || "").split(/[,;|/]+/).map(v => String(v || "").trim().toUpperCase()).filter(Boolean));
+      const options = VEHICLE_TYPE_OPTIONS.map(option => `<label class="resident-month-option"><input type="checkbox" value="${option}" ${selected.has(option) ? "checked" : ""} ${isReadonly ? "disabled" : ""} /><span>${option}</span></label>`).join("");
+      return `<div class="resident-field"><label>${escapeHtml(header)}</label><div class="resident-month-dropdown" id="residentVehicleDropdown"><button class="resident-month-trigger" id="residentVehicleTrigger" type="button" aria-expanded="false">Select vehicle type</button><div class="resident-month-options" data-col-index="${i}">${options}</div></div></div>`;
+    }
+    const inputType = isPhoneHeader(header) ? "tel" : "text";
+    return `<div class="resident-field"><label>${escapeHtml(header)}</label><input data-col-index="${i}" type="${inputType}" value="${escapeHtml(value)}" ${isReadonly ? "readonly" : ""} /></div>`;
+  }).join("");
+  if (occIndex >= 0) {
+    const occupiedByEl = document.querySelector(`#residentFormFields [data-col-index="${occIndex}"]`);
+    if (occupiedByEl) {
+      occupiedByEl.addEventListener("change", () => {
+        const selected = String(occupiedByEl.value || "").trim().toUpperCase();
+        const tNameIndex = tenantNameColumnIndex();
+        const tContactIndex = tenantContactColumnIndex();
+        if (selected === "UNOCCUPIED") {
+          const tNameEl = tNameIndex >= 0 ? document.querySelector(`#residentFormFields [data-col-index="${tNameIndex}"]`) : null;
+          const tContactEl = tContactIndex >= 0 ? document.querySelector(`#residentFormFields [data-col-index="${tContactIndex}"]`) : null;
+          if (tNameEl) tNameEl.value = "";
+          if (tContactEl) tContactEl.value = "";
+        }
+      });
+    }
+  }
+  const vehTrigger = document.getElementById("residentVehicleTrigger");
+  const vehDropdown = document.getElementById("residentVehicleDropdown");
+  if (vehTrigger && vehDropdown) {
+    vehTrigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setResidentVehicleDropdownOpen(!vehDropdown.classList.contains("open"));
+    });
+    vehDropdown.addEventListener("click", (event) => event.stopPropagation());
+    vehDropdown.addEventListener("change", updateResidentVehicleSummary);
+    updateResidentVehicleSummary();
+  }
+  setResidentMessage("");
+  const overlay = document.getElementById("residentModalOverlay");
+  overlay.classList.add("visible");
+  overlay.setAttribute("aria-hidden", "false");
+  lockBodyScroll();
+}
+function closeResidentModal() {
+  const overlay = document.getElementById("residentModalOverlay");
+  setResidentVehicleDropdownOpen(false);
+  overlay.classList.remove("visible");
+  overlay.setAttribute("aria-hidden", "true");
+  activeResidentContext = null;
+  if (!document.getElementById("viewModalOverlay").classList.contains("visible")) unlockBodyScroll();
+}
+function buildResidentPayload() {
+  if (!activeResidentContext) return null;
+  const rowValues = headers.map((_, i) => {
+    const field = document.querySelector(`#residentFormFields [data-col-index="${i}"]`);
+    if (!field) return activeResidentContext.row[i] || "";
+    if (field.classList.contains("resident-month-options")) {
+      return selectedResidentVehicleTypes().join(", ");
+    }
+    if (field.tagName === "SELECT" && field.multiple) {
+      return Array.from(field.selectedOptions).map(option => option.value).filter(Boolean).join(", ");
+    }
+    return String(field.value || "").trim();
+  });
+  return {
+    action: "saveResident",
+    secret: RESIDENT_WRITE_SECRET,
+    headers: headers.slice(),
+    rowValues
+  };
+}
+function submitResidentPayloadViaJsonp(payload) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `residentWriteCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    let script;
+    let timeoutId;
+    const cleanup = () => {
+      if (window[callbackName]) delete window[callbackName];
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+    window[callbackName] = (result) => {
+      cleanup();
+      resolve(result || { ok: false, error: "Empty response from resident service." });
+    };
+    const query = new URLSearchParams({
+      action: "saveResident",
+      callback: callbackName,
+      payload: JSON.stringify(payload),
+      _: String(Date.now()),
+    });
+    script = document.createElement("script");
+    script.src = `${RESIDENT_WRITE_URL}?${query.toString()}`;
+    script.async = true;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Unable to reach resident update service."));
+    };
+    timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("Resident update service timed out."));
+    }, 15000);
+    document.body.appendChild(script);
+  });
+}
+async function saveResident(event) {
+  event.preventDefault();
+  const payload = buildResidentPayload();
+  if (!payload) return;
+  const validationError = validateResidentPayload(payload);
+  if (validationError) {
+    setResidentMessage(validationError);
+    return;
+  }
+  const saveBtn = document.getElementById("saveResidentBtn");
+  saveBtn.disabled = true;
+  setResidentMessage("Saving resident details...");
+  try {
+    const result = await submitResidentPayloadViaJsonp(payload);
+    if (!result.ok) throw new Error(result.error || "Unable to save resident details.");
+    setResidentMessage("Resident details saved successfully.", true);
+    await loadDirectoryData();
+    setTimeout(closeResidentModal, 400);
+  } catch (error) {
+    setResidentMessage(error.message || "Unable to save resident details.");
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+function openViewModal(block, flat) {
+  const row = findResidentRowByBlockFlat(block, flat);
+  if (!row) return;
+  document.getElementById("viewModalTitle").textContent = `${block} / Flat ${flat}`;
+  document.getElementById("viewModalGrid").innerHTML = headers.map((header, i) => `<div class="view-item"><div class="view-key">${escapeHtml(header)}</div><div class="view-value">${escapeHtml(row[i] || "-")}</div></div>`).join("");
+  const overlay = document.getElementById("viewModalOverlay");
+  overlay.classList.add("visible");
+  overlay.setAttribute("aria-hidden", "false");
+  lockBodyScroll();
+}
+function closeViewModal() {
+  const overlay = document.getElementById("viewModalOverlay");
+  overlay.classList.remove("visible");
+  overlay.setAttribute("aria-hidden", "true");
+  if (!document.getElementById("residentModalOverlay").classList.contains("visible")) unlockBodyScroll();
+}
+async function deleteResidentFields(block, flat) {
+  const payload = {
+    action: "deleteResidentFields",
+    secret: RESIDENT_WRITE_SECRET,
+    block,
+    flat,
+    headers: headers.slice()
+  };
+  setResidentMessage("");
+  const result = await submitResidentPayloadViaJsonp(payload);
+  if (!result.ok) throw new Error(result.error || "Unable to delete resident details.");
+}
 async function loadDirectoryData() {
   const errorText = document.getElementById("errorText"); errorText.textContent = "";
   try {
@@ -436,7 +843,11 @@ async function loadDirectoryData() {
     const res = await fetch(url); const csv = await res.text();
     if (!csv.trim() || csv.trim().toLowerCase().startsWith("<!doctype html")) throw new Error("Invalid sheet response. Check sheet ID/tab name and sharing permissions.");
     const lines = csv.split("\n").filter(Boolean);
-    headers = parseCSV(lines[0]); rows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
+    const parsedHeaders = parseCSV(lines[0]);
+    const parsedRows = lines.slice(1).map(parseCSV).filter(r => r.length > 0);
+    const { cleanedHeaders, cleanedRows } = sanitizeResidentColumns(parsedHeaders, parsedRows);
+    headers = cleanedHeaders;
+    rows = cleanedRows;
     searchIndexes.name = []; searchIndexes.mobile = []; searchIndexes.vehicle = []; collectIndexes();
     updateBlockFilterOptions();
     updateMetrics();
@@ -463,6 +874,27 @@ if (profileToggle && profileDropdown) {
 }
 document.getElementById("cardList").addEventListener("click", (event) => {
   if (event.target.closest(".call-link")) return;
+  const viewBtn = event.target.closest('[data-action="view-resident"]');
+  if (viewBtn) {
+    event.stopPropagation();
+    openViewModal(viewBtn.dataset.block || "", viewBtn.dataset.flat || "");
+    return;
+  }
+  const editBtn = event.target.closest('[data-action="edit-resident"]');
+  if (editBtn) {
+    event.stopPropagation();
+    openResidentModal(editBtn.dataset.block || "", editBtn.dataset.flat || "");
+    return;
+  }
+  const deleteBtn = event.target.closest('[data-action="delete-resident-fields"]');
+  if (deleteBtn) {
+    event.stopPropagation();
+    if (!confirm(`Delete all resident details except Block/Flat for ${deleteBtn.dataset.block} / ${deleteBtn.dataset.flat}?`)) return;
+    deleteResidentFields(deleteBtn.dataset.block || "", deleteBtn.dataset.flat || "").then(loadDirectoryData).catch(error => {
+      document.getElementById("errorText").textContent = error.message || "Unable to delete resident details.";
+    });
+    return;
+  }
   const header = event.target.closest(".mobile-card-header");
   if (!header) return;
   const card = header.closest(".mobile-card");
@@ -470,6 +902,37 @@ document.getElementById("cardList").addEventListener("click", (event) => {
   card.classList.toggle("expanded");
   const icon = card.querySelector(".toggle-icon");
   if (icon) icon.textContent = card.classList.contains("expanded") ? "−" : "+";
+});
+document.getElementById("tableBody").addEventListener("click", (event) => {
+  const viewBtn = event.target.closest('[data-action="view-resident"]');
+  if (viewBtn) {
+    openViewModal(viewBtn.dataset.block || "", viewBtn.dataset.flat || "");
+    return;
+  }
+  const editBtn = event.target.closest('[data-action="edit-resident"]');
+  if (editBtn) {
+    openResidentModal(editBtn.dataset.block || "", editBtn.dataset.flat || "");
+    return;
+  }
+  const deleteBtn = event.target.closest('[data-action="delete-resident-fields"]');
+  if (!deleteBtn) return;
+  if (!confirm(`Delete all resident details except Block/Flat for ${deleteBtn.dataset.block} / ${deleteBtn.dataset.flat}?`)) return;
+  deleteResidentFields(deleteBtn.dataset.block || "", deleteBtn.dataset.flat || "").then(loadDirectoryData).catch(error => {
+    document.getElementById("errorText").textContent = error.message || "Unable to delete resident details.";
+  });
+});
+document.getElementById("residentForm").addEventListener("submit", saveResident);
+document.getElementById("cancelResidentBtn").addEventListener("click", closeResidentModal);
+document.getElementById("closeResidentModalBtn").addEventListener("click", closeResidentModal);
+document.getElementById("residentModalOverlay").addEventListener("click", (event) => {
+  if (event.target.id === "residentModalOverlay") closeResidentModal();
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#residentVehicleDropdown")) setResidentVehicleDropdownOpen(false);
+});
+document.getElementById("closeViewModalBtn").addEventListener("click", closeViewModal);
+document.getElementById("viewModalOverlay").addEventListener("click", (event) => {
+  if (event.target.id === "viewModalOverlay") closeViewModal();
 });
 loadDirectoryData();
 </script>
