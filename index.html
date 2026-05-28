@@ -832,22 +832,22 @@ body.modal-open{overflow:hidden}
 <!-- ════════ DESKTOP KPI STRIP ════════ -->
 <div class="kpi-strip" id="kpiStrip">
   <div class="kpi-cell">
-    <div class="kpi-label">Total Collected</div>
+    <div class="kpi-label">Year Collected</div>
     <div class="kpi-val sk" id="kpiTotal">—</div>
     <div class="kpi-sub" id="kpiSub">Year 2026</div>
   </div>
   <div class="kpi-cell">
-    <div class="kpi-label">Residents</div>
-    <div class="kpi-val sk" id="kpiRes">—</div>
-    <div class="kpi-sub" id="kpiResSub">Loading…</div>
+    <div class="kpi-label">This Month</div>
+    <div class="kpi-val sk" id="kpiMonth">—</div>
+    <div class="kpi-sub" id="kpiMonthSub">Current month</div>
   </div>
   <div class="kpi-cell">
-    <div class="kpi-label">Pending Profiles</div>
-    <div class="kpi-val sk" id="kpiPend">—</div>
-    <div class="kpi-sub">Needs attention</div>
+    <div class="kpi-label">Today</div>
+    <div class="kpi-val sk" id="kpiToday">—</div>
+    <div class="kpi-sub" id="kpiTodaySub">Today's collections</div>
   </div>
   <div class="kpi-cell">
-    <div class="kpi-label">Emergency contacts</div>
+    <div class="kpi-label">Emergency Contacts</div>
     <div class="kpi-val sk" id="kpiEmg">—</div>
     <div class="kpi-sub">On record</div>
   </div>
@@ -856,19 +856,19 @@ body.modal-open{overflow:hidden}
 <!-- ════════ MOBILE KPI SCROLL ════════ -->
 <div class="mob-kpi-strip" id="mobKpiStrip">
   <div class="mob-kpi-card">
-    <div class="mk-label">Collected</div>
+    <div class="mk-label">Year Total</div>
     <div class="mk-val" id="mkTotal">—</div>
-    <div class="mk-sub">Year 2026</div>
+    <div class="mk-sub" id="kpiSub2">Year 2026</div>
   </div>
   <div class="mob-kpi-card">
-    <div class="mk-label">Residents</div>
-    <div class="mk-val" id="mkRes">—</div>
-    <div class="mk-sub" id="mkResSub">Loading</div>
+    <div class="mk-label">This Month</div>
+    <div class="mk-val" id="mkMonth">—</div>
+    <div class="mk-sub" id="mkMonthSub">Current month</div>
   </div>
   <div class="mob-kpi-card">
-    <div class="mk-label">Pending</div>
-    <div class="mk-val" id="mkPend">—</div>
-    <div class="mk-sub">Profiles</div>
+    <div class="mk-label">Today</div>
+    <div class="mk-val" id="mkToday">—</div>
+    <div class="mk-sub">Today's collections</div>
   </div>
   <div class="mob-kpi-card">
     <div class="mk-label">Emergency</div>
@@ -889,10 +889,6 @@ body.modal-open{overflow:hidden}
     <a class="qt" href="owner-tenant.html">
       <div class="qt-ico ico-jade"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div>
       <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div></div>
-    </a>
-    <a class="qt" href="payment-status.html">
-      <div class="qt-ico ico-amber"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,10 5,7 8,9 13,4"/><line x1="1" y1="14" x2="15" y2="14"/></svg></div>
-      <div class="qt-body"><div class="qt-title">Payment status</div><div class="qt-copy">Paid &amp; pending by block and month</div></div>
     </a>
     <a class="qt" href="emergency-contact.html">
       <div class="qt-ico ico-teal"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/></svg></div>
@@ -1195,17 +1191,29 @@ function renderDash({pd,rd,ec,year}){
   const total=pd.monthTotals.reduce((s,a)=>s+a,0);
   const compl=rd.stats.total?Math.round(((rd.stats.total-rd.stats.pending)/rd.stats.total)*100):0;
 
+  /* Current month & today totals */
+  const now=new Date();
+  const curMonthIdx=now.getMonth(); // 0-based
+  const todayStr=`${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()}`;
+  const monthTotal=pd.monthTotals[curMonthIdx]||0;
+  const todayTotal=pd.payments
+    .filter(p=>p.date===todayStr)
+    .reduce((s,p)=>s+p.amount,0);
+  const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const curMonthName=monthNames[curMonthIdx];
+
   /* KPI strip */
-  ["kpiTotal","kpiRes","kpiPend","kpiEmg"].forEach(rmSk);
+  ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total)); setTxt("kpiSub",`Year ${year}`);
-  setTxt("kpiRes",fmtN(rd.stats.total)); setTxt("kpiResSub",`${compl}% profiles complete`);
-  setTxt("kpiPend",fmtN(rd.stats.pending));
+  setTxt("kpiMonth",fmt$(monthTotal)); setTxt("kpiMonthSub",curMonthName+" "+year);
+  setTxt("kpiToday",fmt$(todayTotal)); setTxt("kpiTodaySub",now.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}));
   setTxt("kpiEmg",fmtN(ec));
   document.querySelectorAll(".kpi-cell").forEach(el=>{ requestAnimationFrame(()=>el.classList.add("reveal")); });
 
   /* Mobile KPI */
-  setTxt("mkTotal",fmt$(total)); setTxt("mkRes",fmtN(rd.stats.total));
-  setTxt("mkResSub",`${compl}% done`); setTxt("mkPend",fmtN(rd.stats.pending));
+  setTxt("mkTotal",fmt$(total)); setTxt("kpiSub2",`Year ${year}`);
+  setTxt("mkMonth",fmt$(monthTotal)); setTxt("mkMonthSub",curMonthName);
+  setTxt("mkToday",fmt$(todayTotal));
   setTxt("mkEmg",fmtN(ec));
 
   /* Nav badges */
@@ -1246,7 +1254,7 @@ async function loadDash(){
     const el=document.getElementById(id);
     if(el){el.classList.add("sk");el.innerHTML="";}
   });
-  ["kpiTotal","kpiRes","kpiPend","kpiEmg"].forEach(id=>{
+  ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.add("sk");el.textContent="—";}
   });
