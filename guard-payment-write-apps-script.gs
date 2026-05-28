@@ -13,6 +13,7 @@ function doGet(e) {
   if (isApiSaveRequest(e)) {
     return handleApiSaveRequest(e);
   }
+  
   if (isApiResidentSaveRequest(e)) {
     return handleApiResidentSaveRequest(e);
   }

@@ -1,462 +1,1048 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Emergency Contacts</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B1628">
+<title>MIG Society · Emergency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg: #f3f7fb;
-  --card: #fff;
-  --line: #d6e0ec;
-  --brand: #1f5ea8;
-  --brand-dark: #123d70;
-  --ink: #17314f;
-  --mobile-ink: #14313b;
-  --call: #50af49;
-  --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --accent: #1f5ea8;
-  --accent-soft: #dfefff;
-  --accent-text: #214d7c;
-  --success: #3da765;
-  --success-soft: #e4f7eb;
-  --success-text: #1d6f45;
-  --success-border: #b9e0c8;
+/* ════════════════════════════════════════════════
+   RESET & TOKENS — exact match to admin/payments
+════════════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body.modal-open{overflow:hidden;position:fixed;width:100%}
+a{color:inherit;text-decoration:none}
+button,select,input{font:inherit;cursor:pointer;border:none;outline:none}
+
+:root{
+  --midnight-950:#060d1c;
+  --midnight-900:#0b1628;
+  --midnight-800:#112040;
+  --midnight-700:#172c58;
+  --midnight-600:#1e3a72;
+  --midnight-500:#274d96;
+  --midnight-400:#3b66b8;
+  --midnight-300:#6b94d4;
+  --midnight-200:#a8c4ec;
+  --midnight-100:#d8e8f8;
+  --midnight-50: #eef5fc;
+
+  --jade-700:#065f46;
+  --jade-600:#047857;
+  --jade-500:#059669;
+  --jade-400:#10b981;
+  --jade-100:#d1fae5;
+  --jade-50: #ecfdf5;
+
+  --coral-600:#dc2626;
+  --coral-500:#ef4444;
+  --coral-100:#fee2e2;
+  --coral-50: #fef2f2;
+
+  --amber-600:#d97706;
+  --amber-500:#f59e0b;
+  --amber-100:#fef3c7;
+  --amber-50: #fffbeb;
+
+  --teal-600:#0d9488;
+  --teal-500:#14b8a6;
+  --teal-100:#ccfbf1;
+  --teal-50: #f0fdfa;
+
+  --rose-600:#e11d48;
+  --rose-500:#f43f5e;
+  --rose-100:#ffe4e6;
+  --rose-50: #fff1f2;
+
+  --bg:       #f2f6fb;
+  --surface:  #ffffff;
+  --surface-2:#f8fafd;
+  --surface-3:#eef3f9;
+
+  --ink:      #0b1628;
+  --ink-2:    #344f6e;
+  --ink-3:    #6a86a4;
+  --ink-4:    #a0b4c8;
+
+  --line:     rgba(23,44,88,0.08);
+  --line-md:  rgba(23,44,88,0.13);
+  --line-lg:  rgba(23,44,88,0.20);
+
+  --s-xs: 0 1px 3px rgba(7,15,35,0.05);
+  --s-sm: 0 2px 8px rgba(7,15,35,0.07),0 1px 2px rgba(7,15,35,0.04);
+  --s-md: 0 6px 20px rgba(7,15,35,0.09),0 2px 6px rgba(7,15,35,0.04);
+  --s-lg: 0 18px 48px rgba(7,15,35,0.12),0 4px 12px rgba(7,15,35,0.05);
+  --s-blue:0 8px 28px rgba(30,58,114,0.28);
+  --s-jade:0 8px 24px rgba(6,120,87,0.22);
+
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  18px;
+  --r-xl:  24px;
+
+  --ease-out:    cubic-bezier(0.16,1,0.3,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+
+  --topbar-h:  56px;
+  --desknav-h: 50px;
+  --mobnav-h:  70px;
+  --safe-bot:  env(safe-area-inset-bottom,0px);
+  --safe-top:  env(safe-area-inset-top,0px);
 }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: var(--ink); min-height: 100vh; padding: 20px; }
-.container { max-width: 1200px; margin: 0 auto; }
-.app-header { background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 18px 40px rgba(13, 36, 66, 0.22); text-align: center; }
-.app-header h1 { color: #fff; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
-.app-header p { color: #fff; font-size: 1rem; font-weight: 700; opacity: 0.92; letter-spacing: 0.03em; text-transform: uppercase; }
-.nav-shell { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08); display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
-.mobile-brand-row { display: none; }
-.mobile-menu-mark { display: none; }
-.main-menu { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
-.main-menu a { text-decoration: none; color: #1f4f7e; border: 1px solid rgba(31, 94, 168, 0.16); background: #eef6ff; padding: 12px 16px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; transition: all 0.22s ease; }
-.main-menu a:hover { background: #dde9ff; transform: translateY(-1px); }
-.main-menu a.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-#logoutBtn { border: none; background: transparent; color: #1f314a; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; text-align: left; }
-.profile-menu { position: relative; }
-.profile-button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1f5ea8; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(31, 94, 168, 0.18); }
-.profile-dropdown { position: absolute; right: 0; top: calc(100% + 10px); background: #fff; border: 1px solid #d9e3ec; border-radius: 12px; box-shadow: 0 18px 40px rgba(31, 94, 168, 0.12); min-width: 140px; display: none; z-index: 20; }
-.profile-dropdown.visible { display: block; }
-.profile-dropdown button { width: 100%; border: none; background: transparent; padding: 12px 14px; text-align: left; color: #1f314a; font-weight: 700; cursor: pointer; }
-.profile-dropdown button:hover { background: #eef4fb; }
-.meta { margin: 10px 0 16px; color: #2a4a67; font-size: 14px; font-weight: 600; }
-.error { color: #b00020; margin-bottom: 8px; }
-.search-tools { display: flex; gap: 10px; margin: 0 0 14px; }
-.search-tools input { flex: 1; min-width: 0; border: 2px solid #d6e0ec; border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; }
-.sections { display: grid; gap: 18px; }
-.contact-section { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); border: 1px solid #dde6f2; }
-.section-title { background: #1f2a3b; color: #fff; padding: 14px 16px; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em; }
-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-th, td { border-bottom: 1px solid #edf1f7; padding: 12px 14px; text-align: left; vertical-align: top; }
-th { color: #17314f; background: #f4f8fc; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.04em; }
-td { color: #1d3249; font-size: 0.95rem; }
-tr:last-child td { border-bottom: 0; }
-.number-link { color: #1f5ea8; font-weight: 700; text-decoration: none; }
-.desktop-call { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; min-width: 78px; border-radius: 999px; background: var(--success-soft); color: var(--success-text); font-weight: 800; text-decoration: none; border: 1px solid var(--success-border); font-size: 0.82rem; }
-.desktop-call.disabled { background: #f0f2f5; border-color: #dee3ea; color: #8a95a3; pointer-events: none; }
-.empty-state { background: #fff; border: 1px solid #dde6f2; border-radius: 12px; padding: 28px; color: #567; text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
-.mobile-page-header, .contact-tabs, .mobile-contact-list { display: none; }
-.dashboard-metrics { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; margin: 0 0 14px; }
-.metric-card { background: #fff; border: 1px solid #d8e4ef; border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(16, 42, 72, 0.08); }
-.metric-label { font-size: 0.74rem; color: #486481; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
-.metric-value { margin-top: 6px; font-size: 1.3rem; font-weight: 800; color: #16324f; }
-.metric-sub { margin-top: 3px; color: #6a7d91; font-size: 0.82rem; font-weight: 600; }
-.menu-badge { margin-left: 8px; min-width: 22px; height: 22px; border-radius: 999px; padding: 0 7px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-text); }
-.main-menu a.active .menu-badge { background: rgba(255,255,255,0.24); color: #fff; }
-.contact-icon, .call-button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
-.contact-icon { width: 44px; height: 44px; color: #60636a; background: #fff; border: 2px solid #c9ccd2; position: relative; }
-.contact-icon::before { content: ""; position: absolute; top: 9px; left: 50%; width: 13px; height: 13px; border: 3px solid currentColor; border-radius: 50%; transform: translateX(-50%); }
-.contact-icon::after { content: ""; position: absolute; left: 50%; bottom: 9px; width: 24px; height: 12px; border: 3px solid currentColor; border-bottom: 0; border-radius: 999px 999px 0 0; transform: translateX(-50%); }
-.contact-icon.muted { color: #b7bbc2; background: #f5f6f8; border-color: #e1e3e7; }
-.call-button { width: 58px; height: 58px; background: var(--call); color: #fff; text-decoration: none; font-size: 1.8rem; line-height: 1; }
-.call-button.disabled { background: #d7dce2; pointer-events: none; }
-@media (max-width: 768px) {
-  body { padding: 0; background: radial-gradient(circle at 20% 20%, #d9ecff 0%, #f3f7fb 60%); color: #242424; }
-  .container { max-width: none; }
-  .nav-shell { position: sticky; top: 0; z-index: 40; }
-  .app-header, .nav-shell, .meta, .sections { display: none; }
-  .search-tools { display: none; }
-  .error { padding: 16px 18px; margin: 0; font-size: 0.95rem; }
-  .mobile-page-header {
-    display: grid;
-    grid-template-columns: 52px 1fr 52px;
-    align-items: center;
-    min-height: 78px;
-    padding: 14px 18px 10px;
-    border-bottom: 0;
-    background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
-    box-shadow: 0 12px 24px rgba(13, 36, 66, 0.2);
-  }
-  .back-link { color: #fff; text-decoration: none; font-size: 3rem; line-height: 1; font-weight: 300; transform: translateY(-2px); }
-  .mobile-page-title { text-align: center; color: #fff; font-size: 1.2rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
-  .contact-tabs {
-    position: relative;
-    display: flex;
-    overflow-x: auto;
-    gap: 0;
-    padding: 16px 18px 0;
-    background: #f7fbff;
-    scrollbar-width: none;
-  }
-  .contact-tabs::after {
-    content: "";
-    position: absolute;
-    left: 28px;
-    right: 28px;
-    bottom: 0;
-    height: 6px;
-    background: #f1f1f1;
-  }
-  .contact-tabs::-webkit-scrollbar { display: none; }
-  .contact-tab {
-    position: relative;
-    flex: 0 0 50%;
-    min-width: 164px;
-    border: 0;
-    background: #fff;
-    color: #252525;
-    padding: 0 8px 16px;
-    font-size: 1.08rem;
-    font-weight: 650;
-    text-align: center;
-    white-space: nowrap;
-  }
-  .contact-tab.active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 5px;
-    background: var(--mobile-ink);
-    z-index: 1;
-  }
-  .mobile-contact-list { display: block; padding: 20px 16px 8px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
-  .mobile-contact-row {
-    display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
-    border: 1px solid #dde8f3;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 8px 18px rgba(17, 42, 70, 0.07);
-    transition: transform 180ms var(--ease-standard), box-shadow 180ms var(--ease-standard);
-  }
-  .mobile-contact-row:active { transform: scale(0.995); box-shadow: 0 6px 14px rgba(17, 42, 70, 0.09); }
-  .mobile-contact-name { color: #173a63; font-size: 1rem; line-height: 1.2; font-weight: 800; overflow-wrap: anywhere; }
-  .mobile-contact-block { color: #5e5e5e; font-size: 0.86rem; line-height: 1.25; margin-top: 6px; overflow-wrap: anywhere; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .contact-icon { width: 40px; height: 40px; border-width: 1px; background: #f2f7fc; color: #5f6f81; }
-  .contact-icon::before { top: 9px; width: 10px; height: 10px; border-width: 2px; }
-  .contact-icon::after { bottom: 9px; width: 18px; height: 9px; border-width: 2px; border-bottom: 0; }
-  .call-button { width: auto; height: 36px; font-size: 0.82rem; font-weight: 800; border-radius: 999px; padding: 0 12px; background: var(--success); min-width: 68px; }
-  .call-button::after { content: "Call"; margin-left: 6px; }
-  .call-button.disabled::after { content: "N/A"; margin-left: 0; }
-  .dashboard-metrics { display: none; }
+
+/* ════════════════════════════════════════════════
+   KEYFRAMES
+════════════════════════════════════════════════ */
+@keyframes fadeUp  {from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn  {from{opacity:0}to{opacity:1}}
+@keyframes scaleIn {from{opacity:0;transform:scale(0.93) translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes shimmer {from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes kpiIn   {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes cardIn  {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pulse   {0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* ════════════════════════════════════════════════
+   DESKTOP TOP-BAR
+════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  height:var(--topbar-h);
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(24px) saturate(200%);
+  -webkit-backdrop-filter:blur(24px) saturate(200%);
+  border-bottom:1px solid var(--line);
+  box-shadow:var(--s-xs);
+  display:flex;align-items:center;
+  padding:0 28px;gap:16px;
+  animation:fadeDown 0.4s var(--ease-out) both;
 }
-@media (max-width: 560px) {
-  .mobile-page-header { grid-template-columns: 44px 1fr 44px; min-height: 76px; padding-left: 16px; padding-right: 16px; }
-  .mobile-page-title { font-size: 1.3rem; }
-  .contact-tabs { padding-left: 18px; padding-right: 18px; }
-  .contact-tabs::after { left: 18px; right: 18px; }
-  .contact-tab { min-width: 160px; font-size: 1rem; }
-  .mobile-contact-list { padding: 16px 14px 8px; }
-  .mobile-contact-row { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; padding: 10px; margin-bottom: 9px; }
-  .contact-icon { width: 36px; height: 36px; }
-  .call-button { height: 34px; font-size: 0.78rem; padding: 0 10px; min-width: 62px; }
-  .mobile-contact-name { font-size: 0.96rem; }
+.topbar-brand{flex:1;min-width:0;display:flex;align-items:center;gap:11px}
+.brand-gem{
+  width:36px;height:36px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-500));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-blue);position:relative;overflow:hidden;
 }
-/* Premium consistency overrides */
-body { font-family: Manrope, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; color: #17314f; }
-.app-header {
-  background: linear-gradient(120deg, #153a66, #1f5ea8 52%, #2b7b64);
-  color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 14px 32px rgba(13, 36, 66, 0.2);
+.brand-gem::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent 60%)}
+.brand-gem svg{color:#fff;position:relative;z-index:1}
+.brand-copy{min-width:0}
+.brand-name{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-tagline{font-size:0.68rem;color:var(--ink-3);font-weight:400;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:9px}
+.profile-wrap{position:relative}
+.profile-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-400));
+  color:#fff;font-size:0.82rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-blue);
+  transition:transform 0.18s var(--ease-spring),box-shadow 0.18s;
 }
-.app-header h1, .app-header p { color: #fff; }
-.nav-shell { border: 1px solid #d7e4f1; }
-.main-menu a {
-  color: #1f4f7e;
-  border: 1px solid rgba(31, 94, 168, 0.16);
-  background: #eef6ff;
+.profile-btn:hover{transform:scale(1.09)}
+.profile-dropdown{
+  position:absolute;right:0;top:calc(100% + 10px);
+  background:var(--surface);border:1px solid var(--line-md);
+  border-radius:var(--r-md);box-shadow:var(--s-lg);
+  min-width:145px;overflow:hidden;display:none;z-index:300;
+  transform-origin:top right;
+  animation:scaleIn 0.22s var(--ease-spring) both;
 }
-.main-menu a.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.profile-dropdown.open{display:block}
+.profile-dropdown button{
+  width:100%;background:transparent;
+  padding:11px 16px;text-align:left;
+  color:var(--ink);font-size:0.84rem;font-weight:500;
+  display:flex;align-items:center;gap:9px;
+  transition:background 0.12s;
+}
+.profile-dropdown button:hover{background:var(--surface-2);color:var(--coral-600)}
+.pd-divider{height:1px;background:var(--line);margin:3px 0}
+
+/* ════════════════════════════════════════════════
+   DESKTOP NAV
+════════════════════════════════════════════════ */
+.desknav{
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:stretch;
+  padding:0 20px;
+  animation:fadeIn 0.35s 0.05s var(--ease-out) both;
+}
+.dn-item{
+  display:flex;align-items:center;gap:7px;
+  padding:0 16px;height:var(--desknav-h);
+  font-size:0.83rem;font-weight:500;
+  color:var(--ink-3);
+  border-bottom:2.5px solid transparent;
+  text-decoration:none;white-space:nowrap;
+  transition:color 0.16s,border-color 0.16s;
+  letter-spacing:0.01em;
+}
+.dn-item:hover{color:var(--midnight-600)}
+.dn-item.active{color:var(--midnight-600);font-weight:600;border-bottom-color:var(--midnight-500)}
+.dn-item svg{opacity:0.6;transition:opacity 0.16s}
+.dn-item:hover svg,.dn-item.active svg{opacity:1}
+.nav-pill{
+  min-width:20px;height:20px;border-radius:999px;
+  padding:0 6px;font-size:0.65rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--midnight-100);color:var(--midnight-600);
+  transition:background 0.16s,color 0.16s;
+}
+.dn-item.active .nav-pill{background:var(--midnight-500);color:#fff}
+
+/* ════════════════════════════════════════════════
+   KPI STRIP (desktop)
+════════════════════════════════════════════════ */
+.kpi-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--surface);border-bottom:1px solid var(--line);
+  animation:fadeIn 0.35s 0.08s var(--ease-out) both;
+}
+.kpi-cell{
+  padding:15px 24px;border-right:1px solid var(--line);
+  position:relative;overflow:hidden;transition:background 0.2s;
+}
+.kpi-cell:last-child{border-right:none}
+.kpi-cell::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:3px;
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.6s var(--ease-out);
+}
+.kpi-cell.reveal::before{transform:scaleX(1)}
+.kpi-cell:nth-child(1)::before{background:linear-gradient(90deg,var(--midnight-600),var(--midnight-300))}
+.kpi-cell:nth-child(2)::before{background:linear-gradient(90deg,var(--jade-600),var(--jade-400))}
+.kpi-cell:nth-child(3)::before{background:linear-gradient(90deg,var(--amber-600),var(--amber-500))}
+.kpi-cell:nth-child(4)::before{background:linear-gradient(90deg,var(--coral-600),var(--coral-500))}
+.kpi-label{font-size:0.67rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.09em}
+.kpi-val{margin-top:5px;font-size:1.62rem;font-weight:700;color:var(--ink);letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;animation:kpiIn 0.5s var(--ease-out) both}
+.kpi-sub{margin-top:2px;font-size:0.7rem;color:var(--ink-3);font-weight:400}
+
+/* ════════════════════════════════════════════════
+   MOBILE HEADER
+════════════════════════════════════════════════ */
+.mob-header{
+  display:none;
+  position:sticky;top:0;z-index:200;
+  height:calc(58px + var(--safe-top));
+  padding-top:var(--safe-top);
+  background:rgba(11,22,40,0.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  align-items:center;justify-content:space-between;
+  padding-left:18px;padding-right:18px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+}
+.mob-brand{display:flex;align-items:center;gap:9px}
+.mob-gem{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(39,77,150,0.4);
+}
+.mob-gem svg{color:#fff}
+.mob-name{font-size:0.92rem;font-weight:700;color:#fff;letter-spacing:-0.01em}
+.mob-right{display:flex;align-items:center;gap:8px}
+.mob-search-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.16);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:background 0.14s;
+}
+.mob-search-btn:hover{background:rgba(255,255,255,0.18)}
+.mob-profile{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
+  color:#fff;font-size:0.76rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(39,77,150,0.4);
+}
+.mob-header .profile-wrap{position:relative}
+.mob-header .profile-dropdown button{background:var(--surface);color:var(--ink)}
+.mob-header .profile-dropdown button:hover{background:var(--surface-2)}
+
+/* ════════════════════════════════════════════════
+   MOBILE KPI SCROLL
+════════════════════════════════════════════════ */
+.mob-kpi-strip{
+  display:none;overflow-x:auto;padding:14px 18px;gap:10px;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;background:var(--midnight-900);
+}
+.mob-kpi-strip::-webkit-scrollbar{display:none}
+.mob-kpi-card{flex-shrink:0;border-radius:var(--r-lg);padding:14px 16px;scroll-snap-align:start;min-width:138px}
+.mob-kpi-card:nth-child(1){background:linear-gradient(140deg,var(--midnight-600),var(--midnight-500));border:1px solid rgba(255,255,255,0.1);box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+.mob-kpi-card:nth-child(1) .mk-label,.mob-kpi-card:nth-child(1) .mk-sub{color:rgba(255,255,255,0.6)}
+.mob-kpi-card:nth-child(1) .mk-val{color:#fff}
+.mob-kpi-card:nth-child(2){background:var(--jade-50);border:1px solid var(--jade-100)}
+.mob-kpi-card:nth-child(3){background:var(--amber-50);border:1px solid var(--amber-100)}
+.mob-kpi-card:nth-child(4){background:var(--rose-50);border:1px solid var(--rose-100)}
+.mk-label{font-size:0.64rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em}
+.mk-val{margin-top:5px;font-size:1.28rem;font-weight:700;color:var(--ink);font-family:'JetBrains Mono',monospace;letter-spacing:-0.02em}
+.mk-sub{margin-top:2px;font-size:0.64rem;color:var(--ink-3)}
+
+/* ════════════════════════════════════════════════
+   MOBILE BOTTOM NAV
+════════════════════════════════════════════════ */
+.mob-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding-bottom:var(--safe-bot);
+  background:rgba(255,255,255,0.96);
+  backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+  border-top:1px solid var(--line);box-shadow:0 -6px 30px rgba(7,15,35,0.10);
+}
+.mob-nav-inner{display:grid;grid-template-columns:repeat(4,1fr);height:var(--mobnav-h)}
+.mni{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;text-decoration:none;color:var(--ink-3);font-size:0.6rem;font-weight:600;
+  letter-spacing:0.01em;position:relative;transition:color 0.16s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mni.active{color:var(--midnight-600)}
+.mni-icon-wrap{position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.mni-bg{position:absolute;inset:0;border-radius:10px;background:var(--midnight-50);transform:scale(0);transition:transform 0.22s var(--ease-spring)}
+.mni.active .mni-bg{transform:scale(1)}
+.mni svg{position:relative;z-index:1;transition:transform 0.22s var(--ease-spring)}
+.mni.active svg{transform:scale(1.1)}
+.mni::before{
+  content:'';position:absolute;top:0;left:50%;
+  transform:translateX(-50%) scaleX(0);
+  width:24px;height:3px;border-radius:0 0 4px 4px;
+  background:linear-gradient(90deg,var(--midnight-500),var(--midnight-300));
+  transition:transform 0.22s var(--ease-spring);
+}
+.mni.active::before{transform:translateX(-50%) scaleX(1)}
+.mni-label{position:relative;z-index:1}
+.mni-dot{position:absolute;top:0;right:0;width:8px;height:8px;border-radius:50%;background:var(--coral-500);border:2px solid #fff;display:none;z-index:2}
+.mni-dot.show{display:block}
+
+/* ════════════════════════════════════════════════
+   MOBILE SEARCH BAR (expandable)
+════════════════════════════════════════════════ */
+.mob-search-bar{
+  display:none;
+  background:var(--midnight-900);
+  padding:10px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.mob-search-bar input{
+  width:100%;height:38px;
+  border:1px solid rgba(255,255,255,0.16);
+  border-radius:var(--r-md);
+  background:rgba(255,255,255,0.08);
+  color:#fff;font-size:0.86rem;
+  padding:0 14px;
+  transition:border-color 0.15s,background 0.15s;
+}
+.mob-search-bar input::placeholder{color:rgba(255,255,255,0.4)}
+.mob-search-bar input:focus{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.12)}
+.mob-search-bar.visible{display:block}
+
+/* ════════════════════════════════════════════════
+   PAGE BODY
+════════════════════════════════════════════════ */
+.page{padding:22px 26px;max-width:1400px;margin:0 auto}
+
+/* ════════════════════════════════════════════════
+   FILTER BAR
+════════════════════════════════════════════════ */
+.filter-bar{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:13px 18px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:var(--s-sm);margin-bottom:20px;
+  animation:fadeUp 0.4s 0.1s var(--ease-out) both;
+}
+.filter-input{
+  flex:1;height:36px;
+  border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink);
+  font-size:0.8rem;font-weight:400;padding:0 12px;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.filter-input:focus{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
+.filter-input::placeholder{color:var(--ink-4)}
+.filter-count{font-size:0.72rem;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.filter-bar-icon{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  background:var(--midnight-50);border:1px solid var(--midnight-100);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--midnight-500);flex-shrink:0;
+}
+
+/* ════════════════════════════════════════════════
+   CATEGORY TABS
+════════════════════════════════════════════════ */
+.cat-tabs{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-bottom:20px;
+  animation:fadeUp 0.4s 0.12s var(--ease-out) both;
+}
+.cat-tab{
+  height:34px;padding:0 14px;
+  border:1px solid var(--line-md);border-radius:999px;
+  background:var(--surface);color:var(--ink-3);
+  font-size:0.78rem;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+  transition:all 0.18s var(--ease-out);
+  letter-spacing:0.01em;
+}
+.cat-tab:hover{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600)}
+.cat-tab.active{background:var(--midnight-500);border-color:var(--midnight-500);color:#fff;box-shadow:0 4px 14px rgba(39,77,150,0.25)}
+.cat-tab-count{
+  font-size:0.64rem;font-weight:700;
+  padding:2px 6px;border-radius:999px;
+  background:rgba(255,255,255,0.2);color:inherit;
+}
+.cat-tab:not(.active) .cat-tab-count{background:var(--midnight-100);color:var(--midnight-600)}
+
+/* ════════════════════════════════════════════════
+   SECTION GRID — card-based
+════════════════════════════════════════════════ */
+.sections-grid{display:grid;gap:20px}
+
+.section-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--s-sm);
+  overflow:hidden;
+  animation:cardIn 0.45s var(--ease-out) both;
+  transition:box-shadow 0.22s;
+}
+.section-card:hover{box-shadow:var(--s-md)}
+.section-card-head{
+  padding:14px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+}
+.section-icon{
+  width:36px;height:36px;border-radius:var(--r-sm);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.section-icon::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent 60%)}
+.section-icon svg{position:relative;z-index:1}
+.si-red    {background:linear-gradient(140deg,var(--coral-100),var(--coral-50));color:var(--coral-600)}
+.si-blue   {background:linear-gradient(140deg,var(--midnight-100),var(--midnight-50));color:var(--midnight-600)}
+.si-amber  {background:linear-gradient(140deg,var(--amber-100),var(--amber-50));color:var(--amber-600)}
+.si-jade   {background:linear-gradient(140deg,var(--jade-100),var(--jade-50));color:var(--jade-700)}
+.si-teal   {background:linear-gradient(140deg,var(--teal-100),var(--teal-50));color:var(--teal-600)}
+.section-head-text{flex:1;min-width:0}
+.section-title{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+.section-count-badge{
+  font-size:0.66rem;font-weight:700;
+  padding:3px 9px;border-radius:999px;
+  background:var(--midnight-100);color:var(--midnight-600);
+  letter-spacing:0.02em;
+}
+
+/* ════════════════════════════════════════════════
+   CONTACT TABLE (desktop)
+════════════════════════════════════════════════ */
+.contact-table{width:100%;border-collapse:collapse}
+.contact-table th{
+  background:var(--surface-2);
+  color:var(--ink-3);
+  padding:10px 20px;
+  text-align:left;
+  font-size:0.67rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.09em;
+  border-bottom:1px solid var(--line);
+}
+.contact-table td{
+  padding:13px 20px;
+  border-bottom:1px solid var(--surface-3);
+  font-size:0.84rem;color:var(--ink-2);
+  vertical-align:middle;
+}
+.contact-table tr:last-child td{border-bottom:none}
+.contact-table tr:hover td{background:var(--midnight-50)}
+.contact-table td:first-child{font-weight:600;color:var(--ink)}
+.contact-number{
+  color:var(--midnight-600);font-weight:600;
+  font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  transition:color 0.14s;
+}
+.contact-number:hover{color:var(--midnight-500)}
+.call-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  height:30px;padding:0 13px;border-radius:999px;
+  background:var(--jade-50);color:var(--jade-700);
+  font-size:0.73rem;font-weight:700;
+  border:1px solid var(--jade-100);
+  text-decoration:none;
+  transition:all 0.16s var(--ease-out);
+  letter-spacing:0.02em;
+}
+.call-chip:hover{background:var(--jade-100);transform:translateY(-1px);box-shadow:var(--s-jade)}
+.call-chip.disabled{background:var(--surface-3);color:var(--ink-4);border-color:var(--line);pointer-events:none}
+.call-chip svg{flex-shrink:0}
+
+/* ════════════════════════════════════════════════
+   MOBILE CONTACT CARDS
+════════════════════════════════════════════════ */
+.mob-contact-list{display:none;padding:0}
+.mob-section-label{
+  font-size:0.65rem;font-weight:700;
+  color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;
+  padding:16px 0 8px;display:flex;align-items:center;gap:8px;
+}
+.mob-section-label::after{content:'';flex:1;height:1px;background:var(--line)}
+.mob-contact-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:13px;
+  box-shadow:var(--s-xs);
+  transition:transform 0.18s var(--ease-out),box-shadow 0.18s,border-color 0.14s;
+}
+.mob-contact-card:hover{transform:translateY(-1px);box-shadow:var(--s-sm);border-color:var(--line-md)}
+.mob-contact-card:active{transform:none;box-shadow:var(--s-xs)}
+.mob-contact-avatar{
+  width:44px;height:44px;border-radius:var(--r-md);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  position:relative;overflow:hidden;
+}
+.mob-contact-avatar::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent 60%)}
+.mca-red  {background:linear-gradient(140deg,var(--coral-100),var(--coral-50));color:var(--coral-600)}
+.mca-blue {background:linear-gradient(140deg,var(--midnight-100),var(--midnight-50));color:var(--midnight-600)}
+.mca-amber{background:linear-gradient(140deg,var(--amber-100),var(--amber-50));color:var(--amber-600)}
+.mca-jade {background:linear-gradient(140deg,var(--jade-100),var(--jade-50));color:var(--jade-700)}
+.mca-teal {background:linear-gradient(140deg,var(--teal-100),var(--teal-50));color:var(--teal-600)}
+.mob-contact-info{flex:1;min-width:0}
+.mob-contact-work{font-size:0.87rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em;line-height:1.25}
+.mob-contact-name{font-size:0.73rem;color:var(--ink-3);margin-top:2px;font-weight:400}
+.mob-contact-num{
+  font-size:0.75rem;font-weight:600;color:var(--midnight-500);
+  font-family:'JetBrains Mono',monospace;margin-top:3px;
+}
+.mob-call-btn{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(140deg,var(--jade-600),var(--jade-500));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:var(--s-jade);
+  transition:transform 0.18s var(--ease-spring),box-shadow 0.18s;
+}
+.mob-call-btn:hover{transform:scale(1.1);box-shadow:0 10px 24px rgba(6,120,87,0.30)}
+.mob-call-btn.disabled{background:var(--surface-3);color:var(--ink-4);box-shadow:none;pointer-events:none}
+
+/* ════════════════════════════════════════════════
+   EMPTY STATE
+════════════════════════════════════════════════ */
+.empty-state{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:36px 24px;
+  text-align:center;box-shadow:var(--s-sm);
+  animation:fadeUp 0.4s var(--ease-out) both;
+}
+.empty-icon{
+  width:52px;height:52px;border-radius:var(--r-lg);
+  background:var(--midnight-50);border:1px solid var(--midnight-100);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;color:var(--midnight-300);
+}
+.empty-title{font-size:0.92rem;font-weight:700;color:var(--ink);margin-bottom:5px}
+.empty-sub{font-size:0.8rem;color:var(--ink-3)}
+
+/* ════════════════════════════════════════════════
+   SKELETON
+════════════════════════════════════════════════ */
+.sk{position:relative;overflow:hidden;background:var(--surface-3)!important;border-radius:var(--r-sm);color:transparent!important;pointer-events:none}
+.sk *{visibility:hidden!important}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,0.68) 50%,transparent);animation:shimmer 1.6s ease-in-out infinite}
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE — TABLET
+════════════════════════════════════════════════ */
+@media(max-width:900px){
+  .kpi-strip{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE — MOBILE
+════════════════════════════════════════════════ */
+@media(max-width:700px){
+  .topbar,.desknav,.kpi-strip,.filter-bar,.cat-tabs{display:none}
+  .mob-header{display:flex}
+  .mob-kpi-strip{display:flex}
+  .mob-nav{display:block}
+  body{background:#eef3fa}
+  .page{padding:12px 14px;padding-bottom:calc(var(--mobnav-h) + var(--safe-bot) + 16px)}
+  .sections-grid{display:none}
+  .mob-contact-list{display:block}
+}
+@media(max-width:400px){
+  .mob-kpi-card{min-width:122px}
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="app-header">
-    <h1>MIG Society, Sector-29</h1>
-    <p>Emergency Contacts</p>
-  </div>
 
-  <div class="nav-shell">
-    <div class="mobile-brand-row">
-      <div class="mobile-menu-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div class="mobile-brand-title">MIG-1 Society</div>
+<!-- ════════ MOBILE HEADER ════════ -->
+<header class="mob-header" id="mobHeader">
+  <div class="mob-brand">
+    <div class="mob-gem">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg>
     </div>
-    <ul class="main-menu">
-      <li><a href="index.html">Dashboard</a></li>
-      <li><a href="payments.html">Payments</a></li>
-      <li><a href="owner-tenant.html">Residents</a></li>
-      <li><a class="active" href="emergency-contact.html">Emergency Contact <span class="menu-badge" id="emergencyNavBadge">0</span></a></li>
-    </ul>
-    <div class="profile-menu">
-      <button id="profileToggle" class="profile-button" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-      <div class="profile-dropdown" id="profileDropdown">
-        <button id="logoutBtn" type="button">Logout</button>
+    <span class="mob-name">MIG Society</span>
+  </div>
+  <div class="mob-right">
+    <button class="mob-search-btn" id="mobSearchToggle" type="button" aria-label="Search contacts">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+    </button>
+    <div class="profile-wrap">
+      <button class="mob-profile" id="profileTogMob" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="pdMob">
+        <button id="logoutMob" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+          Logout
+        </button>
       </div>
     </div>
   </div>
+</header>
 
-  <div class="mobile-page-header">
-    <a class="back-link" href="index.html" aria-label="Back">‹</a>
-    <div class="mobile-page-title">Emergency contacts</div>
-    <div></div>
-  </div>
-  <div class="contact-tabs" id="contactTabs"></div>
-  <div class="dashboard-metrics">
-    <div class="metric-card"><div class="metric-label">Total Contacts</div><div class="metric-value" id="metricTotalContacts">0</div><div class="metric-sub">All emergency entries</div></div>
-    <div class="metric-card"><div class="metric-label">Sections</div><div class="metric-value" id="metricSections">0</div><div class="metric-sub">Contact categories</div></div>
-    <div class="metric-card"><div class="metric-label">Dial Ready</div><div class="metric-value" id="metricDialReady">0</div><div class="metric-sub">Contacts with phone numbers</div></div>
-    <div class="metric-card"><div class="metric-label">Missing Number</div><div class="metric-value" id="metricMissing">0</div><div class="metric-sub">Need update</div></div>
-  </div>
-  <div class="search-tools">
-    <input id="contactSearchInput" type="text" placeholder="Search work, name, or number" />
-  </div>
-
-  <div class="meta" id="metaInfo">Loading contacts...</div>
-  <div class="error" id="errorText"></div>
-  <div class="sections" id="sections"></div>
-  <div class="mobile-contact-list" id="mobileContactList"></div>
+<!-- Mobile search bar (expandable) -->
+<div class="mob-search-bar" id="mobSearchBar">
+  <input id="searchMob" type="text" placeholder="Search contacts…" autocomplete="off">
 </div>
 
+<!-- ════════ DESKTOP TOP-BAR ════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-gem">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg>
+    </div>
+    <div class="brand-copy">
+      <div class="brand-name">MIG Society, Sector-29</div>
+      <div class="brand-tagline">Emergency Contacts</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="profile-wrap">
+      <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="profile-dropdown" id="pdDesk">
+        <button id="logoutDesk" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ════════ DESKTOP NAV ════════ -->
+<nav class="desknav">
+  <a class="dn-item" href="index.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+    Dashboard
+  </a>
+  <a class="dn-item" href="payments.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="11" x2="7" y2="11"/></svg>
+    Payments
+  </a>
+  <a class="dn-item" href="owner-tenant.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="5" r="2"/><path d="M15 14c0-2-1-3.5-3-4"/></svg>
+    Residents <span class="nav-pill" id="navResidents">0</span>
+  </a>
+  <a class="dn-item active" href="emergency-contact.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+    Emergency <span class="nav-pill" id="navEmergency">0</span>
+  </a>
+</nav>
+
+<!-- ════════ KPI STRIP ════════ -->
+<div class="kpi-strip">
+  <div class="kpi-cell">
+    <div class="kpi-label">Total Contacts</div>
+    <div class="kpi-val sk" id="kpiTotal">—</div>
+    <div class="kpi-sub">All entries</div>
+  </div>
+  <div class="kpi-cell">
+    <div class="kpi-label">Categories</div>
+    <div class="kpi-val sk" id="kpiCats">—</div>
+    <div class="kpi-sub">Contact sections</div>
+  </div>
+  <div class="kpi-cell">
+    <div class="kpi-label">Dial Ready</div>
+    <div class="kpi-val sk" id="kpiDial">—</div>
+    <div class="kpi-sub">With phone numbers</div>
+  </div>
+  <div class="kpi-cell">
+    <div class="kpi-label">Missing Number</div>
+    <div class="kpi-val sk" id="kpiMiss">—</div>
+    <div class="kpi-sub">Need update</div>
+  </div>
+</div>
+
+<!-- ════════ MOBILE KPI SCROLL ════════ -->
+<div class="mob-kpi-strip">
+  <div class="mob-kpi-card"><div class="mk-label">Total</div><div class="mk-val" id="mkTotal">—</div><div class="mk-sub">Contacts</div></div>
+  <div class="mob-kpi-card"><div class="mk-label">Categories</div><div class="mk-val" id="mkCats">—</div><div class="mk-sub">Sections</div></div>
+  <div class="mob-kpi-card"><div class="mk-label">Dial Ready</div><div class="mk-val" id="mkDial">—</div><div class="mk-sub">With numbers</div></div>
+  <div class="mob-kpi-card"><div class="mk-label">Missing</div><div class="mk-val" id="mkMiss">—</div><div class="mk-sub">Need update</div></div>
+</div>
+
+<!-- ════════ PAGE ════════ -->
+<div class="page">
+
+  <!-- Desktop filter bar -->
+  <div class="filter-bar">
+    <div class="filter-bar-icon">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+    </div>
+    <input id="searchDesk" type="text" class="filter-input" placeholder="Search by work, name, or number…" autocomplete="off">
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+
+  <!-- Category tabs (desktop) -->
+  <div class="cat-tabs" id="catTabs"></div>
+
+  <!-- Desktop section grid -->
+  <div class="sections-grid" id="sectionsGrid"></div>
+
+  <!-- Mobile contact list -->
+  <div class="mob-contact-list" id="mobContactList"></div>
+
+</div>
+
+<!-- ════════ MOBILE BOTTOM NAV (4 items — no Status) ════════ -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <a class="mni" href="index.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="mni-label">Home</span>
+    </a>
+    <a class="mni" href="payments.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="mni-label">Payments</span>
+    </a>
+    <a class="mni" href="owner-tenant.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="3.5"/><path d="M2 18c0-4 2.7-7 6-7s6 3 6 7"/><circle cx="15" cy="7" r="2.5"/><path d="M18 18c0-2.5-1.2-4.5-3-5.5"/></svg></div>
+      <span class="mni-label">Residents</span>
+    </a>
+    <a class="mni active" href="emergency-contact.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="11"/><circle cx="10" cy="14" r="0.8" fill="currentColor"/></svg></div>
+      <span class="mni-label">Emergency</span>
+    </a>
+  </div>
+</nav>
+
 <script>
-const AUTH_SESSION_KEY = "society_dashboard_auth";
-if (sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") sessionStorage.setItem(AUTH_SESSION_KEY, "true");
+/* ── Constants ── */
+const AUTH_KEY = "society_dashboard_auth";
+if(!sessionStorage.getItem(AUTH_KEY))sessionStorage.setItem(AUTH_KEY,"true");
 
 const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const CONTACT_TAB_NAME = "emergency-contacts";
-const SECTION_ORDER = ["SECURITY GUARD", "HOUSING BOARD & NRDA", "EMERGENCY HELPLINE", "HOSPITALS", "DAILY HELPS"];
-let contactSections = [];
-let activeSectionIndex = 0;
-let searchQuery = "";
+const SECTION_ORDER   = ["SECURITY GUARD","HOUSING BOARD & NRDA","EMERGENCY HELPLINE","HOSPITALS","DAILY HELPS"];
 
-function escapeHtml(value) {
-  return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
-}
-function parseCSVLine(line) {
-  const cols = [];
-  let current = "", inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i], next = line[i + 1];
-    if (char === '"' && inQuotes && next === '"') { current += '"'; i += 1; }
-    else if (char === '"') inQuotes = !inQuotes;
-    else if (char === "," && !inQuotes) { cols.push(current); current = ""; }
-    else current += char;
+/* Section metadata: icon SVG path and color class */
+const SECTION_META = {
+  "SECURITY GUARD":       { cls:"si-red",   mcls:"mca-red",   emoji:"🛡", label:"Security Guards" },
+  "HOUSING BOARD & NRDA": { cls:"si-blue",  mcls:"mca-blue",  emoji:"🏛", label:"Housing Board & NRDA" },
+  "EMERGENCY HELPLINE":   { cls:"si-amber", mcls:"mca-amber", emoji:"🚨", label:"Emergency Helpline" },
+  "HOSPITALS":            { cls:"si-jade",  mcls:"mca-jade",  emoji:"🏥", label:"Hospitals" },
+  "DAILY HELPS":          { cls:"si-teal",  mcls:"mca-teal",  emoji:"🤝", label:"Daily Helps" },
+};
+
+/* ── State ── */
+let contactSections = [];
+let activeTab = 0;   // 0 = All
+let searchQ   = "";
+
+/* ── Utils ── */
+const esc = v => String(v||"").replace(/[&<>"']/g,c=({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const normPhone = v => String(v||"").replace(/[^\d+]/g,"");
+const setTxt  = (id,v) => { const el=document.getElementById(id); if(el)el.textContent=v; };
+const rmSk    = id => { const el=document.getElementById(id); if(el)el.classList.remove("sk"); };
+
+function parseCSVLine(line){
+  const cols=[];let cur="",inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i],n=line[i+1];
+    if(c==='"'&&inQ&&n==='"'){cur+='"';i++;}
+    else if(c==='"')inQ=!inQ;
+    else if(c===','&&!inQ){cols.push(cur);cur="";}
+    else cur+=c;
   }
-  cols.push(current);
-  return cols.map(col => col.trim());
+  cols.push(cur);
+  return cols.map(c=>c.trim());
 }
-function normalizePhone(value) { return String(value || "").replace(/[^\d+]/g, ""); }
-function titleCase(value) {
-  const normalized = String(value || "").trim().toUpperCase();
-  const aliases = {
-    "SECURITY GUARD": "Security Guards",
-    "HOUSING BOARD & NRDA": "Housing Board & NRDA",
-    "EMERGENCY HELPLINE": "Emergency Helpline",
-    "HOSPITALS": "Hospitals",
-    "DAILY HELPS": "Daily Helps",
-  };
-  if (aliases[normalized]) return aliases[normalized];
-  return normalized.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+
+function canonicalSection(v,fallback){
+  const h=String(v||"").trim().toUpperCase();
+  if(!h)return fallback||SECTION_ORDER[0];
+  if(h.includes("SECURITY"))return"SECURITY GUARD";
+  if(h.includes("HOUSING")||h.includes("NRDA")||h.includes("CGSPDCL"))return"HOUSING BOARD & NRDA";
+  if(h.includes("EMERGENCY")||h.includes("POLICE")||h.includes("FIRE"))return"EMERGENCY HELPLINE";
+  if(h.includes("HOSPITAL")||h.includes("AMBULANCE")||h.includes("BALCO"))return"HOSPITALS";
+  if(h.includes("DAILY"))return"DAILY HELPS";
+  return fallback||h;
 }
-function canonicalSectionName(value, fallback) {
-  const heading = String(value || "").trim().toUpperCase();
-  if (!heading) return fallback || SECTION_ORDER[0];
-  if (heading.includes("SECURITY")) return "SECURITY GUARD";
-  if (heading.includes("HOUSING") || heading.includes("NRDA") || heading.includes("CGSPDCL")) return "HOUSING BOARD & NRDA";
-  if (heading.includes("EMERGENCY") || heading.includes("POLICE") || heading.includes("FIRE")) return "EMERGENCY HELPLINE";
-  if (heading.includes("HOSPITAL") || heading.includes("AMBULANCE") || heading.includes("BALCO")) return "HOSPITALS";
-  if (heading.includes("DAILY")) return "DAILY HELPS";
-  return fallback || heading;
-}
-function buildSections(rows) {
-  const sectionMap = new Map(SECTION_ORDER.map(title => [title, { title, contacts: [] }]));
-  let currentTitle = SECTION_ORDER[0];
-  rows.forEach(cols => {
-    const work = cols[0] || "", number = cols[1] || "", name = cols[2] || "";
-    if (!work && !number && !name) return;
-    if (work && !number && !name) {
-      currentTitle = canonicalSectionName(work, currentTitle);
-      return;
-    }
-    const sectionTitle = canonicalSectionName(currentTitle, currentTitle);
-    if (!sectionMap.has(sectionTitle)) {
-      sectionMap.set(sectionTitle, { title: sectionTitle, contacts: [] });
-    }
-    sectionMap.get(sectionTitle).contacts.push({ work, number, name });
+
+function buildSections(rows){
+  const map=new Map(SECTION_ORDER.map(t=>[t,{title:t,contacts:[]}]));
+  let cur=SECTION_ORDER[0];
+  rows.forEach(cols=>{
+    const [work,number,name]=cols;
+    if(!work&&!number&&!name)return;
+    if(work&&!number&&!name){cur=canonicalSection(work,cur);return;}
+    const sec=canonicalSection(cur,cur);
+    if(!map.has(sec))map.set(sec,{title:sec,contacts:[]});
+    map.get(sec).contacts.push({work:work||"",number:number||"",name:name||""});
   });
-  return SECTION_ORDER.map(title => sectionMap.get(title)).filter(section => section.contacts.length);
+  return SECTION_ORDER.map(t=>map.get(t)).filter(s=>s&&s.contacts.length);
 }
-function renderWebSections() {
-  const wrapper = document.getElementById("sections");
-  const query = String(searchQuery || "").trim().toLowerCase();
-  const visibleSections = contactSections.map(section => {
-    if (!query) return section;
-    const contacts = section.contacts.filter(contact => {
-      const hay = `${contact.work || ""} ${contact.name || ""} ${contact.number || ""} ${titleCase(section.title || "")}`.toLowerCase();
-      return hay.includes(query);
-    });
-    return { title: section.title, contacts };
-  }).filter(section => section.contacts.length);
-  if (!visibleSections.length) {
-    wrapper.innerHTML = `<div class="empty-state">No emergency contacts found.</div>`;
-    return;
-  }
-  wrapper.innerHTML = visibleSections.map(section => `
-    <section class="contact-section">
-      <h2 class="section-title">${escapeHtml(titleCase(section.title))}</h2>
-      <table>
-        <thead><tr><th>Contact Work</th><th>Contact Number</th><th>Contact Name</th><th>Quick Action</th></tr></thead>
+
+function filteredSections(){
+  const q=searchQ.trim().toLowerCase();
+  let sections = activeTab===0 ? contactSections : [contactSections[activeTab-1]].filter(Boolean);
+  if(!q)return sections;
+  return sections.map(s=>({...s,contacts:s.contacts.filter(c=>`${c.work} ${c.name} ${c.number}`.toLowerCase().includes(q))})).filter(s=>s.contacts.length);
+}
+
+/* ── Render KPI ── */
+function renderKPI(){
+  const all=contactSections.flatMap(s=>s.contacts);
+  const total=all.length, cats=contactSections.length;
+  const dial=all.filter(c=>normPhone(c.number)).length, miss=total-dial;
+  ["kpiTotal","kpiCats","kpiDial","kpiMiss"].forEach(rmSk);
+  setTxt("kpiTotal",total); setTxt("kpiCats",cats); setTxt("kpiDial",dial); setTxt("kpiMiss",miss);
+  setTxt("mkTotal",total); setTxt("mkCats",cats); setTxt("mkDial",dial); setTxt("mkMiss",miss);
+  setTxt("navEmergency",total);
+  document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
+}
+
+/* ── Render category tabs ── */
+function renderTabs(){
+  const allCount=contactSections.reduce((s,c)=>s+c.contacts.length,0);
+  const tabs=[{label:"All",count:allCount},...contactSections.map(s=>({label:(SECTION_META[s.title]?.label||s.title),count:s.contacts.length}))];
+  document.getElementById("catTabs").innerHTML=tabs.map((t,i)=>`
+    <button class="cat-tab${i===activeTab?" active":""}" type="button" data-idx="${i}">
+      ${esc(t.label)}<span class="cat-tab-count">${t.count}</span>
+    </button>`).join("");
+}
+
+/* ── Render desktop grid ── */
+function renderDesktop(){
+  const sections=filteredSections();
+  const grid=document.getElementById("sectionsGrid");
+  if(!sections.length){ grid.innerHTML=emptyHTML(); return; }
+  grid.innerHTML=sections.map((s,si)=>{
+    const m=SECTION_META[s.title]||{cls:"si-blue",emoji:"📋",label:s.title};
+    return `<div class="section-card" style="animation-delay:${si*55}ms">
+      <div class="section-card-head">
+        <div class="section-icon ${m.cls}">${m.emoji}</div>
+        <div class="section-head-text">
+          <div class="section-title">${esc(m.label)}</div>
+        </div>
+        <span class="section-count-badge">${s.contacts.length} contact${s.contacts.length!==1?"s":""}</span>
+      </div>
+      <table class="contact-table">
+        <thead>
+          <tr>
+            <th style="width:34%">Contact Work</th>
+            <th style="width:22%">Number</th>
+            <th style="width:26%">Name</th>
+            <th style="width:18%">Quick Call</th>
+          </tr>
+        </thead>
         <tbody>
-          ${section.contacts.map(contact => {
-            const phone = normalizePhone(contact.number);
-            const numberHtml = phone ? `<a class="number-link" href="tel:${phone}">${escapeHtml(contact.number)}</a>` : "";
-            const actionHtml = phone ? `<a class="desktop-call" href="tel:${phone}">Call</a>` : `<span class="desktop-call disabled">N/A</span>`;
-            return `<tr><td>${escapeHtml(contact.work)}</td><td>${numberHtml}</td><td>${escapeHtml(contact.name)}</td><td>${actionHtml}</td></tr>`;
+          ${s.contacts.map(c=>{
+            const ph=normPhone(c.number);
+            return`<tr>
+              <td>${esc(c.work)}</td>
+              <td>${ph?`<a class="contact-number" href="tel:${ph}">${esc(c.number)}</a>`:esc(c.number)||"—"}</td>
+              <td>${esc(c.name)||"—"}</td>
+              <td>${ph?`<a class="call-chip" href="tel:${ph}"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 11.5c0 .3-.06.6-.2.87a2.5 2.5 0 0 1-.6.8 3.9 3.9 0 0 1-2.5.83 10.9 10.9 0 0 1-4.5-1.23 10.8 10.8 0 0 1-3.17-3.17A10.9 10.9 0 0 1 1.8 4.3C1.8 3.9 1.9 3.5 2.13 3.13c.2-.4.5-.74.87-.97A2.5 2.5 0 0 1 4.33 2c.34 0 .68.07.96.2.32.15.6.38.8.67l2 2.83c.2.27.3.56.3.83 0 .32-.1.64-.26.93-.17.3-.4.57-.68.8l-.8.8c-.03.04-.05.1-.05.15 0 .08.03.16.07.23.35.58.76 1.12 1.2 1.6.5.46 1.02.87 1.6 1.2.08.04.16.07.24.07.06 0 .12-.02.16-.06l.8-.8c.23-.27.5-.5.8-.67.3-.16.6-.24.93-.24.27 0 .56.1.83.3l2.83 2c.3.2.52.48.67.8.13.28.2.62.2.96z"/></svg>Call</a>`:`<span class="call-chip disabled">N/A</span>`}</td>
+            </tr>`;
           }).join("")}
         </tbody>
       </table>
-    </section>
-  `).join("");
+    </div>`;
+  }).join("");
+
+  // filter count
+  const total=sections.reduce((s,c)=>s+c.contacts.length,0);
+  setTxt("filterCount",searchQ?`${total} result${total!==1?"s":""}`:"");
 }
-function renderMobileTabs() {
-  const tabs = document.getElementById("contactTabs");
-  const allCount = contactSections.reduce((total, section) => total + section.contacts.length, 0);
-  const labels = [{ title: "All Contacts", count: allCount }, ...contactSections.map(section => ({ title: titleCase(section.title), count: section.contacts.length }))];
-  tabs.innerHTML = labels.map((tab, index) => `<button class="contact-tab ${index === activeSectionIndex ? "active" : ""}" type="button" data-index="${index}">${escapeHtml(tab.title)} (${tab.count})</button>`).join("");
-}
-function getActiveContacts() {
-  const all = activeSectionIndex === 0
-    ? contactSections.flatMap(section => section.contacts.map(contact => ({ ...contact, section: section.title })))
-    : ((contactSections[activeSectionIndex - 1] || { contacts: [], title: "" }).contacts.map(contact => ({ ...contact, section: contactSections[activeSectionIndex - 1].title })));
-  const query = String(searchQuery || "").trim().toLowerCase();
-  if (!query) return all;
-  return all.filter(contact => {
-    const hay = `${contact.work || ""} ${contact.name || ""} ${contact.number || ""} ${titleCase(contact.section || "")}`.toLowerCase();
-    return hay.includes(query);
-  });
-}
-function renderMobileContacts() {
-  const wrapper = document.getElementById("mobileContactList");
-  const contacts = getActiveContacts();
-  if (!contacts.length) {
-    wrapper.innerHTML = `<div class="empty-state">No emergency contacts found.</div>`;
-    return;
-  }
-  wrapper.innerHTML = contacts.map(contact => {
-    const phone = normalizePhone(contact.number);
-    const subtitle = contact.name ? `<span>${escapeHtml(contact.name)}</span>` : "";
-    return `
-      <div class="mobile-contact-row">
-        <span class="contact-icon ${phone ? "" : "muted"}" aria-hidden="true"></span>
-        <div>
-          <div class="mobile-contact-name">${escapeHtml(contact.work)}</div>
-          <div class="mobile-contact-block">${subtitle}</div>
+
+/* ── Render mobile list ── */
+function renderMobile(){
+  const sections=filteredSections();
+  const wrap=document.getElementById("mobContactList");
+  if(!sections.length){wrap.innerHTML=emptyHTML();return;}
+  const isSingle=sections.length===1;
+  wrap.innerHTML=sections.map(s=>{
+    const m=SECTION_META[s.title]||{mcls:"mca-blue",emoji:"📋",label:s.title};
+    const label=isSingle?"":
+      `<div class="mob-section-label">${esc(m.label)}</div>`;
+    const cards=s.contacts.map((c,ci)=>{
+      const ph=normPhone(c.number);
+      return`<div class="mob-contact-card" style="animation-delay:${ci*30}ms">
+        <div class="mob-contact-avatar ${m.mcls}">${m.emoji}</div>
+        <div class="mob-contact-info">
+          <div class="mob-contact-work">${esc(c.work)}</div>
+          ${c.name?`<div class="mob-contact-name">${esc(c.name)}</div>`:""}
+          ${ph?`<div class="mob-contact-num">${esc(c.number)}</div>`:""}
         </div>
-        <a class="call-button ${phone ? "" : "disabled"}" href="${phone ? `tel:${phone}` : "#"}" aria-label="Call ${escapeHtml(contact.work)}">☎</a>
-      </div>
-    `;
+        <a class="mob-call-btn${ph?"":" disabled"}" href="${ph?`tel:${ph}`:"#"}" aria-label="Call ${esc(c.work)}">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 11.5c0 .3-.06.6-.2.87a2.5 2.5 0 0 1-.6.8 3.9 3.9 0 0 1-2.5.83 10.9 10.9 0 0 1-4.5-1.23 10.8 10.8 0 0 1-3.17-3.17A10.9 10.9 0 0 1 1.8 4.3C1.8 3.9 1.9 3.5 2.13 3.13c.2-.4.5-.74.87-.97A2.5 2.5 0 0 1 4.33 2c.34 0 .68.07.96.2.32.15.6.38.8.67l2 2.83c.2.27.3.56.3.83 0 .32-.1.64-.26.93-.17.3-.4.57-.68.8l-.8.8c-.03.04-.05.1-.05.15 0 .08.03.16.07.23.35.58.76 1.12 1.2 1.6.5.46 1.02.87 1.6 1.2.08.04.16.07.24.07.06 0 .12-.02.16-.06l.8-.8c.23-.27.5-.5.8-.67.3-.16.6-.24.93-.24.27 0 .56.1.83.3l2.83 2c.3.2.52.48.67.8.13.28.2.62.2.96z"/></svg>
+        </a>
+      </div>`;
+    }).join("");
+    return label+cards;
   }).join("");
 }
-function renderContacts() {
-  renderWebSections();
-  renderMobileTabs();
-  renderMobileContacts();
-  const count = getActiveContacts().length;
-  const allCount = contactSections.reduce((total, section) => total + section.contacts.length, 0);
-  const dialReady = contactSections.reduce((total, section) => total + section.contacts.filter(contact => normalizePhone(contact.number)).length, 0);
-  const missing = Math.max(count - dialReady, 0);
-  document.getElementById("metricTotalContacts").textContent = allCount.toLocaleString("en-IN");
-  document.getElementById("metricSections").textContent = contactSections.length.toLocaleString("en-IN");
-  document.getElementById("metricDialReady").textContent = dialReady.toLocaleString("en-IN");
-  document.getElementById("metricMissing").textContent = missing.toLocaleString("en-IN");
-  document.getElementById("emergencyNavBadge").textContent = allCount.toLocaleString("en-IN");
-  document.getElementById("metaInfo").textContent = `Showing ${count} contact(s)`;
+
+function emptyHTML(){
+  return`<div class="empty-state">
+    <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg></div>
+    <div class="empty-title">No contacts found</div>
+    <div class="empty-sub">Try adjusting your search or selecting a different category.</div>
+  </div>`;
 }
-async function loadEmergencyContacts() {
-  const errorText = document.getElementById("errorText");
-  errorText.textContent = "";
-  try {
-    const url = `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`;
-    const response = await fetch(url);
-    const csv = await response.text();
-    const preview = csv.trim().slice(0, 120).toLowerCase();
-    if (!csv.trim() || preview.startsWith("<!doctype html") || preview.includes("google.visualization.query.setresponse")) {
-      throw new Error("Invalid sheet response. Check sheet ID/tab name and sharing permissions.");
+
+function renderAll(){
+  renderTabs();
+  renderDesktop();
+  renderMobile();
+}
+
+/* ── Load data ── */
+/* ── Robust CSV fetch: tries gviz, falls back to export URL ── */
+async function fetchSheetCsv(sheetId, tabName) {
+  // Strategy 1: gviz/tq endpoint (works when tab name has no special chars)
+  const urls = [
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`,
+    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodeURIComponent(tabName)}`,
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName.replace(/-/g," "))}`,
+  ];
+  let lastErr = "";
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { cache: "no-cache" });
+      const text = await resp.text();
+      const preview = text.trim().slice(0, 200).toLowerCase();
+      // Detect Google error pages / auth redirects
+      if (
+        !text.trim() ||
+        preview.startsWith("<!doctype html") ||
+        preview.includes("<html") ||
+        preview.includes("google.visualization.query.setresponse") ||
+        preview.includes("error") && preview.includes("404") ||
+        text.includes("File not found")
+      ) {
+        lastErr = `Sheet returned an error page (tried: ${url.split("?")[0].split("/").pop()}...)`;
+        continue;
+      }
+      return text; // success
+    } catch (e) {
+      lastErr = e.message;
     }
-    const rows = csv.split(/\r?\n/).filter(line => line.trim()).map(parseCSVLine);
-    contactSections = buildSections(rows);
-    activeSectionIndex = 0;
-    renderContacts();
-  } catch (error) {
-    errorText.textContent = error.message;
-    document.getElementById("metaInfo").textContent = "Failed to load contacts";
-    document.getElementById("sections").innerHTML = "";
-    document.getElementById("mobileContactList").innerHTML = "";
+  }
+  throw new Error(lastErr || "Unable to load sheet. Check that the Google Sheet is shared publicly (Anyone with the link → Viewer).");
+}
+
+async function loadContacts(){
+  // Show loading state
+  const loadHTML = `<div class="empty-state">
+    <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 2.5"/></svg></div>
+    <div class="empty-title">Loading contacts…</div>
+    <div class="empty-sub">Fetching from Google Sheets</div>
+  </div>`;
+  document.getElementById("sectionsGrid").innerHTML = loadHTML;
+  document.getElementById("mobContactList").innerHTML = loadHTML;
+
+  try{
+    const csv = await fetchSheetCsv(CONTACT_SHEET_ID, CONTACT_TAB_NAME);
+    const rows=csv.split(/\r?\n/).filter(l=>l.trim()).map(parseCSVLine);
+    if(rows.length < 2) throw new Error("Sheet appears empty. Ensure the \'emergency-contacts\' tab has data and is shared publicly.");
+    contactSections=buildSections(rows);
+    renderKPI();
+    renderAll();
+  }catch(e){
+    const errHTML = `<div class="empty-state">
+      <div class="empty-icon" style="background:var(--rose-50);border-color:var(--rose-100);color:var(--rose-600)"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg></div>
+      <div class="empty-title" style="color:var(--coral-600)">Unable to load contacts</div>
+      <div class="empty-sub" style="color:var(--ink-3);max-width:360px;margin:0 auto;line-height:1.6">${esc(e.message)}</div>
+      <div class="empty-sub" style="margin-top:14px;font-size:0.72rem;color:var(--ink-4)">
+        Make sure the Google Sheet is shared: <strong>File → Share → Anyone with the link → Viewer</strong>
+      </div>
+      <button onclick="loadContacts()" style="margin-top:16px;height:36px;padding:0 18px;border-radius:var(--r-sm);background:var(--midnight-500);color:#fff;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;">Retry</button>
+    </div>`;
+    document.getElementById("sectionsGrid").innerHTML = errHTML;
+    document.getElementById("mobContactList").innerHTML = errHTML;
+    // Still update KPI to 0
+    ["kpiTotal","kpiCats","kpiDial","kpiMiss"].forEach(id=>{ const el=document.getElementById(id); if(el){el.textContent="0";el.classList.remove("sk");} });
+    ["mkTotal","mkCats","mkDial","mkMiss"].forEach(id=>setTxt(id,"0"));
   }
 }
 
-document.getElementById("contactTabs").addEventListener("click", event => {
-  const tab = event.target.closest(".contact-tab");
-  if (!tab) return;
-  activeSectionIndex = Number(tab.dataset.index || 0);
-  renderMobileTabs();
-  renderMobileContacts();
-});
-function applyContactSearch() {
-  searchQuery = document.getElementById("contactSearchInput").value || "";
-  renderWebSections();
-  renderMobileContacts();
-  const visibleCount = getActiveContacts().length;
-  document.getElementById("metaInfo").textContent = `Showing ${visibleCount} contact(s)`;
+/* ── Search ── */
+function onSearch(q){
+  searchQ=q;
+  renderDesktop();
+  renderMobile();
 }
-document.getElementById("contactSearchInput").addEventListener("input", applyContactSearch);
-document.getElementById("contactSearchInput").addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    applyContactSearch();
-  }
+document.getElementById("searchDesk").addEventListener("input",e=>onSearch(e.target.value));
+document.getElementById("searchMob").addEventListener("input",e=>onSearch(e.target.value));
+
+/* ── Category tabs ── */
+document.getElementById("catTabs").addEventListener("click",e=>{
+  const btn=e.target.closest(".cat-tab");
+  if(!btn)return;
+  activeTab=Number(btn.dataset.idx||0);
+  renderAll();
 });
-document.getElementById("logoutBtn").addEventListener("click", () => { sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href = "index.html"; });
-const profileToggle = document.getElementById("profileToggle");
-const profileDropdown = document.getElementById("profileDropdown");
-if (profileToggle && profileDropdown) {
-  profileToggle.addEventListener("click", event => {
-    event.stopPropagation();
-    const visible = profileDropdown.classList.toggle("visible");
-    profileToggle.setAttribute("aria-expanded", visible);
-  });
-  document.addEventListener("click", event => {
-    if (!event.target.closest(".profile-menu")) {
-      profileDropdown.classList.remove("visible");
-      profileToggle.setAttribute("aria-expanded", "false");
-    }
-  });
+
+/* ── Mobile search toggle ── */
+document.getElementById("mobSearchToggle").addEventListener("click",()=>{
+  const bar=document.getElementById("mobSearchBar");
+  bar.classList.toggle("visible");
+  if(bar.classList.contains("visible"))document.getElementById("searchMob").focus();
+});
+
+/* ── Dropdown setup ── */
+function setupDD(togId,ddId){
+  const tog=document.getElementById(togId),dd=document.getElementById(ddId);
+  if(!tog||!dd)return;
+  tog.addEventListener("click",e=>{e.stopPropagation();const o=dd.classList.toggle("open");tog.setAttribute("aria-expanded",o?"true":"false");});
 }
-loadEmergencyContacts();
+setupDD("profileTogDesk","pdDesk");
+setupDD("profileTogMob","pdMob");
+document.addEventListener("click",()=>{
+  document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));
+  document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));
+});
+
+/* ── Logout ── */
+["logoutDesk","logoutMob"].forEach(id=>{
+  const btn=document.getElementById(id);
+  if(btn)btn.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_KEY); window.location.href="index.html"; });
+});
+
+/* ── Init ── */
+loadContacts();
 </script>
 </body>
 </html>
