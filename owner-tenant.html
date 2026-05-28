@@ -285,7 +285,7 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
   backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
   border-top:1px solid var(--line);box-shadow:0 -6px 30px rgba(7,15,35,0.10);
 }
-.mob-nav-inner{display:grid;grid-template-columns:repeat(4,1fr);height:var(--mobnav-h)}
+.mob-nav-inner{display:grid;grid-template-columns:repeat(5,1fr);height:var(--mobnav-h)}
 .mni{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;text-decoration:none;color:var(--ink-3);font-size:0.6rem;font-weight:600;
@@ -769,13 +769,15 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="5" r="2"/><path d="M15 14c0-2-1-3.5-3-4"/></svg>
     Residents <span class="nav-pill" id="navResidents">0</span>
   </a>
+  <a class="dn-item" href="fund-ledger.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h12M2 8h12M2 11h12"/><path d="M6 2.5l-1.5 11M11.5 2.5L10 13.5"/></svg>
+    Fund Ledger
+  </a>
   <a class="dn-item" href="emergency-contact.html">
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
     Emergency <span class="nav-pill" id="navEmergency">0</span>
   </a>
 </nav>
-
-<!-- ════════ KPI STRIP ════════ -->
 <div class="kpi-strip">
   <div class="kpi-cell">
     <div class="kpi-label">Total Residents</div>
@@ -853,14 +855,16 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
       <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="3.5"/><path d="M2 18c0-4 2.7-7 6-7s6 3 6 7"/><circle cx="15" cy="7" r="2.5"/><path d="M18 18c0-2.5-1.2-4.5-3-5.5"/></svg></div>
       <span class="mni-label">Residents</span>
     </a>
+    <a class="mni" href="fund-ledger.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3l-2 14M15 3l-2 14"/></svg></div>
+      <span class="mni-label">Ledger</span>
+    </a>
     <a class="mni" href="emergency-contact.html">
       <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="11"/><circle cx="10" cy="14" r="0.8" fill="currentColor"/></svg></div>
       <span class="mni-label">Emergency</span>
     </a>
   </div>
 </nav>
-
-<!-- ════════ EDIT MODAL ════════ -->
 <div class="modal-overlay" id="resModalOverlay" aria-hidden="true">
   <div class="res-modal" role="dialog" aria-modal="true" aria-labelledby="resModalTitle">
     <div class="modal-head">
