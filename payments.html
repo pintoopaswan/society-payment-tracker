@@ -657,6 +657,18 @@ tr:hover td.empty{background:#fee2e2}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--jade-700);font-family:'JetBrains Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
 .mt-date{font-size:0.66rem;color:var(--ink-3);margin-top:3px}
+.mt-paid-months{
+  margin-top:4px;
+  display:flex;flex-wrap:wrap;gap:3px;
+}
+.mt-paid-months .paid-months-compact{
+  font-size:0.6rem;
+  padding:2px 5px;
+  max-width:100%;
+  white-space:normal;
+  word-break:break-word;
+  line-height:1.4;
+}
 .mt-mode{
   display:inline-block;font-size:0.58rem;font-weight:700;
   text-transform:uppercase;letter-spacing:0.06em;
@@ -1502,7 +1514,7 @@ function renderAll(){
           const modeClass=md?.paymentMode==="CASH"?"cash":"online";
           chtml+=`<div class="month-tile${hasPay?" has-payment":""}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
-            ${hasPay?`<div class="mt-amount">${fmt$(md.amount)}</div><div class="mt-date">${md.date}</div><span class="mt-mode ${modeClass}">${md.paymentMode||""}</span>`:`<div class="mt-empty">—</div>`}
+            ${hasPay?`<div class="mt-amount">${fmt$(md.amount)}</div><div class="mt-date">${md.date}</div>${md.paidMonthsHtml?`<div class="mt-paid-months">${md.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${md.paymentMode||""}</span>`:`<div class="mt-empty">—</div>`}
           </div>`;
         });
         chtml+=`</div><div class="year-summary"><span>Paid in ${yr}</span><strong>${fmt$(yd.total)}</strong></div></div></div>`;
