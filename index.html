@@ -34,7 +34,6 @@ body.modal-open{overflow:hidden}
    DESIGN TOKENS
 ════════════════════════════════════════════════ */
 :root{
-  /* Core palette — deep midnight with warm champagne accents */
   --midnight-950:#060d1c;
   --midnight-900:#0b1628;
   --midnight-800:#112040;
@@ -47,16 +46,10 @@ body.modal-open{overflow:hidden}
   --midnight-100:#d8e8f8;
   --midnight-50: #eef5fc;
 
-  --champagne-700:#7a560e;
-  --champagne-600:#9e6e12;
-  --champagne-500:#c48a18;
   --champagne-400:#dba832;
   --champagne-300:#eccc72;
   --champagne-200:#f5e4a8;
-  --champagne-100:#faf2d4;
-  --champagne-50: #fefcf0;
 
-  --jade-800:#064e3b;
   --jade-700:#065f46;
   --jade-600:#047857;
   --jade-500:#059669;
@@ -80,7 +73,18 @@ body.modal-open{overflow:hidden}
   --teal-100:#ccfbf1;
   --teal-50: #f0fdfa;
 
-  /* Surface system */
+  /* Premium block color palette */
+  --blk-1:#274d96;   /* Block-1 → Sapphire Blue */
+  --blk-2:#059669;   /* Block-2 → Emerald */
+  --blk-3:#7c3aed;   /* Block-3 → Violet */
+  --blk-4:#d97706;   /* Block-4 → Amber */
+  --blk-5:#db2777;   /* Block-5 → Rose */
+  --blk-6:#0891b2;   /* Block-6 → Cyan */
+  --blk-7:#65a30d;   /* Block-7 → Lime */
+  --blk-8:#9333ea;   /* Block-8 → Purple */
+  --blk-9:#ea580c;   /* Block-9 → Orange */
+
+  /* Surfaces */
   --bg:        #f2f6fb;
   --surface:   #ffffff;
   --surface-2: #f8fafd;
@@ -139,6 +143,9 @@ body.modal-open{overflow:hidden}
 @keyframes pulse    {0%,100%{box-shadow:0 0 0 0 rgba(30,58,114,0.3)}60%{box-shadow:0 0 0 7px rgba(30,58,114,0)}}
 @keyframes kpiIn    {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes dotBlink {0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes glowPulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes float    {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
 /* ════════════════════════════════════════════════
    DESKTOP TOP-BAR
@@ -173,7 +180,29 @@ body.modal-open{overflow:hidden}
 .brand-tagline{font-size:0.68rem;color:var(--ink-3);font-weight:400;margin-top:1px;letter-spacing:0.01em}
 .topbar-right{display:flex;align-items:center;gap:9px}
 
-/* Year select */
+/* ── Filter group (year + month) ── */
+.filter-group{
+  display:flex;align-items:center;gap:0;
+  border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);overflow:hidden;
+}
+.filter-group .f-sel{
+  height:34px;padding:0 26px 0 10px;
+  font-size:0.76rem;font-weight:600;
+  border:none;border-right:1px solid var(--line-md);
+  background:transparent;color:var(--midnight-600);
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;
+  letter-spacing:0.03em;
+  transition:background 0.15s;
+  cursor:pointer;
+}
+.filter-group .f-sel:last-child{border-right:none}
+.filter-group .f-sel:hover{background-color:var(--midnight-50)}
+.filter-group .f-sel:focus{background-color:var(--midnight-50);outline:none}
+
+/* keep old year-sel for compat */
 .year-sel{
   height:34px;padding:0 30px 0 12px;
   font-size:0.76rem;font-weight:600;
@@ -185,8 +214,6 @@ body.modal-open{overflow:hidden}
   letter-spacing:0.03em;
   transition:border-color 0.15s,box-shadow 0.15s;
 }
-.year-sel:hover{border-color:var(--midnight-300)}
-.year-sel:focus{border-color:var(--midnight-500);box-shadow:0 0 0 3px rgba(39,77,150,0.12)}
 
 /* Refresh button */
 .refresh-btn{
@@ -271,7 +298,7 @@ body.modal-open{overflow:hidden}
 .dn-item.active .nav-pill{background:var(--midnight-500);color:#fff}
 
 /* ════════════════════════════════════════════════
-   KPI STRIP (desktop)
+   KPI STRIP (desktop) — enhanced
 ════════════════════════════════════════════════ */
 .kpi-strip{
   display:grid;grid-template-columns:repeat(4,1fr);
@@ -280,13 +307,14 @@ body.modal-open{overflow:hidden}
   animation:fadeIn 0.35s 0.08s var(--ease-out) both;
 }
 .kpi-cell{
-  padding:15px 24px;
+  padding:16px 24px;
   border-right:1px solid var(--line);
   position:relative;overflow:hidden;
-  transition:background 0.2s;
+  transition:background 0.2s,transform 0.2s;
+  cursor:default;
 }
+.kpi-cell:hover{background:var(--surface-2)}
 .kpi-cell:last-child{border-right:none}
-/* accent line */
 .kpi-cell::before{
   content:'';position:absolute;
   top:0;left:0;right:0;height:3px;
@@ -298,6 +326,16 @@ body.modal-open{overflow:hidden}
 .kpi-cell:nth-child(2)::before{background:linear-gradient(90deg,var(--jade-600),var(--jade-400))}
 .kpi-cell:nth-child(3)::before{background:linear-gradient(90deg,var(--amber-600),var(--amber-500))}
 .kpi-cell:nth-child(4)::before{background:linear-gradient(90deg,var(--teal-600),var(--teal-500))}
+/* glow dot */
+.kpi-cell::after{
+  content:'';position:absolute;
+  right:18px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;border-radius:50%;opacity:0.5;
+}
+.kpi-cell:nth-child(1)::after{background:var(--midnight-400);animation:glowPulse 2.4s ease-in-out infinite}
+.kpi-cell:nth-child(2)::after{background:var(--jade-400);animation:glowPulse 2.4s 0.4s ease-in-out infinite}
+.kpi-cell:nth-child(3)::after{background:var(--amber-500);animation:glowPulse 2.4s 0.8s ease-in-out infinite}
+.kpi-cell:nth-child(4)::after{background:var(--teal-500);animation:glowPulse 2.4s 1.2s ease-in-out infinite}
 .kpi-label{font-size:0.67rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.09em}
 .kpi-val{
   margin-top:5px;font-size:1.65rem;font-weight:700;
@@ -378,6 +416,7 @@ body.modal-open{overflow:hidden}
   border-bottom:1px solid var(--line);
   background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
   display:flex;justify-content:space-between;align-items:center;
+  gap:10px;
 }
 .card-title{font-size:0.875rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em}
 .card-meta{font-size:0.72rem;color:var(--ink-3);font-weight:400}
@@ -392,70 +431,63 @@ body.modal-open{overflow:hidden}
 .dash-right > .card:nth-child(3){animation-delay:.26s}
 
 /* ════════════════════════════════════════════════
-   BAR CHART
+   PREMIUM MONTHLY TREND CHART — SVG Canvas
 ════════════════════════════════════════════════ */
-.trend-chart{
-  height:206px;
-  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  gap:7px;align-items:end;
-}
-.trend-col{
-  height:100%;display:grid;
-  grid-template-rows:1fr auto;gap:6px;
+.trend-chart-premium{
   position:relative;
+  height:206px;
+  width:100%;
 }
-.bar-wrap{position:relative;display:flex;align-items:flex-end;height:100%}
-.bar-fill{
-  width:100%;min-height:4px;
-  border-radius:5px 5px 2px 2px;
-  background:linear-gradient(180deg,var(--midnight-400) 0%,var(--midnight-600) 100%);
-  transform:scaleY(0);transform-origin:bottom;
-  transition:transform 0.65s var(--ease-out),opacity 0.15s;
+.trend-chart-premium canvas{
+  width:100% !important;
+  height:100% !important;
+  display:block;
+}
+
+/* ════════════════════════════════════════════════
+   BLOCK LEADERBOARD — PREMIUM HORIZONTAL BARS
+════════════════════════════════════════════════ */
+.rank-list{display:flex;flex-direction:column;gap:10px}
+.rank-item{
+  display:flex;flex-direction:column;gap:6px;
+  padding:10px 12px;border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--line);
+  transition:background 0.18s,transform 0.18s var(--ease-out),box-shadow 0.18s;
   cursor:default;
+  position:relative;overflow:hidden;
 }
-.bar-fill.live{transform:scaleY(1)}
-.bar-fill.zero{background:var(--surface-3);pointer-events:none}
-.bar-fill:not(.zero):hover{opacity:0.72}
-/* tooltip */
-.bar-tip{
-  position:absolute;bottom:calc(100% + 7px);left:50%;
-  transform:translateX(-50%) translateY(4px);
-  background:var(--midnight-900);color:#fff;
-  font-size:0.64rem;font-weight:600;
-  font-family:'JetBrains Mono',monospace;
-  padding:4px 8px;border-radius:6px;
-  white-space:nowrap;pointer-events:none;
-  opacity:0;transition:opacity 0.15s,transform 0.15s;
-  z-index:10;
+.rank-item::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:3px 0 0 3px;
+  background:var(--blk-color,var(--midnight-500));
 }
-.bar-tip::after{
-  content:'';position:absolute;
-  top:100%;left:50%;transform:translateX(-50%);
-  border:4px solid transparent;
-  border-top-color:var(--midnight-900);
+.rank-item:hover{background:var(--midnight-50);transform:translateX(2px);box-shadow:var(--s-xs)}
+.rank-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rank-left{display:flex;align-items:center;gap:8px}
+.rank-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:var(--blk-color,var(--midnight-500));
 }
-.trend-col:hover .bar-tip{opacity:1;transform:translateX(-50%) translateY(0)}
-.bar-lbl{color:var(--ink-4);text-align:center;font-size:0.62rem;font-weight:500;letter-spacing:0.01em}
-
-/* ════════════════════════════════════════════════
-   SPLIT GRID
-════════════════════════════════════════════════ */
-.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-
-/* ════════════════════════════════════════════════
-   BLOCK LEADERBOARD
-════════════════════════════════════════════════ */
-.rank-list{display:flex;flex-direction:column;gap:11px}
-.rank-item{display:flex;flex-direction:column;gap:6px}
-.rank-top{display:flex;justify-content:space-between;align-items:center}
 .rank-name{font-size:0.83rem;font-weight:600;color:var(--ink)}
-.rank-amt{font-size:0.8rem;font-weight:600;color:var(--jade-700);font-family:'JetBrains Mono',monospace}
-.rank-track{height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.rank-badge{
+  font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:999px;
+  background:rgba(0,0,0,0.06);color:var(--ink-3);letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+.rank-amt{font-size:0.8rem;font-weight:700;color:var(--ink);font-family:'JetBrains Mono',monospace}
+.rank-track{height:7px;background:var(--surface-3);border-radius:999px;overflow:hidden}
 .rank-bar{
   height:100%;
-  background:linear-gradient(90deg,var(--midnight-500),var(--midnight-300));
   border-radius:999px;width:0;
-  transition:width 0.9s var(--ease-out);
+  transition:width 1s var(--ease-out);
+  position:relative;
+}
+.rank-bar::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:8px;border-radius:50%;
+  background:inherit;
+  filter:brightness(1.3);
+  box-shadow:0 0 6px 2px currentColor;
 }
 
 /* ════════════════════════════════════════════════
@@ -476,6 +508,33 @@ body.modal-open{overflow:hidden}
 .act-sub{margin-top:3px;font-size:0.72rem;color:var(--ink-3);line-height:1.4}
 
 /* ════════════════════════════════════════════════
+   PREMIUM EXPENSE CHART
+════════════════════════════════════════════════ */
+.expense-chart-wrap{
+  position:relative;
+  height:206px;width:100%;
+}
+.expense-chart-wrap canvas{width:100%!important;height:100%!important;display:block;}
+
+/* Expense summary pills */
+.exp-summary{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;
+}
+.exp-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--surface-3);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 10px 4px 7px;
+  font-size:0.71rem;font-weight:600;
+  color:var(--ink-2);
+}
+.exp-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.exp-pill.peak .exp-pill-dot{background:var(--coral-500)}
+.exp-pill.avg .exp-pill-dot{background:var(--amber-500)}
+.exp-pill.total .exp-pill-dot{background:var(--midnight-500)}
+
+/* ════════════════════════════════════════════════
    PAYMENT MODES
 ════════════════════════════════════════════════ */
 .mode-list{display:flex;flex-direction:column;gap:11px}
@@ -489,7 +548,7 @@ body.modal-open{overflow:hidden}
   letter-spacing:0.03em;
   border:1px solid var(--midnight-200);
 }
-.mode-track{flex:1;height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.mode-track{flex:1;height:7px;background:var(--surface-3);border-radius:999px;overflow:hidden}
 .mode-bar{
   height:100%;
   background:linear-gradient(90deg,var(--teal-600),var(--teal-500));
@@ -515,7 +574,6 @@ body.modal-open{overflow:hidden}
 .res-val{margin-top:5px;font-size:1.38rem;font-weight:700;letter-spacing:-0.02em;font-family:'JetBrains Mono',monospace}
 .r-owner  .res-val{color:var(--midnight-600)}
 .r-tenant .res-val{color:var(--jade-700)}
-.r-pending.res-val{color:var(--amber-600)}
 .r-pending > .res-val{color:var(--amber-600)}
 .tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .tag{
@@ -547,6 +605,50 @@ body.modal-open{overflow:hidden}
 .empty-state{font-size:0.82rem;color:var(--ink-3);padding:12px 0;text-align:center}
 
 /* ════════════════════════════════════════════════
+   BLOCK FILTER BAR (Month pill selector for blocks)
+════════════════════════════════════════════════ */
+.block-filter-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;
+  border-bottom:1px solid var(--line);
+  background:var(--surface-2);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.block-filter-bar::-webkit-scrollbar{display:none}
+.block-filter-label{
+  font-size:0.67rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.08em;
+  white-space:nowrap;flex-shrink:0;
+}
+.month-pills{display:flex;gap:4px;flex-shrink:0}
+.month-pill{
+  padding:4px 10px;border-radius:999px;
+  font-size:0.7rem;font-weight:600;
+  border:1px solid var(--line-md);
+  background:var(--surface);color:var(--ink-3);
+  cursor:pointer;transition:all 0.15s var(--ease-out);
+  white-space:nowrap;letter-spacing:0.02em;
+  -webkit-tap-highlight-color:transparent;
+}
+.month-pill:hover{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600)}
+.month-pill.active{
+  background:var(--midnight-600);border-color:var(--midnight-600);
+  color:#fff;box-shadow:0 2px 8px rgba(30,58,114,0.3);
+}
+/* Mobile month select */
+.block-month-sel{
+  height:28px;padding:0 22px 0 9px;
+  font-size:0.71rem;font-weight:600;
+  border:1px solid var(--line-md);border-radius:999px;
+  background:var(--surface);color:var(--midnight-600);
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;
+  display:none;
+}
+
+/* ════════════════════════════════════════════════
    MOBILE — header bar
 ════════════════════════════════════════════════ */
 .mob-header{
@@ -571,16 +673,24 @@ body.modal-open{overflow:hidden}
 }
 .mob-gem svg{color:#fff}
 .mob-name{font-size:0.92rem;font-weight:700;color:#fff;letter-spacing:-0.01em}
-.mob-right{display:flex;align-items:center;gap:8px}
-.mob-year-sel{
-  height:30px;padding:0 22px 0 10px;
-  font-size:0.72rem;font-weight:600;
-  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-sm);
-  background:rgba(255,255,255,0.1);color:#fff;
+.mob-right{display:flex;align-items:center;gap:6px}
+/* Mobile filter group */
+.mob-filter-group{
+  display:flex;align-items:center;gap:0;
+  border:1px solid rgba(255,255,255,0.18);border-radius:var(--r-sm);
+  background:rgba(255,255,255,0.1);overflow:hidden;
+}
+.mob-filter-group .mf-sel{
+  height:30px;padding:0 20px 0 9px;
+  font-size:0.7rem;font-weight:600;
+  border:none;border-right:1px solid rgba(255,255,255,0.16);
+  background:transparent;color:#fff;
   appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.7)' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 7px center;
+  background-repeat:no-repeat;background-position:right 5px center;
+  cursor:pointer;
 }
+.mob-filter-group .mf-sel:last-child{border-right:none}
 .mob-profile{
   width:32px;height:32px;border-radius:50%;
   background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
@@ -588,8 +698,8 @@ body.modal-open{overflow:hidden}
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 3px 10px rgba(39,77,150,0.4);
 }
-/* profile dropdown on mobile */
 .mob-header .profile-wrap{position:relative}
+.mob-header .profile-dropdown{background:var(--surface)}
 .mob-header .profile-dropdown button{background:var(--surface);color:var(--ink)}
 .mob-header .profile-dropdown button:hover{background:var(--surface-2)}
 
@@ -645,7 +755,6 @@ body.modal-open{overflow:hidden}
   display:grid;grid-template-columns:repeat(5,1fr);
   height:var(--mobnav-h);
 }
-/* Fund Ledger nav item uses same grid but we keep 5-col for now */
 .mni{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:4px;text-decoration:none;
@@ -678,7 +787,6 @@ body.modal-open{overflow:hidden}
 }
 .mni-dot.show{display:block}
 .mni-label{position:relative;z-index:1}
-/* active indicator bar */
 .mni::before{
   content:'';position:absolute;top:0;left:50%;
   transform:translateX(-50%) scaleX(0);
@@ -687,6 +795,11 @@ body.modal-open{overflow:hidden}
   transition:transform 0.22s var(--ease-spring);
 }
 .mni.active::before{transform:translateX(-50%) scaleX(1)}
+
+/* ════════════════════════════════════════════════
+   SPLIT GRID
+════════════════════════════════════════════════ */
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
 
 /* ════════════════════════════════════════════════
    RESPONSIVE — TABLET (≤1120px)
@@ -702,39 +815,33 @@ body.modal-open{overflow:hidden}
    RESPONSIVE — MOBILE (≤700px)
 ════════════════════════════════════════════════ */
 @media(max-width:700px){
-  /* Hide desktop shell */
   .topbar,.desknav,.kpi-strip{display:none}
-
-  /* Show mobile shell */
   .mob-header{display:flex}
   .mob-kpi-strip{display:flex}
   .mob-nav{display:block}
-
   body{background:#eef3fa}
-
   .page{
     padding:12px 14px;
     padding-bottom:calc(var(--mobnav-h) + var(--safe-bot) + 14px);
   }
-
-  .quick-row{
-    grid-template-columns:1fr 1fr;
-    gap:9px;margin-bottom:14px;
-  }
+  .quick-row{grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
   .qt{padding:12px 10px;gap:10px}
   .qt-ico{width:36px;height:36px;border-radius:10px}
   .qt-copy{display:none}
   .qt-title{font-size:0.78rem}
-
   .dash-grid{grid-template-columns:1fr;gap:12px}
   .split-grid{grid-template-columns:1fr;gap:12px;margin-top:12px}
   .card+.card{margin-top:12px}
   .card-body{padding:13px 14px}
   .card-head{padding:12px 14px}
-  .trend-chart{height:158px;gap:5px}
+  .trend-chart-premium{height:158px}
+  .expense-chart-wrap{height:158px}
   .res-grid{grid-template-columns:repeat(3,1fr)}
+  /* Show mobile month select, hide pill bar */
+  .month-pills{display:none}
+  .block-month-sel{display:block}
+  .block-filter-bar{padding:8px 12px;gap:6px}
 }
-
 @media(max-width:400px){
   .quick-row{grid-template-columns:1fr 1fr}
   .res-grid{grid-template-columns:1fr 1fr}
@@ -754,9 +861,18 @@ body.modal-open{overflow:hidden}
     <span class="mob-name">MIG Society</span>
   </div>
   <div class="mob-right">
-    <select id="yearMob" class="mob-year-sel" aria-label="Year">
-      <option value="2026">2026</option><option value="2025">2025</option>
-    </select>
+    <div class="mob-filter-group">
+      <select id="yearMob" class="mf-sel" aria-label="Year">
+        <option value="2026">2026</option><option value="2025">2025</option>
+      </select>
+      <select id="monthMob" class="mf-sel" aria-label="Month">
+        <option value="-1">All</option>
+        <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+        <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+        <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+        <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+      </select>
+    </div>
     <div class="profile-wrap">
       <button class="mob-profile" id="profileTogMob" type="button" aria-haspopup="true" aria-expanded="false">A</button>
       <div class="profile-dropdown" id="pdMob">
@@ -783,9 +899,18 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
   <div class="topbar-right">
-    <select id="yearDesk" class="year-sel" aria-label="Dashboard year">
-      <option value="2026">2026</option><option value="2025">2025</option>
-    </select>
+    <div class="filter-group">
+      <select id="yearDesk" class="f-sel" aria-label="Dashboard year">
+        <option value="2026">2026</option><option value="2025">2025</option>
+      </select>
+      <select id="monthDesk" class="f-sel" aria-label="Dashboard month">
+        <option value="-1">All Months</option>
+        <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+        <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+        <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+        <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+      </select>
+    </div>
     <button id="refreshBtn" class="refresh-btn" type="button">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/>
@@ -910,21 +1035,54 @@ body.modal-open{overflow:hidden}
 
     <!-- LEFT COLUMN -->
     <div>
+      <!-- Monthly Collection Trend -->
       <div class="card">
         <div class="card-head">
           <div class="card-title">Monthly Collection Trend</div>
           <div class="card-meta" id="trendMeta">Payment amount by month</div>
         </div>
         <div class="card-body">
-          <div class="trend-chart" id="trendChart"></div>
+          <div class="trend-chart-premium"><canvas id="trendChart"></canvas></div>
         </div>
       </div>
 
       <div class="split-grid">
+        <!-- Collection by Block — WITH month filter -->
         <div class="card">
-          <div class="card-head"><div class="card-title">Collection by Block</div><div class="card-meta">Selected year</div></div>
+          <div class="card-head">
+            <div class="card-title">Collection by Block</div>
+            <div class="card-meta" id="blockFilterLabel">Full year</div>
+          </div>
+          <!-- Month filter bar -->
+          <div class="block-filter-bar" id="blockFilterBar">
+            <span class="block-filter-label">Month</span>
+            <div class="month-pills" id="monthPills">
+              <button class="month-pill active" data-month="-1">All</button>
+              <button class="month-pill" data-month="0">Jan</button>
+              <button class="month-pill" data-month="1">Feb</button>
+              <button class="month-pill" data-month="2">Mar</button>
+              <button class="month-pill" data-month="3">Apr</button>
+              <button class="month-pill" data-month="4">May</button>
+              <button class="month-pill" data-month="5">Jun</button>
+              <button class="month-pill" data-month="6">Jul</button>
+              <button class="month-pill" data-month="7">Aug</button>
+              <button class="month-pill" data-month="8">Sep</button>
+              <button class="month-pill" data-month="9">Oct</button>
+              <button class="month-pill" data-month="10">Nov</button>
+              <button class="month-pill" data-month="11">Dec</button>
+            </div>
+            <!-- mobile fallback -->
+            <select class="block-month-sel" id="blockMonthMob" aria-label="Filter month">
+              <option value="-1">All Months</option>
+              <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+              <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+              <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+              <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+            </select>
+          </div>
           <div class="card-body"><div class="rank-list sk" id="blockList" style="min-height:100px"></div></div>
         </div>
+
         <div class="card">
           <div class="card-head"><div class="card-title">Recent Payments</div><div class="card-meta">Latest entries</div></div>
           <div class="card-body"><div class="act-list sk" id="recentPay" style="min-height:100px"></div></div>
@@ -932,13 +1090,15 @@ body.modal-open{overflow:hidden}
       </div>
 
       <div class="split-grid" style="margin-top:16px">
+        <!-- Monthly Expenses — premium redesign -->
         <div class="card">
           <div class="card-head">
             <div class="card-title">Monthly Expenses</div>
             <div class="card-meta" id="expChartMeta">Debit breakdown by month</div>
           </div>
           <div class="card-body">
-            <div class="trend-chart" id="expenseChart"></div>
+            <div class="exp-summary" id="expSummary"></div>
+            <div class="expense-chart-wrap"><canvas id="expenseChart"></canvas></div>
           </div>
         </div>
         <div class="card">
@@ -1023,7 +1183,7 @@ body.modal-open{overflow:hidden}
 </nav>
 
 <!-- ════════════════════════════════════════════════
-     JAVASCRIPT — all data logic preserved exactly
+     JAVASCRIPT
 ════════════════════════════════════════════════ -->
 <script>
 /* ── Auth ── */
@@ -1035,8 +1195,30 @@ const SHEET_IDS = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025
 const DEFAULT_YEAR = "2026";
 const MONTHS      = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTHS_S    = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TABS_BY_YR  = { "2026":MONTHS, "2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"] };
 const DIR_ID      = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+
+/* ── Premium Block Color Map ── */
+const BLOCK_COLORS = {
+  "Block-1": { hex:"#274d96", light:"rgba(39,77,150,0.12)", grad:"linear-gradient(90deg,#274d96,#6b94d4)" },
+  "Block-2": { hex:"#059669", light:"rgba(5,150,105,0.12)", grad:"linear-gradient(90deg,#059669,#34d399)" },
+  "Block-3": { hex:"#7c3aed", light:"rgba(124,58,237,0.12)", grad:"linear-gradient(90deg,#7c3aed,#a78bfa)" },
+  "Block-4": { hex:"#d97706", light:"rgba(217,119,6,0.12)", grad:"linear-gradient(90deg,#d97706,#fbbf24)" },
+  "Block-5": { hex:"#db2777", light:"rgba(219,39,119,0.12)", grad:"linear-gradient(90deg,#db2777,#f472b6)" },
+  "Block-6": { hex:"#0891b2", light:"rgba(8,145,178,0.12)", grad:"linear-gradient(90deg,#0891b2,#22d3ee)" },
+  "Block-7": { hex:"#65a30d", light:"rgba(101,163,13,0.12)", grad:"linear-gradient(90deg,#65a30d,#a3e635)" },
+  "Block-8": { hex:"#9333ea", light:"rgba(147,51,234,0.12)", grad:"linear-gradient(90deg,#9333ea,#c084fc)" },
+  "Block-9": { hex:"#ea580c", light:"rgba(234,88,12,0.12)", grad:"linear-gradient(90deg,#ea580c,#fb923c)" },
+};
+const FALLBACK_COLORS = ["#274d96","#059669","#7c3aed","#d97706","#db2777","#0891b2","#65a30d","#9333ea","#ea580c"];
+function getBlockColor(blockName, idx=0) {
+  return BLOCK_COLORS[blockName] || {
+    hex: FALLBACK_COLORS[idx % FALLBACK_COLORS.length],
+    light: `rgba(0,0,0,0.08)`,
+    grad: `linear-gradient(90deg,${FALLBACK_COLORS[idx % FALLBACK_COLORS.length]},${FALLBACK_COLORS[(idx+1)%FALLBACK_COLORS.length]})`
+  };
+}
 
 /* ── Helpers ── */
 const parseCSV = l => l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
@@ -1072,12 +1254,30 @@ async function fetchCsv(sid,tab){
   return"";
 }
 
+/* ── Active year/month getters ── */
+function activeYear(){
+  return (window.innerWidth<=700
+    ? document.getElementById("yearMob")
+    : document.getElementById("yearDesk"))?.value || DEFAULT_YEAR;
+}
+function activeMonth(){
+  // block filter month takes precedence
+  const bm = activeBlockMonth();
+  if(bm !== -1) return bm;
+  const deskM = parseInt(document.getElementById("monthDesk")?.value ?? "-1");
+  const mobM  = parseInt(document.getElementById("monthMob")?.value ?? "-1");
+  return window.innerWidth<=700 ? mobM : deskM;
+}
+let _blockMonth = -1;
+function activeBlockMonth(){ return _blockMonth; }
+
 /* ── Load payments ── */
 async function loadPayments(year){
   const sid=SHEET_IDS[year],tabs=TABS_BY_YR[year]||MONTHS;
   const payments=[],allFlats=new Set(),allBlocks=new Set();
-  const monthTotals=new Array(12).fill(0),blockTotals=new Map(),modeTotals=new Map();
-  if(!sid)return{payments,allFlats,allBlocks,monthTotals,blockTotals,modeTotals};
+  const monthTotals=new Array(12).fill(0),blockTotals=new Map(),blockMonthTotals=new Map();
+  const modeTotals=new Map();
+  if(!sid)return{payments,allFlats,allBlocks,monthTotals,blockTotals,blockMonthTotals,modeTotals};
   await Promise.all(tabs.map(async(tab,mi)=>{
     if(!tab)return;
     const csv=await fetchCsv(sid,tab); if(!csv)return;
@@ -1092,11 +1292,14 @@ async function loadPayments(year){
       if(status!=="DONE"||amount<=0)return;
       monthTotals[mi]+=amount;
       blockTotals.set(block,(blockTotals.get(block)||0)+amount);
+      // per-month block totals
+      const key=`${block}:${mi}`;
+      blockMonthTotals.set(key,(blockMonthTotals.get(key)||0)+amount);
       modeTotals.set(mode,(modeTotals.get(mode)||0)+amount);
       payments.push({block,flat,amount,mode,date,status,receivedBy,notes,paidMonths,monthIndex:mi,year});
     });
   }));
-  return{payments,allFlats,allBlocks,monthTotals,blockTotals,modeTotals};
+  return{payments,allFlats,allBlocks,monthTotals,blockTotals,blockMonthTotals,modeTotals};
 }
 
 /* ── Load residents ── */
@@ -1135,36 +1338,230 @@ async function loadEmergency(){
   return csv.split(/\r?\n/).filter(Boolean).map(parseCSV).filter(c=>(c[0]||c[1]||c[2])&&(c[1]||c[2])).length;
 }
 
-/* ── Render trend chart ── */
+/* ════════════════════════════════════════════════
+   PREMIUM CHART RENDERER — Canvas-based
+════════════════════════════════════════════════ */
+let _trendChart=null, _expChart=null;
+
+function hexToRgb(hex){
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:{r:39,g:77,b:150};
+}
+
 function renderTrend(totals){
+  const canvas=document.getElementById("trendChart");
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  const W=rect.width||560, H=rect.height||206;
+  canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+  canvas.style.width=W+"px"; canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d"); ctx.scale(dpr,dpr);
+
+  const pad={t:10,r:10,b:28,l:54};
+  const chartW=W-pad.l-pad.r, chartH=H-pad.t-pad.b;
   const max=Math.max(...totals,1);
-  document.getElementById("trendChart").innerHTML=totals.map((t,i)=>{
-    const h=Math.max(3,Math.round((t/max)*100));
-    const cls=t===0?" zero":"";
-    return `<div class="trend-col">
-      <div class="bar-wrap"><div class="bar-tip">${MONTHS_S[i]}: ${fmt$(t)}</div><div class="bar-fill${cls}" style="height:${h}%"></div></div>
-      <div class="bar-lbl">${MONTHS_S[i]}</div>
-    </div>`;
-  }).join("");
-  /* stagger bar animation */
-  requestAnimationFrame(()=>{
-    document.querySelectorAll(".bar-fill:not(.zero)").forEach((b,i)=>{
-      setTimeout(()=>b.classList.add("live"), 60 + i*38);
+  const barW=Math.max(6, (chartW/12)*0.55);
+  const step=chartW/12;
+
+  // Grid lines
+  const gridLines=4;
+  ctx.strokeStyle="rgba(23,44,88,0.07)";
+  ctx.lineWidth=1;
+  for(let i=0;i<=gridLines;i++){
+    const y=pad.t+chartH-(chartH/gridLines*i);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+chartW,y);ctx.stroke();
+    // Y labels
+    const val=Math.round(max*(i/gridLines));
+    ctx.fillStyle="rgba(106,134,164,0.9)";
+    ctx.font=`500 10px 'JetBrains Mono',monospace`;
+    ctx.textAlign="right";
+    ctx.fillText(val>=1000?`₹${(val/1000).toFixed(0)}k`:`₹${val}`, pad.l-5, y+4);
+  }
+
+  // Bars with gradient + animation
+  const accent="#274d96";
+  const rgb=hexToRgb(accent);
+
+  totals.forEach((v,i)=>{
+    const x=pad.l+step*i+(step-barW)/2;
+    const barH=v>0?Math.max(4, (v/max)*chartH):3;
+    const y=pad.t+chartH-barH;
+
+    if(v===0){
+      ctx.fillStyle="rgba(23,44,88,0.06)";
+      ctx.beginPath();ctx.roundRect(x,y,barW,barH,3);ctx.fill();
+    } else {
+      const grd=ctx.createLinearGradient(x,y,x,y+barH);
+      grd.addColorStop(0,`rgba(${rgb.r},${rgb.g},${rgb.b},0.9)`);
+      grd.addColorStop(1,`rgba(${rgb.r},${rgb.g},${rgb.b},0.55)`);
+      ctx.fillStyle=grd;
+      ctx.beginPath();ctx.roundRect(x,y,barW,barH,[4,4,2,2]);ctx.fill();
+      // glow top
+      ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},0.3)`;
+      ctx.beginPath();ctx.roundRect(x,y,barW,3,[2,2,0,0]);ctx.fill();
+    }
+    // X label
+    ctx.fillStyle="rgba(106,134,164,0.9)";
+    ctx.font="500 9.5px 'Outfit',sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText(MONTHS_S[i],x+barW/2,H-4);
+  });
+
+  // Tooltip on hover
+  if(_trendChart) canvas.removeEventListener("mousemove",_trendChart);
+  _trendChart = function(e){
+    const r2=canvas.getBoundingClientRect();
+    const mx=(e.clientX-r2.left), my=(e.clientY-r2.top);
+    let hit=-1;
+    totals.forEach((_,i)=>{
+      const x=pad.l+step*i+(step-barW)/2;
+      if(mx>=x-3&&mx<=x+barW+3) hit=i;
     });
+    canvas.title = hit>=0 ? `${MONTHS_S[hit]}: ${fmt$(totals[hit])}` : "";
+  };
+  canvas.addEventListener("mousemove",_trendChart);
+
+  // update meta
+  const total=totals.reduce((s,v)=>s+v,0);
+  setTxt("trendMeta",`${fmt$(total)} across 12 months`);
+}
+
+/* ── Premium Expense Chart ── */
+function renderExpenseChart(entries){
+  const totals=new Array(12).fill(0);
+  entries.filter(e=>e.type==="DEBIT").forEach(e=>{
+    const parts=e.date?e.date.split(/[\/\-]/):[]; let month=-1;
+    if(parts.length===3){const m1=parseInt(parts[1],10)-1,m2=parseInt(parts[0],10)-1;
+      if(m1>=0&&m1<=11)month=m1; else if(m2>=0&&m2<=11)month=m2;}
+    if(month>=0)totals[month]+=e.amount;
+  });
+  const totalExp=totals.reduce((s,v)=>s+v,0);
+  const max=Math.max(...totals,1);
+  const peakIdx=totals.indexOf(max);
+  const avg=totalExp/totals.filter(v=>v>0).length||0;
+
+  // Summary pills
+  const sp=document.getElementById("expSummary");
+  if(sp&&totalExp>0){
+    sp.innerHTML=`
+      <div class="exp-pill total"><span class="exp-pill-dot"></span>Total: ${fmt$(Math.round(totalExp))}</div>
+      <div class="exp-pill peak"><span class="exp-pill-dot"></span>Peak: ${MONTHS_S[peakIdx]} (${fmt$(Math.round(max))})</div>
+      <div class="exp-pill avg"><span class="exp-pill-dot"></span>Avg: ${fmt$(Math.round(avg))}/mo</div>
+    `;
+  }
+
+  setTxt("expChartMeta", totalExp>0?`${fmt$(Math.round(totalExp))} total debits`:"No expense data");
+
+  const canvas=document.getElementById("expenseChart");
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  const W=rect.width||460, H=rect.height||206;
+  canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+  canvas.style.width=W+"px"; canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d"); ctx.scale(dpr,dpr);
+
+  const pad={t:10,r:10,b:28,l:50};
+  const chartW=W-pad.l-pad.r, chartH=H-pad.t-pad.b;
+  const barW=Math.max(5,(chartW/12)*0.52);
+  const step=chartW/12;
+
+  // Grid lines
+  const gridLines=4;
+  ctx.strokeStyle="rgba(23,44,88,0.07)";
+  ctx.lineWidth=1;
+  for(let i=0;i<=gridLines;i++){
+    const y=pad.t+chartH-(chartH/gridLines*i);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+chartW,y);ctx.stroke();
+    const val=Math.round(max*(i/gridLines));
+    ctx.fillStyle="rgba(106,134,164,0.9)";
+    ctx.font=`500 9px 'JetBrains Mono',monospace`;
+    ctx.textAlign="right";
+    ctx.fillText(val>=1000?`₹${(val/1000).toFixed(0)}k`:`₹${val}`,pad.l-5,y+4);
+  }
+
+  // Average line
+  if(avg>0&&totalExp>0){
+    const avgY=pad.t+chartH-(avg/max)*chartH;
+    ctx.save();
+    ctx.setLineDash([5,4]);
+    ctx.strokeStyle="rgba(245,158,11,0.5)";
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(pad.l,avgY);ctx.lineTo(pad.l+chartW,avgY);ctx.stroke();
+    ctx.restore();
+  }
+
+  // Bars
+  totals.forEach((v,i)=>{
+    const x=pad.l+step*i+(step-barW)/2;
+    const barH=v>0?Math.max(4,(v/max)*chartH):3;
+    const y=pad.t+chartH-barH;
+    const isPeak=i===peakIdx&&v>0;
+
+    if(v===0){
+      ctx.fillStyle="rgba(23,44,88,0.05)";
+      ctx.beginPath();ctx.roundRect(x,y,barW,barH,2);ctx.fill();
+    } else {
+      const grd=ctx.createLinearGradient(x,y,x,y+barH);
+      if(isPeak){
+        grd.addColorStop(0,"rgba(239,68,68,0.92)");
+        grd.addColorStop(1,"rgba(220,38,38,0.55)");
+      } else {
+        grd.addColorStop(0,"rgba(239,68,68,0.75)");
+        grd.addColorStop(1,"rgba(220,38,38,0.35)");
+      }
+      ctx.fillStyle=grd;
+      ctx.beginPath();ctx.roundRect(x,y,barW,barH,[4,4,2,2]);ctx.fill();
+      if(isPeak){
+        ctx.fillStyle="rgba(239,68,68,0.35)";
+        ctx.beginPath();ctx.roundRect(x,y,barW,3,[2,2,0,0]);ctx.fill();
+      }
+    }
+    ctx.fillStyle="rgba(106,134,164,0.9)";
+    ctx.font="500 9.5px 'Outfit',sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText(MONTHS_S[i],x+barW/2,H-4);
   });
 }
 
-/* ── Render block leaderboard ── */
-function renderBlocks(blockTotals,allBlocks){
+/* ── Render block leaderboard — premium colored bars ── */
+let _cachedPayments=null,_cachedAllBlocks=null,_cachedBlockMonthTotals=null,_cachedBlockTotals=null;
+
+function renderBlocksFiltered(filterMonth){
+  const allBlocks=_cachedAllBlocks,blockTotals=_cachedBlockTotals,blockMonthTotals=_cachedBlockMonthTotals;
+  if(!allBlocks)return;
   const blocks=Array.from(allBlocks).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  const entries=blocks.map(b=>[b,blockTotals.get(b)||0]);
+
+  let entries;
+  if(filterMonth===-1){
+    entries=blocks.map(b=>[b,blockTotals.get(b)||0]);
+  } else {
+    entries=blocks.map(b=>[b,blockMonthTotals.get(`${b}:${filterMonth}`)||0]);
+  }
+  entries.sort((a,b)=>b[1]-a[1]);
+
   if(!entries.length){empty("blockList","No block collection data.");return;}
   const max=Math.max(...entries.map(([,a])=>a),1);
-  document.getElementById("blockList").innerHTML=entries.map(([b,a])=>`
-    <div class="rank-item">
-      <div class="rank-top"><span class="rank-name">${b}</span><span class="rank-amt">${fmt$(a)}</span></div>
-      <div class="rank-track"><div class="rank-bar" data-w="${Math.round((a/max)*100)}"></div></div>
-    </div>`).join("");
+
+  const label=filterMonth===-1?"Full year":MONTHS_FULL[filterMonth];
+  setTxt("blockFilterLabel",label);
+
+  document.getElementById("blockList").innerHTML=entries.map(([b,a],idx)=>{
+    const clr=getBlockColor(b,idx);
+    const pct=Math.round((a/max)*100);
+    const rank=idx===0&&a>0?`<span class="rank-badge">Top</span>`:"";
+    return `<div class="rank-item" style="--blk-color:${clr.hex}">
+      <div class="rank-top">
+        <div class="rank-left">
+          <div class="rank-dot"></div>
+          <span class="rank-name">${b}</span>${rank}
+        </div>
+        <span class="rank-amt">${fmt$(a)}</span>
+      </div>
+      <div class="rank-track"><div class="rank-bar" data-w="${pct}" style="background:${clr.grad}"></div></div>
+    </div>`;
+  }).join("");
   rmSk("blockList");
   requestAnimationFrame(()=>{
     document.querySelectorAll(".rank-bar").forEach((b,i)=>{
@@ -1177,11 +1574,13 @@ function renderBlocks(blockTotals,allBlocks){
 function renderRecentPay(payments){
   const recent=payments.slice().sort((a,b)=>(parseD(b.date)?.getTime()||0)-(parseD(a.date)?.getTime()||0)).slice(0,7);
   if(!recent.length){empty("recentPay","No recent entries.");return;}
-  document.getElementById("recentPay").innerHTML=recent.map(p=>`
-    <div class="act-item">
+  document.getElementById("recentPay").innerHTML=recent.map(p=>{
+    const clr=getBlockColor(p.block,0);
+    return `<div class="act-item" style="border-left:3px solid ${clr.hex}">
       <div class="act-top"><span class="act-name">${p.block} / Flat ${p.flat}</span><span class="act-amt">${fmt$(p.amount)}</span></div>
       <div class="act-sub">${fmtDate(p.date)} · ${p.mode}${p.paidMonths?` · ${p.paidMonths}`:""}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   rmSk("recentPay");
 }
 
@@ -1190,11 +1589,13 @@ function renderModes(modeTotals){
   const entries=Array.from(modeTotals.entries()).sort((a,b)=>b[1]-a[1]);
   const total=entries.reduce((s,[,a])=>s+a,0);
   if(!entries.length){empty("modeList","No modes recorded.");return;}
-  document.getElementById("modeList").innerHTML=entries.map(([mode,amt])=>{
+  const modeColors=["#059669","#274d96","#d97706","#7c3aed","#0891b2"];
+  document.getElementById("modeList").innerHTML=entries.map(([mode,amt],i)=>{
     const pct=total?Math.round((amt/total)*100):0;
+    const c=modeColors[i%modeColors.length];
     return `<div class="mode-row">
-      <span class="mode-label">${mode}</span>
-      <div class="mode-track"><div class="mode-bar" data-w="${pct}"></div></div>
+      <span class="mode-label" style="background:none;border-color:${c}22;color:${c}">${mode}</span>
+      <div class="mode-track"><div class="mode-bar" data-w="${pct}" style="background:linear-gradient(90deg,${c},${c}99)"></div></div>
       <span class="mode-pct">${pct}%</span>
     </div>`;
   }).join("");
@@ -1221,7 +1622,7 @@ function renderRecentRes(rd){
   rmSk("recentRes");
 }
 
-/* ── Load expense data from Fund Ledger sheet ── */
+/* ── Load expense data ── */
 const EXPENSE_SHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
 async function loadExpenses(){
   const urls=[
@@ -1237,10 +1638,7 @@ async function loadExpenses(){
       const lines=csv.split(/\r?\n/).filter(l=>l.trim());
       if(lines.length<2)return{entries:[],totalCredits:0,totalDebits:0};
       const headerRaw=parseCSV(lines[0]).map(h=>h.toLowerCase().trim());
-      const colIdx=(pats,fallback)=>{
-        const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));
-        return i>=0?i:fallback;
-      };
+      const colIdx=(pats,fallback)=>{ const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p))); return i>=0?i:fallback; };
       const C={
         date:colIdx(["transaction date","date","dt"],0),
         type:colIdx(["transaction type","type","cr","debit","credit","txn type"],1),
@@ -1262,40 +1660,6 @@ async function loadExpenses(){
     }catch(_){}
   }
   return{entries:[],totalCredits:0,totalDebits:0};
-}
-
-/* ── Render monthly expense bar chart ── */
-function renderExpenseChart(entries){
-  const MONTHS_S=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const totals = new Array(12).fill(0);
-  entries.filter(e=>e.type==="DEBIT").forEach(e=>{
-    const parts = e.date ? e.date.split(/[\/\-]/) : [];
-    let month = -1;
-    if(parts.length===3){
-      const m1=parseInt(parts[1],10)-1, m2=parseInt(parts[0],10)-1;
-      if(m1>=0&&m1<=11) month=m1;
-      else if(m2>=0&&m2<=11) month=m2;
-    }
-    if(month>=0) totals[month]+=e.amount;
-  });
-  const max=Math.max(...totals,1);
-  const totalExp=totals.reduce((s,v)=>s+v,0);
-  const chart=document.getElementById("expenseChart");
-  if(!chart) return;
-  setTxt("expChartMeta", totalExp>0?`${fmt$(Math.round(totalExp))} total debits`:"No expense data");
-  chart.innerHTML=totals.map((v,i)=>{
-    const h=Math.max(v>0?3:0, Math.round((v/max)*100));
-    const cls=v===0?" zero":"";
-    return `<div class="trend-col">
-      <div class="bar-wrap"><div class="bar-tip">${MONTHS_S[i]}: ${fmt$(v)}</div><div class="bar-fill${cls}" style="height:${h}%;background:${v>0?"linear-gradient(180deg,var(--coral-500) 0%,var(--coral-700,var(--coral-600)) 100%)":""}"></div></div>
-      <div class="bar-lbl">${MONTHS_S[i]}</div>
-    </div>`;
-  }).join("");
-  requestAnimationFrame(()=>{
-    chart.querySelectorAll(".bar-fill:not(.zero)").forEach((b,i)=>{
-      setTimeout(()=>b.classList.add("live"), 60+i*38);
-    });
-  });
 }
 
 /* ── Render recent expenses ── */
@@ -1321,75 +1685,60 @@ function renderRecentExp(entries){
 function renderDash({pd,rd,ec,year,expData}){
   const total=pd.monthTotals.reduce((s,a)=>s+a,0);
   const compl=rd.stats.total?Math.round(((rd.stats.total-rd.stats.pending)/rd.stats.total)*100):0;
-
-  /* Current month & today totals */
   const now=new Date();
-  const curMonthIdx=now.getMonth(); // 0-based
+  const curMonthIdx=now.getMonth();
   const todayStr=`${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()}`;
   const monthTotal=pd.monthTotals[curMonthIdx]||0;
-  const todayTotal=pd.payments
-    .filter(p=>p.date===todayStr)
-    .reduce((s,p)=>s+p.amount,0);
-  const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const curMonthName=monthNames[curMonthIdx];
+  const todayTotal=pd.payments.filter(p=>p.date===todayStr).reduce((s,p)=>s+p.amount,0);
+  const curMonthName=MONTHS_FULL[curMonthIdx];
+  const availBal=(expData?.totalCredits||0)-(expData?.totalDebits||0);
+  const balSign=availBal>=0?"Surplus":"Deficit";
 
-  /* Match Fund Ledger Net Balance: ledger credits − ledger debits */
-  const availBal = (expData?.totalCredits || 0) - (expData?.totalDebits || 0);
-  const balSign  = availBal >= 0 ? "Surplus" : "Deficit";
-
-  /* KPI strip */
+  // KPI strip
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total)); setTxt("kpiSub",`Year ${year}`);
   setTxt("kpiMonth",fmt$(monthTotal)); setTxt("kpiMonthSub",curMonthName+" "+year);
   setTxt("kpiToday",fmt$(todayTotal)); setTxt("kpiTodaySub",now.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}));
-  setTxt("kpiEmg",fmt$(Math.abs(availBal)));
-  setTxt("kpiBalSub",balSign);
+  setTxt("kpiEmg",fmt$(Math.abs(availBal))); setTxt("kpiBalSub",balSign);
   const kpiBalEl=document.getElementById("kpiEmg");
-  if(kpiBalEl) kpiBalEl.style.color=availBal>=0?"var(--jade-600)":"var(--coral-600)";
+  if(kpiBalEl)kpiBalEl.style.color=availBal>=0?"var(--jade-600)":"var(--coral-600)";
   document.querySelectorAll(".kpi-cell").forEach(el=>{ requestAnimationFrame(()=>el.classList.add("reveal")); });
 
-  /* Mobile KPI */
+  // Mobile KPI
   setTxt("mkTotal",fmt$(total)); setTxt("kpiSub2",`Year ${year}`);
   setTxt("mkMonth",fmt$(monthTotal)); setTxt("mkMonthSub",curMonthName);
-  setTxt("mkToday",fmt$(todayTotal));
-  setTxt("mkEmg",fmt$(Math.abs(availBal)));
+  setTxt("mkToday",fmt$(todayTotal)); setTxt("mkEmg",fmt$(Math.abs(availBal)));
 
-  /* Nav badges */
+  // Nav badges
   setTxt("navResidents",fmtN(rd.stats.total)); setTxt("navEmergency",fmtN(ec));
-
-  /* Mobile dot */
   const dot=document.getElementById("mobDot");
-  if(dot) dot.classList.toggle("show",rd.stats.pending>0);
+  if(dot)dot.classList.toggle("show",rd.stats.pending>0);
 
-  /* Resident health */
+  // Resident health
   setTxt("resOwner",fmtN(rd.stats.owner)); setTxt("resTenant",fmtN(rd.stats.tenant));
   setTxt("resPend",fmtN(rd.stats.pending));
   setTxt("resComplete",`${compl}% complete`); setTxt("resCars",`${fmtN(rd.stats.vehicles)} vehicles`);
   rmSkEl(document.getElementById("resGrid"));
 
-  /* Charts */
-  setTxt("trendMeta",`${fmt$(total)} across 12 months`);
+  // Charts
   renderTrend(pd.monthTotals);
-  renderBlocks(pd.blockTotals,pd.allBlocks);
+  // Cache for block filter
+  _cachedPayments=pd.payments;
+  _cachedAllBlocks=pd.allBlocks;
+  _cachedBlockTotals=pd.blockTotals;
+  _cachedBlockMonthTotals=pd.blockMonthTotals;
+  renderBlocksFiltered(_blockMonth);
   renderRecentPay(pd.payments);
   renderModes(pd.modeTotals);
   renderRecentRes(rd);
-  if(expData?.entries) renderRecentExp(expData.entries);
-  if(expData?.entries) renderExpenseChart(expData.entries);
-}
-
-/* ── Get active year (respects mobile/desktop) ── */
-function activeYear(){
-  return (window.innerWidth<=700
-    ? document.getElementById("yearMob")
-    : document.getElementById("yearDesk"))?.value || DEFAULT_YEAR;
+  if(expData?.entries)renderRecentExp(expData.entries);
+  if(expData?.entries)renderExpenseChart(expData.entries);
 }
 
 /* ── Load dashboard ── */
 async function loadDash(){
   const btn=document.getElementById("refreshBtn");
-  if(btn) btn.classList.add("loading");
-  /* re-add skeleton to dynamic containers */
+  if(btn)btn.classList.add("loading");
   ["blockList","recentPay","modeList","recentRes","recentExp"].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.add("sk");el.innerHTML="";}
@@ -1406,13 +1755,13 @@ async function loadDash(){
     setTxt("trendMeta",e.message||"Unable to load data.");
     console.error(e);
   }finally{
-    if(btn) btn.classList.remove("loading");
+    if(btn)btn.classList.remove("loading");
   }
 }
 
 /* ── Dropdown setup ── */
 function setupDD(togId,ddId){
-  const tog=document.getElementById(togId), dd=document.getElementById(ddId);
+  const tog=document.getElementById(togId),dd=document.getElementById(ddId);
   if(!tog||!dd)return;
   tog.addEventListener("click",e=>{
     e.stopPropagation();
@@ -1430,19 +1779,64 @@ document.addEventListener("click",()=>{
 /* ── Logout ── */
 ["logoutDesk","logoutMob"].forEach(id=>{
   const btn=document.getElementById(id);
-  if(btn) btn.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_KEY); window.location.href="index.html"; });
+  if(btn)btn.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_KEY); window.location.href="index.html"; });
 });
 
-/* ── Year selectors (kept in sync) ── */
+/* ── Year + Month selectors (desktop) ── */
 const yDesk=document.getElementById("yearDesk");
+const mDesk=document.getElementById("monthDesk");
 const yMob =document.getElementById("yearMob");
+const mMob =document.getElementById("monthMob");
 if(yDesk){ yDesk.value=DEFAULT_YEAR; yDesk.addEventListener("change",e=>{ if(yMob)yMob.value=e.target.value; loadDash(); }); }
 if(yMob) { yMob.value=DEFAULT_YEAR;  yMob.addEventListener("change",e=>{ if(yDesk)yDesk.value=e.target.value; loadDash(); }); }
+// month change updates block filter
+function onMonthChange(val){
+  _blockMonth=parseInt(val);
+  renderBlocksFiltered(_blockMonth);
+  // sync pills
+  document.querySelectorAll(".month-pill").forEach(p=>{
+    p.classList.toggle("active",parseInt(p.dataset.month)===_blockMonth);
+  });
+  // sync mobile sel
+  const bms=document.getElementById("blockMonthMob");
+  if(bms)bms.value=val;
+}
+if(mDesk)mDesk.addEventListener("change",e=>onMonthChange(e.target.value));
+if(mMob) mMob.addEventListener("change",e=>{ if(mDesk)mDesk.value=e.target.value; onMonthChange(e.target.value); });
+
+/* ── Block filter month pills ── */
+document.getElementById("monthPills")?.addEventListener("click",e=>{
+  const pill=e.target.closest(".month-pill");
+  if(!pill)return;
+  onMonthChange(pill.dataset.month);
+  if(mDesk)mDesk.value=pill.dataset.month;
+  if(mMob)mMob.value=pill.dataset.month;
+});
+document.getElementById("blockMonthMob")?.addEventListener("change",e=>{
+  onMonthChange(e.target.value);
+  if(mDesk)mDesk.value=e.target.value;
+  if(mMob)mMob.value=e.target.value;
+});
 
 document.getElementById("refreshBtn")?.addEventListener("click",loadDash);
+
+/* Rerender charts on resize */
+let _resizeTimer;
+window.addEventListener("resize",()=>{
+  clearTimeout(_resizeTimer);
+  _resizeTimer=setTimeout(()=>{
+    if(_cachedPayments!==null){
+      // re-fetch state from DOM for trend
+      const mt=Array(12).fill(0);
+      (_cachedPayments||[]).forEach(p=>{ if(p.monthIndex>=0)mt[p.monthIndex]+=p.amount; });
+      renderTrend(mt);
+    }
+  },200);
+});
 
 /* ── Initial load ── */
 loadDash();
 </script>
 </body>
 </html>
+
