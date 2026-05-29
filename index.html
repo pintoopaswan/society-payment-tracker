@@ -852,9 +852,9 @@ body.modal-open{overflow:hidden}
     <div class="kpi-sub" id="kpiTodaySub">Today's collections</div>
   </div>
   <div class="kpi-cell">
-    <div class="kpi-label">Emergency Contacts</div>
+    <div class="kpi-label">Available Balance</div>
     <div class="kpi-val sk" id="kpiEmg">—</div>
-    <div class="kpi-sub">On record</div>
+    <div class="kpi-sub" id="kpiBalSub">Income − Expenses</div>
   </div>
 </div>
 
@@ -876,9 +876,9 @@ body.modal-open{overflow:hidden}
     <div class="mk-sub">Today's collections</div>
   </div>
   <div class="mob-kpi-card">
-    <div class="mk-label">Emergency</div>
+    <div class="mk-label">Balance</div>
     <div class="mk-val" id="mkEmg">—</div>
-    <div class="mk-sub">Contacts</div>
+    <div class="mk-sub">Available funds</div>
   </div>
 </div>
 
@@ -928,6 +928,26 @@ body.modal-open{overflow:hidden}
         <div class="card">
           <div class="card-head"><div class="card-title">Recent Payments</div><div class="card-meta">Latest entries</div></div>
           <div class="card-body"><div class="act-list sk" id="recentPay" style="min-height:100px"></div></div>
+        </div>
+      </div>
+
+      <!-- Expenses row: Recent Expenses + Monthly Expense Chart -->
+      <div class="split-grid" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Recent Expenses</div>
+            <div class="card-meta"><a href="fund-ledger.html" style="color:var(--midnight-400);font-size:0.72rem;font-weight:600;text-decoration:none">View all →</a></div>
+          </div>
+          <div class="card-body"><div class="act-list sk" id="recentExp" style="min-height:80px"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Monthly Expenses</div>
+            <div class="card-meta" id="expChartMeta">Debit breakdown by month</div>
+          </div>
+          <div class="card-body">
+            <div class="trend-chart" id="expenseChart"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1202,8 +1222,92 @@ function renderRecentRes(rd){
   rmSk("recentRes");
 }
 
+/* ── Load expense data from Fund Ledger sheet ── */
+const EXPENSE_SHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+async function loadExpenses(){
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=EXPENSE`,
+    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=EXPENSE`,
+  ];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{cache:"no-cache"});
+      const csv=await r.text();
+      const p=csv.trim().slice(0,200).toLowerCase();
+      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
+      const lines=csv.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length<2)return{entries:[],totalCredits:0,totalDebits:0};
+      const entries=lines.slice(1).map(line=>{
+        const cols=line.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
+        const rawType=String(cols[1]||"").trim().toUpperCase();
+        const amt=parseFloat(String(cols[3]||"").replace(/[^0-9.-]/g,""))||0;
+        const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
+        const rawDate=String(cols[0]||"").trim();
+        return{date:rawDate,description:cols[2]||"",type,amount:amt,paymode:cols[4]||""};
+      }).filter(e=>e.amount>0);
+      const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
+      const totalDebits =entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
+      return{entries,totalCredits,totalDebits};
+    }catch(_){}
+  }
+  return{entries:[],totalCredits:0,totalDebits:0};
+}
+
+/* ── Render monthly expense bar chart ── */
+function renderExpenseChart(entries){
+  const MONTHS_S=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const totals = new Array(12).fill(0);
+  entries.filter(e=>e.type==="DEBIT").forEach(e=>{
+    const parts = e.date ? e.date.split(/[\/\-]/) : [];
+    let month = -1;
+    if(parts.length===3){
+      const m1=parseInt(parts[1],10)-1, m2=parseInt(parts[0],10)-1;
+      if(m1>=0&&m1<=11) month=m1;
+      else if(m2>=0&&m2<=11) month=m2;
+    }
+    if(month>=0) totals[month]+=e.amount;
+  });
+  const max=Math.max(...totals,1);
+  const totalExp=totals.reduce((s,v)=>s+v,0);
+  const chart=document.getElementById("expenseChart");
+  if(!chart) return;
+  setTxt("expChartMeta", totalExp>0?`${fmt$(Math.round(totalExp))} total debits`:"No expense data");
+  chart.innerHTML=totals.map((v,i)=>{
+    const h=Math.max(v>0?3:0, Math.round((v/max)*100));
+    const cls=v===0?" zero":"";
+    return `<div class="trend-col">
+      <div class="bar-wrap"><div class="bar-tip">${MONTHS_S[i]}: ${fmt$(v)}</div><div class="bar-fill${cls}" style="height:${h}%;background:${v>0?"linear-gradient(180deg,var(--coral-500) 0%,var(--coral-700,var(--coral-600)) 100%)":""}"></div></div>
+      <div class="bar-lbl">${MONTHS_S[i]}</div>
+    </div>`;
+  }).join("");
+  requestAnimationFrame(()=>{
+    chart.querySelectorAll(".bar-fill:not(.zero)").forEach((b,i)=>{
+      setTimeout(()=>b.classList.add("live"), 60+i*38);
+    });
+  });
+}
+
+/* ── Render recent expenses ── */
+function renderRecentExp(entries){
+  const recent=[...entries].slice(0,6);
+  if(!recent.length){empty("recentExp","No expense data.");return;}
+  document.getElementById("recentExp").innerHTML=recent.map(e=>{
+    const isCredit=e.type==="CREDIT";
+    const color=isCredit?"var(--jade-600)":"var(--coral-600)";
+    const sign=isCredit?"+":"−";
+    return`<div class="act-item">
+      <div class="act-top">
+        <span class="act-name" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.description||"—"}</span>
+        <span class="act-amt" style="color:${color}">${sign}${fmt$(e.amount)}</span>
+      </div>
+      <div class="act-sub">${e.date?e.date+"&nbsp;·&nbsp;":""}${e.type}&nbsp;·&nbsp;${e.paymode||"—"}</div>
+    </div>`;
+  }).join("");
+  rmSk("recentExp");
+}
+
 /* ── Render all dashboard ── */
-function renderDash({pd,rd,ec,year}){
+function renderDash({pd,rd,ec,year,expData}){
   const total=pd.monthTotals.reduce((s,a)=>s+a,0);
   const compl=rd.stats.total?Math.round(((rd.stats.total-rd.stats.pending)/rd.stats.total)*100):0;
 
@@ -1218,19 +1322,26 @@ function renderDash({pd,rd,ec,year}){
   const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
   const curMonthName=monthNames[curMonthIdx];
 
+  /* Available Balance = payments collected − total expenses (debits) */
+  const availBal = total - (expData?.totalDebits || 0);
+  const balSign  = availBal >= 0 ? "Surplus" : "Deficit";
+
   /* KPI strip */
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total)); setTxt("kpiSub",`Year ${year}`);
   setTxt("kpiMonth",fmt$(monthTotal)); setTxt("kpiMonthSub",curMonthName+" "+year);
   setTxt("kpiToday",fmt$(todayTotal)); setTxt("kpiTodaySub",now.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}));
-  setTxt("kpiEmg",fmtN(ec));
+  setTxt("kpiEmg",fmt$(Math.abs(availBal)));
+  setTxt("kpiBalSub",balSign);
+  const kpiBalEl=document.getElementById("kpiEmg");
+  if(kpiBalEl) kpiBalEl.style.color=availBal>=0?"var(--jade-600)":"var(--coral-600)";
   document.querySelectorAll(".kpi-cell").forEach(el=>{ requestAnimationFrame(()=>el.classList.add("reveal")); });
 
   /* Mobile KPI */
   setTxt("mkTotal",fmt$(total)); setTxt("kpiSub2",`Year ${year}`);
   setTxt("mkMonth",fmt$(monthTotal)); setTxt("mkMonthSub",curMonthName);
   setTxt("mkToday",fmt$(todayTotal));
-  setTxt("mkEmg",fmtN(ec));
+  setTxt("mkEmg",fmt$(Math.abs(availBal)));
 
   /* Nav badges */
   setTxt("navResidents",fmtN(rd.stats.total)); setTxt("navEmergency",fmtN(ec));
@@ -1252,6 +1363,8 @@ function renderDash({pd,rd,ec,year}){
   renderRecentPay(pd.payments);
   renderModes(pd.modeTotals);
   renderRecentRes(rd);
+  if(expData?.entries) renderRecentExp(expData.entries);
+  if(expData?.entries) renderExpenseChart(expData.entries);
 }
 
 /* ── Get active year (respects mobile/desktop) ── */
@@ -1266,7 +1379,7 @@ async function loadDash(){
   const btn=document.getElementById("refreshBtn");
   if(btn) btn.classList.add("loading");
   /* re-add skeleton to dynamic containers */
-  ["blockList","recentPay","modeList","recentRes"].forEach(id=>{
+  ["blockList","recentPay","modeList","recentRes","recentExp"].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.add("sk");el.innerHTML="";}
   });
@@ -1276,8 +1389,8 @@ async function loadDash(){
   });
   try{
     const year=activeYear();
-    const [pd,rd,ec]=await Promise.all([loadPayments(year),loadResidents(),loadEmergency()]);
-    renderDash({pd,rd,ec,year});
+    const [pd,rd,ec,expData]=await Promise.all([loadPayments(year),loadResidents(),loadEmergency(),loadExpenses()]);
+    renderDash({pd,rd,ec,year,expData});
   }catch(e){
     setTxt("trendMeta",e.message||"Unable to load data.");
     console.error(e);
