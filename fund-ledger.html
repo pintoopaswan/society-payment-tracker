@@ -769,27 +769,42 @@ function toIsoDate(display){
   const s = String(display).trim();
   // Already ISO format YYYY-MM-DD
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // Handle named-month formats: "8-May-2026", "8 May 2026", "08-May-26", "May 8, 2026" etc.
+  const MONTH_MAP = {
+    jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+    january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12
+  };
+  // D-MonthName-YYYY  or  D MonthName YYYY
+  const mDay = s.match(/^(\d{1,2})[\s\-]+([A-Za-z]+)[\s\-]+(\d{2,4})$/);
+  if(mDay){
+    const day = Number(mDay[1]);
+    const mon = MONTH_MAP[mDay[2].toLowerCase()] || MONTH_MAP[mDay[2].toLowerCase().slice(0,3)] || 0;
+    const yr  = mDay[3].length===2 ? 2000+Number(mDay[3]) : Number(mDay[3]);
+    if(mon && day && yr) return `${yr}-${String(mon).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+  }
+  // MonthName D, YYYY  or  MonthName D YYYY
+  const mMon = s.match(/^([A-Za-z]+)[\s\-,]+(\d{1,2})[,\s]+(\d{2,4})$/);
+  if(mMon){
+    const mon = MONTH_MAP[mMon[1].toLowerCase()] || MONTH_MAP[mMon[1].toLowerCase().slice(0,3)] || 0;
+    const day = Number(mMon[2]);
+    const yr  = mMon[3].length===2 ? 2000+Number(mMon[3]) : Number(mMon[3]);
+    if(mon && day && yr) return `${yr}-${String(mon).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+  }
+
   // Handle slash-separated: could be DD/MM/YYYY or MM/DD/YYYY or DD/MM/YY
   const a = s.split("/");
   if(a.length === 3){
     const n0=Number(a[0]), n1=Number(a[1]);
     let day, month, year;
-    // If first part > 12 it must be a day (DD/MM/YYYY)
-    // Also treat as DD/MM/YYYY by default for Indian locale
     year  = a[2].length === 4 ? Number(a[2]) : 2000 + Number(a[2]);
-    if(n0 > 12){ // definitely DD/MM/YYYY
-      day = n0; month = n1;
-    } else {
-      // Assume DD/MM/YYYY (Indian locale) — Google Sheets may export MM/DD/YYYY
-      // Heuristic: if second part > 12, it must be day → then it's MM/DD/YYYY
-      if(n1 > 12){ day = n1; month = n0; }
-      else { day = n0; month = n1; } // default DD/MM/YYYY
-    }
+    if(n0 > 12){ day = n0; month = n1; }
+    else { if(n1 > 12){ day = n1; month = n0; } else { day = n0; month = n1; } }
     return `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
   }
-  // Handle dash-separated: could be DD-MM-YYYY
+  // Handle dash-separated numeric only: DD-MM-YYYY
   const b = s.split("-");
-  if(b.length === 3 && b[0].length <= 2){
+  if(b.length === 3 && b[0].length <= 2 && /^\d+$/.test(b[0]) && /^\d+$/.test(b[1]) && /^\d+$/.test(b[2])){
     const year = b[2].length === 4 ? Number(b[2]) : 2000 + Number(b[2]);
     return `${year}-${b[1].padStart(2,"0")}-${b[0].padStart(2,"0")}`;
   }

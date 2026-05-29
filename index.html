@@ -931,15 +931,8 @@ body.modal-open{overflow:hidden}
         </div>
       </div>
 
-      <!-- Expenses row: Recent Expenses + Monthly Expense Chart -->
+      <!-- Expenses row: Monthly Expense Chart (left) + Recent Expenses (right) -->
       <div class="split-grid" style="margin-top:16px">
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">Recent Expenses</div>
-            <div class="card-meta"><a href="fund-ledger.html" style="color:var(--midnight-400);font-size:0.72rem;font-weight:600;text-decoration:none">View all →</a></div>
-          </div>
-          <div class="card-body"><div class="act-list sk" id="recentExp" style="min-height:80px"></div></div>
-        </div>
         <div class="card">
           <div class="card-head">
             <div class="card-title">Monthly Expenses</div>
@@ -948,6 +941,13 @@ body.modal-open{overflow:hidden}
           <div class="card-body">
             <div class="trend-chart" id="expenseChart"></div>
           </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Recent Expenses</div>
+            <div class="card-meta"><a href="fund-ledger.html" style="color:var(--midnight-400);font-size:0.72rem;font-weight:600;text-decoration:none">View all →</a></div>
+          </div>
+          <div class="card-body"><div class="act-list sk" id="recentExp" style="min-height:80px"></div></div>
         </div>
       </div>
     </div>
