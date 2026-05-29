@@ -1039,7 +1039,7 @@ const TABS_BY_YR  = { "2026":MONTHS, "2025":[null,null,null,null,null,"JUNE","JU
 const DIR_ID      = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 
 /* ── Helpers ── */
-const parseCSV = l => l.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,""))||[];
+const parseCSV = l => l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
 const norm     = v => String(v||"").trim().toLowerCase();
 const blockN   = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
 const fmt$     = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
@@ -1236,13 +1236,25 @@ async function loadExpenses(){
       if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
       const lines=csv.split(/\r?\n/).filter(l=>l.trim());
       if(lines.length<2)return{entries:[],totalCredits:0,totalDebits:0};
+      const headerRaw=parseCSV(lines[0]).map(h=>h.toLowerCase().trim());
+      const colIdx=(pats,fallback)=>{
+        const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));
+        return i>=0?i:fallback;
+      };
+      const C={
+        date:colIdx(["transaction date","date","dt"],0),
+        type:colIdx(["transaction type","type","cr","debit","credit","txn type"],1),
+        desc:colIdx(["description","desc","particulars","narration","detail"],2),
+        amt:colIdx(["amount","amt","sum","inr","rs","rupee"],3),
+        paymode:colIdx(["payment mode","pay mode","mode","payment method"],4),
+      };
       const entries=lines.slice(1).map(line=>{
-        const cols=line.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
-        const rawType=String(cols[1]||"").trim().toUpperCase();
-        const amt=parseFloat(String(cols[3]||"").replace(/[^0-9.-]/g,""))||0;
+        const cols=parseCSV(line);
+        const rawType=String(cols[C.type]||"").trim().toUpperCase();
+        const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;
         const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
-        const rawDate=String(cols[0]||"").trim();
-        return{date:rawDate,description:cols[2]||"",type,amount:amt,paymode:cols[4]||""};
+        const rawDate=String(cols[C.date]||"").trim();
+        return{date:rawDate,description:cols[C.desc]||"",type,amount:amt,paymode:cols[C.paymode]||""};
       }).filter(e=>e.amount>0);
       const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
       const totalDebits =entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
@@ -1321,8 +1333,8 @@ function renderDash({pd,rd,ec,year,expData}){
   const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
   const curMonthName=monthNames[curMonthIdx];
 
-  /* Available Balance = payments collected − total expenses (debits) */
-  const availBal = total - (expData?.totalDebits || 0);
+  /* Match Fund Ledger Net Balance: ledger credits − ledger debits */
+  const availBal = (expData?.totalCredits || 0) - (expData?.totalDebits || 0);
   const balSign  = availBal >= 0 ? "Surplus" : "Deficit";
 
   /* KPI strip */
