@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B1628">
+<title>MIG Society · Flat Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body.modal-open{overflow:hidden;position:fixed;width:100%}
+a{color:inherit;text-decoration:none}
+button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:none}
+
+:root{
+  --midnight-900:#0b1628;
+  --midnight-800:#112040;
+  --midnight-700:#172c58;
+  --midnight-600:#1e3a72;
+  --midnight-500:#274d96;
+  --midnight-400:#3b66b8;
+  --midnight-300:#6b94d4;
+  --midnight-200:#a8c4ec;
+  --midnight-100:#d8e8f8;
+  --midnight-50: #eef5fc;
+
+  --jade-700:#065f46;
+  --jade-600:#047857;
+  --jade-500:#059669;
+  --jade-400:#10b981;
+  --jade-100:#d1fae5;
+  --jade-50: #ecfdf5;
+
+  --coral-600:#dc2626;
+  --coral-500:#ef4444;
+  --coral-100:#fee2e2;
+  --coral-50: #fef2f2;
+
+  --amber-600:#d97706;
+  --amber-500:#f59e0b;
+  --amber-100:#fef3c7;
+  --amber-50: #fffbeb;
+
+  --teal-600:#0d9488;
+  --teal-500:#14b8a6;
+  --teal-100:#ccfbf1;
+  --teal-50: #f0fdfa;
+
+  --violet-600:#7c3aed;
+  --violet-500:#8b5cf6;
+  --violet-100:#ede9fe;
+  --violet-50: #f5f3ff;
+
+  --bg:       #f2f6fb;
+  --surface:  #ffffff;
+  --surface-2:#f8fafd;
+  --surface-3:#eef3f9;
+
+  --ink:      #0b1628;
+  --ink-2:    #344f6e;
+  --ink-3:    #6a86a4;
+  --ink-4:    #a0b4c8;
+
+  --line:     rgba(23,44,88,0.08);
+  --line-md:  rgba(23,44,88,0.13);
+  --line-lg:  rgba(23,44,88,0.20);
+
+  --s-xs: 0 1px 3px rgba(7,15,35,0.05);
+  --s-sm: 0 2px 8px rgba(7,15,35,0.07),0 1px 2px rgba(7,15,35,0.04);
+  --s-md: 0 6px 20px rgba(7,15,35,0.09),0 2px 6px rgba(7,15,35,0.04);
+  --s-lg: 0 18px 48px rgba(7,15,35,0.12),0 4px 12px rgba(7,15,35,0.05);
+  --s-blue:0 8px 28px rgba(30,58,114,0.28);
+  --s-jade:0 8px 24px rgba(6,120,87,0.22);
+
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  18px;
+  --r-xl:  24px;
+
+  --ease-out:    cubic-bezier(0.16,1,0.3,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+
+  --topbar-h:   56px;
+  --desknav-h:  50px;
+  --mobnav-h:   70px;
+  --safe-bot:   env(safe-area-inset-bottom,0px);
+  --safe-top:   env(safe-area-inset-top,0px);
+}
+
+/* Dark theme */
+body.dark{
+  --bg:#0b1628;
+  --surface:#112040;
+  --surface-2:#172c58;
+  --surface-3:#1e3a72;
+  --ink:#e8f0fb;
+  --ink-2:#a8c4ec;
+  --ink-3:#6b94d4;
+  --ink-4:#3b66b8;
+  --line:rgba(107,148,212,0.12);
+  --line-md:rgba(107,148,212,0.18);
+  --line-lg:rgba(107,148,212,0.26);
+  --s-xs:0 1px 3px rgba(0,0,0,0.3);
+  --s-sm:0 2px 8px rgba(0,0,0,0.35),0 1px 2px rgba(0,0,0,0.2);
+  --s-md:0 6px 20px rgba(0,0,0,0.4),0 2px 6px rgba(0,0,0,0.2);
+  --s-lg:0 18px 48px rgba(0,0,0,0.5),0 4px 12px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeUp  {from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn  {from{opacity:0}to{opacity:1}}
+@keyframes scaleIn {from{opacity:0;transform:scale(0.93) translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes shimmer {from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes pulse   {0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes modalIn {from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:none}}
+
+/* ════ TOPBAR ════ */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  height:var(--topbar-h);
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(24px) saturate(200%);
+  -webkit-backdrop-filter:blur(24px) saturate(200%);
+  border-bottom:1px solid var(--line);
+  box-shadow:var(--s-xs);
+  display:flex;align-items:center;
+  padding:0 28px;gap:16px;
+  animation:fadeDown 0.4s var(--ease-out) both;
+}
+body.dark .topbar{background:rgba(17,32,64,0.96)}
+.topbar-brand{flex:1;min-width:0;display:flex;align-items:center;gap:11px}
+.brand-gem{
+  width:36px;height:36px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-500));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-blue);position:relative;overflow:hidden;
+}
+.brand-gem::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent 60%)}
+.brand-gem svg{color:#fff;position:relative;z-index:1}
+.brand-copy{min-width:0}
+.brand-name{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;white-space:nowrap}
+.brand-tagline{font-size:0.68rem;color:var(--ink-3);font-weight:400;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:9px}
+.theme-toggle{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--surface-2);border:1px solid var(--line-md);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);transition:all 0.18s;
+}
+.theme-toggle:hover{background:var(--midnight-50);color:var(--midnight-600)}
+.profile-wrap{position:relative}
+.profile-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-400));
+  color:#fff;font-size:0.82rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-blue);
+  transition:transform 0.18s var(--ease-spring);
+}
+.profile-btn:hover{transform:scale(1.09)}
+.profile-dropdown{
+  position:absolute;right:0;top:calc(100% + 10px);
+  background:var(--surface);border:1px solid var(--line-md);
+  border-radius:var(--r-md);box-shadow:var(--s-lg);
+  min-width:145px;overflow:hidden;display:none;z-index:300;
+  animation:scaleIn 0.22s var(--ease-spring) both;
+}
+.profile-dropdown.open{display:block}
+.profile-dropdown button{
+  width:100%;background:transparent;
+  padding:11px 16px;text-align:left;
+  color:var(--ink);font-size:0.84rem;font-weight:500;
+  display:flex;align-items:center;gap:9px;
+  transition:background 0.12s;
+}
+.profile-dropdown button:hover{background:var(--surface-2);color:var(--coral-600)}
+.pd-divider{height:1px;background:var(--line);margin:3px 0}
+
+/* ════ DESKTOP NAV ════ */
+.desknav{
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:stretch;padding:0 20px;
+  animation:fadeIn 0.35s 0.05s var(--ease-out) both;
+}
+body.dark .desknav{background:rgba(17,32,64,0.98)}
+.dn-item{
+  display:flex;align-items:center;gap:7px;
+  padding:0 16px;height:var(--desknav-h);
+  font-size:0.83rem;font-weight:500;color:var(--ink-3);
+  border-bottom:2.5px solid transparent;
+  text-decoration:none;white-space:nowrap;
+  transition:color 0.16s,border-color 0.16s;
+}
+.dn-item:hover{color:var(--midnight-600)}
+.dn-item.active{color:var(--midnight-600);font-weight:600;border-bottom-color:var(--midnight-500)}
+.dn-item svg{opacity:0.6;transition:opacity 0.16s}
+.dn-item:hover svg,.dn-item.active svg{opacity:1}
+.nav-pill{
+  min-width:20px;height:20px;border-radius:999px;
+  padding:0 6px;font-size:0.65rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--midnight-100);color:var(--midnight-600);
+}
+.dn-item.active .nav-pill{background:var(--midnight-500);color:#fff}
+
+/* ════ MOBILE HEADER ════ */
+.mob-header{
+  display:none;position:sticky;top:0;z-index:200;
+  height:calc(58px + var(--safe-top));padding-top:var(--safe-top);
+  background:rgba(11,22,40,0.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  align-items:center;justify-content:space-between;
+  padding-left:18px;padding-right:18px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+}
+.mob-brand{display:flex;align-items:center;gap:9px}
+.mob-gem{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(39,77,150,0.4);
+}
+.mob-gem svg{color:#fff}
+.mob-name{font-size:0.92rem;font-weight:700;color:#fff;letter-spacing:-0.01em}
+.mob-right{display:flex;align-items:center;gap:8px}
+.mob-profile{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
+  color:#fff;font-size:0.76rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(39,77,150,0.4);
+}
+.mob-theme-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.1);
+  color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ════ MOBILE BOTTOM NAV ════ */
+.mob-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding-bottom:var(--safe-bot);
+  background:rgba(255,255,255,0.96);
+  backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+  border-top:1px solid var(--line);box-shadow:0 -6px 30px rgba(7,15,35,0.10);
+}
+body.dark .mob-nav{background:rgba(17,32,64,0.98)}
+.mob-nav-inner{display:grid;grid-template-columns:repeat(5,1fr);height:var(--mobnav-h)}
+.mni{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;text-decoration:none;color:var(--ink-3);font-size:0.6rem;font-weight:600;
+  letter-spacing:0.01em;position:relative;transition:color 0.16s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mni.active{color:var(--midnight-600)}
+.mni-icon-wrap{position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.mni-bg{position:absolute;inset:0;border-radius:10px;background:var(--midnight-50);transform:scale(0);transition:transform 0.22s var(--ease-spring)}
+.mni.active .mni-bg{transform:scale(1)}
+.mni svg{position:relative;z-index:1;transition:transform 0.22s var(--ease-spring)}
+.mni.active svg{transform:scale(1.1)}
+.mni::before{
+  content:'';position:absolute;top:0;left:50%;
+  transform:translateX(-50%) scaleX(0);
+  width:24px;height:3px;border-radius:0 0 4px 4px;
+  background:linear-gradient(90deg,var(--midnight-500),var(--midnight-300));
+  transition:transform 0.22s var(--ease-spring);
+}
+.mni.active::before{transform:translateX(-50%) scaleX(1)}
+.mni-label{position:relative;z-index:1}
+
+/* ════ PAGE BODY ════ */
+.page{padding:20px 26px;max-width:1560px;margin:0 auto}
+
+/* ════ SEARCH HERO ════ */
+.search-hero{
+  background:linear-gradient(135deg,var(--midnight-900) 0%,var(--midnight-700) 60%,var(--midnight-600) 100%);
+  border-radius:var(--r-xl);padding:32px 32px 28px;
+  margin-bottom:20px;position:relative;overflow:hidden;
+  animation:fadeUp 0.4s var(--ease-out) both;
+}
+.search-hero::before{
+  content:'';position:absolute;
+  top:-60px;right:-60px;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,102,184,0.3) 0%,transparent 70%);
+}
+.search-hero::after{
+  content:'';position:absolute;
+  bottom:-80px;left:20%;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(20,184,166,0.15) 0%,transparent 70%);
+}
+.hero-label{
+  font-size:0.7rem;font-weight:700;letter-spacing:0.14em;
+  color:rgba(168,196,236,0.7);text-transform:uppercase;
+  margin-bottom:10px;position:relative;z-index:1;
+}
+.hero-title{
+  font-size:1.8rem;font-weight:800;color:#fff;
+  letter-spacing:-0.03em;line-height:1.1;
+  margin-bottom:6px;position:relative;z-index:1;
+}
+.hero-sub{
+  font-size:0.82rem;color:rgba(168,196,236,0.7);
+  margin-bottom:22px;position:relative;z-index:1;
+}
+.search-box-wrap{position:relative;z-index:2;max-width:680px}
+.search-box{
+  display:flex;align-items:center;gap:0;
+  background:rgba(255,255,255,0.08);
+  border:1.5px solid rgba(255,255,255,0.18);
+  border-radius:var(--r-lg);
+  backdrop-filter:blur(12px);
+  transition:border-color 0.2s,box-shadow 0.2s;
+  overflow:hidden;
+}
+.search-box:focus-within{
+  border-color:rgba(255,255,255,0.4);
+  box-shadow:0 0 0 3px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.3);
+}
+.search-icon{
+  padding:0 16px;color:rgba(255,255,255,0.5);flex-shrink:0;
+  display:flex;align-items:center;
+}
+.search-main-input{
+  flex:1;background:transparent;color:#fff;
+  font-size:0.95rem;font-weight:500;
+  padding:14px 0;min-width:0;
+}
+.search-main-input::placeholder{color:rgba(255,255,255,0.35)}
+.search-main-input:focus{outline:none}
+.search-clear{
+  padding:0 14px;color:rgba(255,255,255,0.4);
+  display:none;align-items:center;justify-content:center;
+  transition:color 0.15s;
+}
+.search-clear.visible{display:flex}
+.search-clear:hover{color:rgba(255,255,255,0.8)}
+.search-btn{
+  height:100%;padding:0 20px;
+  background:linear-gradient(135deg,var(--midnight-400),var(--teal-600));
+  color:#fff;font-size:0.82rem;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+  transition:opacity 0.15s;white-space:nowrap;
+}
+.search-btn:hover{opacity:0.9}
+
+/* ════ SUGGESTIONS DROPDOWN ════ */
+.suggestions-wrap{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;
+  background:var(--surface);border:1px solid var(--line-md);
+  border-radius:var(--r-lg);box-shadow:var(--s-lg);
+  max-height:320px;overflow-y:auto;z-index:400;
+  display:none;
+}
+.suggestions-wrap.open{display:block;animation:scaleIn 0.2s var(--ease-spring) both}
+.suggestions-wrap::-webkit-scrollbar{width:4px}
+.suggestions-wrap::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:999px}
+.sug-header{padding:9px 14px 6px;font-size:0.66rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em}
+.sug-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;cursor:pointer;transition:background 0.12s;
+}
+.sug-item:hover{background:var(--surface-2)}
+.sug-avatar{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(140deg,var(--midnight-600),var(--midnight-400));
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:800;color:#fff;
+}
+.sug-info{flex:1;min-width:0}
+.sug-flat{font-size:0.86rem;font-weight:700;color:var(--ink)}
+.sug-names{font-size:0.73rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sug-badge{font-size:0.66rem;font-weight:700;padding:2px 8px;border-radius:99px;flex-shrink:0}
+.sug-badge.tenant{background:var(--teal-100);color:var(--teal-600)}
+.sug-badge.owner{background:var(--midnight-100);color:var(--midnight-600)}
+.sug-badge.vacant{background:var(--surface-3);color:var(--ink-3)}
+.sug-no-results{padding:20px;text-align:center;color:var(--ink-3);font-size:0.82rem}
+
+/* ════ PROFILE PANEL ════ */
+.profile-panel{
+  animation:fadeUp 0.4s var(--ease-out) both;
+  display:none;
+}
+.profile-panel.visible{display:block}
+
+/* Panel header */
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:10px;
+}
+.panel-flat-id{
+  display:flex;align-items:center;gap:12px;
+}
+.flat-id-badge{
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-500));
+  color:#fff;border-radius:var(--r-md);
+  padding:10px 16px;font-size:1.1rem;font-weight:800;
+  letter-spacing:-0.02em;box-shadow:var(--s-blue);
+  display:flex;align-items:center;gap:8px;
+}
+.flat-id-badge svg{opacity:0.7}
+.panel-flat-meta{flex:1}
+.panel-flat-title{font-size:1.1rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em}
+.panel-flat-sub{font-size:0.75rem;color:var(--ink-3);margin-top:2px}
+.panel-close-btn{
+  height:38px;padding:0 14px;
+  border:1.5px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-2);
+  font-size:0.78rem;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+  transition:all 0.14s;
+}
+.panel-close-btn:hover{border-color:var(--coral-500);color:var(--coral-600)}
+
+/* ════ MODULAR INFO SECTIONS ════ */
+.info-sections{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;margin-bottom:18px;
+}
+
+/* Each modular section card */
+.section-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--s-sm);position:relative;overflow:hidden;
+  animation:fadeUp 0.35s var(--ease-out) both;
+  display:flex;flex-direction:column;
+}
+.section-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;flex-shrink:0;
+}
+.section-flat::before{background:linear-gradient(90deg,var(--midnight-600),var(--midnight-300))}
+.section-owner::before{background:linear-gradient(90deg,var(--jade-600),var(--jade-400))}
+.section-tenant::before{background:linear-gradient(90deg,var(--teal-600),var(--teal-500))}
+.section-payment::before{background:linear-gradient(90deg,var(--violet-600),var(--violet-500))}
+
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 10px;border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.section-head-left{display:flex;align-items:center;gap:10px}
+.section-icon{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.section-flat .section-icon{background:var(--midnight-50);color:var(--midnight-600)}
+.section-owner .section-icon{background:var(--jade-50);color:var(--jade-600)}
+.section-tenant .section-icon{background:var(--teal-50);color:var(--teal-600)}
+.section-payment .section-icon{background:var(--violet-50);color:var(--violet-600)}
+
+.section-title{font-size:0.78rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+.section-sub{font-size:0.64rem;color:var(--ink-3);margin-top:1px}
+
+/* Edit button in section header */
+.section-edit-btn{
+  height:30px;padding:0 11px;
+  border:1.5px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-3);
+  font-size:0.72rem;font-weight:600;
+  display:flex;align-items:center;gap:5px;
+  transition:all 0.14s;flex-shrink:0;
+}
+.section-edit-btn:hover{
+  border-color:var(--midnight-400);
+  color:var(--midnight-600);
+  background:var(--midnight-50);
+}
+.section-edit-btn svg{opacity:0.7}
+.section-edit-btn:hover svg{opacity:1}
+
+.section-body{padding:14px 18px 16px;flex:1}
+
+/* Card rows (key-value pairs) */
+.card-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:8px}
+.card-row:last-child{margin-bottom:0}
+.card-key{font-size:0.72rem;color:var(--ink-3);font-weight:500;flex-shrink:0}
+.card-val{font-size:0.8rem;font-weight:600;color:var(--ink);text-align:right;word-break:break-word}
+.card-val a{color:var(--midnight-500);text-decoration:none}
+.card-val a:hover{text-decoration:underline}
+
+/* Vehicle sub-section within tenant card */
+.vehicle-subsection{
+  margin-top:12px;padding-top:10px;
+  border-top:1px solid var(--line);
+}
+.vehicle-label{
+  font-size:0.63rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:7px;
+  display:flex;align-items:center;gap:5px;
+}
+.vehicle-label svg{opacity:0.6}
+
+/* Payment summary within section */
+.pay-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+.pay-sum-cell{background:var(--surface-2);border-radius:var(--r-sm);padding:9px 10px;text-align:center}
+.psc-label{font-size:0.62rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+.psc-val{font-size:1.1rem;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-0.03em}
+.psc-val.paid{color:var(--jade-600)}
+.psc-val.pending{color:var(--coral-500)}
+.psc-val.partial{color:var(--amber-600)}
+.psc-val.total{color:var(--midnight-600)}
+
+/* ════ PAYMENT HISTORY SECTION ════ */
+.pay-section{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:20px;
+  box-shadow:var(--s-sm);margin-bottom:20px;
+  animation:fadeUp 0.4s 0.06s var(--ease-out) both;
+}
+.pay-sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:10px;
+}
+.pay-sec-title-wrap{display:flex;align-items:center;gap:10px}
+.pay-sec-title{
+  display:flex;align-items:center;gap:9px;
+  font-size:0.95rem;font-weight:700;color:var(--ink);
+}
+.pay-sec-title svg{color:var(--midnight-500)}
+
+/* Alert banners */
+.pay-alert{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-radius:var(--r-md);
+  margin-bottom:14px;font-size:0.8rem;font-weight:600;
+}
+.pay-alert.danger{background:var(--coral-50);border:1px solid var(--coral-100);color:var(--coral-600)}
+.pay-alert.warning{background:var(--amber-50);border:1px solid var(--amber-100);color:var(--amber-600)}
+.pay-alert svg{flex-shrink:0}
+
+/* Filter bar for payments */
+.pay-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pay-filter-select{
+  height:34px;border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-2);
+  font-size:0.76rem;font-weight:500;padding:0 10px;
+  appearance:none;-webkit-appearance:none;
+  padding-right:26px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;cursor:pointer;
+}
+.pay-filter-select:focus{border-color:var(--midnight-400);outline:none}
+.pay-count-badge{
+  font-size:0.72rem;font-weight:600;color:var(--ink-3);
+  padding:4px 10px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:99px;
+}
+
+/* Pay history edit btn */
+.pay-edit-btn{
+  height:34px;padding:0 12px;
+  border:1.5px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-3);
+  font-size:0.76rem;font-weight:600;
+  display:flex;align-items:center;gap:5px;
+  transition:all 0.14s;
+}
+.pay-edit-btn:hover{border-color:var(--midnight-400);color:var(--midnight-600);background:var(--midnight-50)}
+
+/* Payment table */
+.pay-table-wrap{overflow-x:auto;margin-top:4px}
+.pay-table-wrap::-webkit-scrollbar{height:4px}
+.pay-table-wrap::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:99px}
+.pay-table{width:100%;border-collapse:collapse;min-width:580px}
+.pay-table th{
+  font-size:0.68rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.08em;
+  padding:9px 14px;text-align:left;
+  border-bottom:1px solid var(--line-md);
+  background:var(--surface-2);white-space:nowrap;
+}
+.pay-table th:first-child{border-radius:var(--r-sm) 0 0 0}
+.pay-table th:last-child{border-radius:0 var(--r-sm) 0 0}
+.pay-table td{
+  padding:11px 14px;font-size:0.82rem;color:var(--ink-2);
+  border-bottom:1px solid var(--line);
+}
+.pay-table tr:last-child td{border-bottom:none}
+.pay-table tr:hover td{background:var(--surface-2)}
+.pay-table .mono{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--ink)}
+.pay-table .month-col{font-weight:600;color:var(--ink)}
+.pay-table .amount-col{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink)}
+
+/* Mobile payment cards */
+.pay-card-list{display:none}
+.pay-card{
+  border:1px solid var(--line);border-radius:var(--r-md);
+  padding:13px 15px;margin-bottom:8px;
+  background:var(--surface);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.pay-card-month{font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:2px}
+.pay-card-date{font-size:0.72rem;color:var(--ink-3)}
+.pay-card-right{text-align:right}
+.pay-card-amount{font-size:1rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--ink);margin-bottom:4px}
+
+/* Status badges */
+.status-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:0.67rem;font-weight:700;letter-spacing:0.04em;
+  padding:3px 10px;border-radius:99px;
+}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.status-paid{background:var(--jade-50);color:var(--jade-700);border:1px solid var(--jade-100)}
+.status-paid::before{background:var(--jade-500)}
+.status-pending{background:var(--coral-50);color:var(--coral-600);border:1px solid var(--coral-100)}
+.status-pending::before{background:var(--coral-500)}
+.status-partial{background:var(--amber-50);color:var(--amber-600);border:1px solid var(--amber-100)}
+.status-partial::before{background:var(--amber-500)}
+.status-overdue{background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8}
+.status-overdue::before{background:#ec4899;animation:pulse 1.2s ease-in-out infinite}
+
+/* No data / empty states */
+.empty-state{
+  text-align:center;padding:40px 20px;
+  animation:fadeIn 0.4s var(--ease-out) both;
+}
+.empty-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:var(--surface-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 12px;color:var(--ink-4);
+}
+.empty-title{font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.empty-sub{font-size:0.76rem;color:var(--ink-3);max-width:240px;margin:0 auto}
+
+/* Profile default (before search) */
+.search-prompt{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:48px 32px;
+  text-align:center;box-shadow:var(--s-sm);
+  animation:fadeUp 0.4s 0.1s var(--ease-out) both;
+}
+.prompt-rings{
+  position:relative;width:72px;height:72px;margin:0 auto 20px;
+}
+.prompt-rings::before,.prompt-rings::after{
+  content:'';position:absolute;border-radius:50%;
+  border:1.5px solid var(--line-md);
+  animation:fadeIn 0.5s ease both;
+}
+.prompt-rings::before{inset:0}
+.prompt-rings::after{inset:12px}
+.prompt-inner{
+  position:absolute;inset:24px;border-radius:50%;
+  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-500));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;box-shadow:var(--s-blue);
+}
+.prompt-title{font-size:1.1rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-bottom:6px}
+.prompt-sub{font-size:0.78rem;color:var(--ink-3);max-width:320px;margin:0 auto 20px}
+.search-tips{
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin-top:4px;
+}
+.tip-chip{
+  background:var(--surface-2);border:1px solid var(--line-md);
+  border-radius:99px;padding:4px 12px;
+  font-size:0.72rem;font-weight:600;color:var(--ink-3);
+}
+
+/* Loading skeleton */
+.sk{position:relative;overflow:hidden;background:var(--surface-3)!important;border-radius:var(--r-sm);color:transparent!important;pointer-events:none}
+.sk *{visibility:hidden!important}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,0.55) 50%,transparent);animation:shimmer 1.6s ease-in-out infinite}
+.loading-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.loading-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;height:220px;overflow:hidden}
+.sk-line{height:10px;border-radius:99px;margin-bottom:8px}
+.sk-line.w-60{width:60%}
+.sk-line.w-80{width:80%}
+.sk-line.w-40{width:40%}
+
+/* ════ EDIT MODAL ════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(11,22,40,0.55);
+  backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease both}
+.modal-box{
+  background:var(--surface);border:1px solid var(--line-md);
+  border-radius:var(--r-xl);box-shadow:var(--s-lg);
+  width:100%;max-width:520px;max-height:90vh;
+  overflow-y:auto;
+  animation:modalIn 0.25s var(--ease-spring) both;
+}
+.modal-box::-webkit-scrollbar{width:4px}
+.modal-box::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:99px}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 22px 16px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--surface);z-index:2;
+}
+.modal-title{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface-2);border:1px solid var(--line-md);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);transition:all 0.14s;
+}
+.modal-close:hover{background:var(--coral-50);border-color:var(--coral-100);color:var(--coral-600)}
+.modal-body{padding:20px 22px}
+.modal-footer{
+  padding:16px 22px 20px;border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+}
+
+/* Form elements in modal */
+.form-group{margin-bottom:14px}
+.form-group:last-child{margin-bottom:0}
+.form-label{
+  display:block;font-size:0.73rem;font-weight:600;color:var(--ink-2);
+  margin-bottom:6px;letter-spacing:-0.01em;
+}
+.form-input{
+  width:100%;height:40px;
+  border:1.5px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink);
+  font-size:0.85rem;font-weight:500;
+  padding:0 12px;
+  transition:border-color 0.14s,box-shadow 0.14s;
+}
+.form-input:focus{
+  border-color:var(--midnight-400);
+  box-shadow:0 0 0 3px rgba(39,77,150,0.12);
+  outline:none;
+}
+.form-input::placeholder{color:var(--ink-4)}
+body.dark .form-input{background:var(--surface-3)}
+
+.form-divider{
+  height:1px;background:var(--line);
+  margin:16px 0;
+}
+.form-section-label{
+  font-size:0.65rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:12px;
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Buttons */
+.btn-cancel{
+  height:38px;padding:0 16px;
+  border:1.5px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-2);
+  font-size:0.82rem;font-weight:600;
+  transition:all 0.14s;
+}
+.btn-cancel:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-save{
+  height:38px;padding:0 20px;
+  border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--midnight-600),var(--midnight-400));
+  color:#fff;font-size:0.82rem;font-weight:700;
+  box-shadow:var(--s-blue);
+  transition:opacity 0.14s,transform 0.14s;
+  border:none;
+}
+.btn-save:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-save:active{transform:translateY(0)}
+
+/* Toast notification */
+.toast{
+  position:fixed;bottom:calc(var(--mobnav-h) + var(--safe-bot) + 16px);
+  left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:#fff;
+  font-size:0.82rem;font-weight:600;
+  padding:10px 18px;border-radius:99px;
+  box-shadow:var(--s-md);
+  opacity:0;transition:opacity 0.2s,transform 0.2s;
+  z-index:600;white-space:nowrap;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:701px){
+  .toast{bottom:20px}
+}
+
+/* Responsive */
+@media(max-width:1100px){
+  .info-sections{grid-template-columns:1fr 1fr}
+  .loading-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .topbar,.desknav{display:none}
+  .mob-header{display:flex}
+  .mob-nav{display:block}
+  body{background:#eef3fa}
+  body.dark{background:#0b1628}
+  .page{padding:12px 14px;padding-bottom:calc(var(--mobnav-h) + var(--safe-bot) + 16px)}
+  .search-hero{padding:20px 18px 18px;border-radius:var(--r-lg)}
+  .hero-title{font-size:1.35rem}
+  .info-sections{grid-template-columns:1fr;gap:10px}
+  .loading-cards{grid-template-columns:1fr}
+  .pay-table-wrap{display:none}
+  .pay-card-list{display:block}
+  .panel-head{flex-direction:column;align-items:flex-start}
+  .pay-filters{flex-wrap:wrap}
+  .flat-id-badge{font-size:0.95rem;padding:8px 12px}
+  .form-row{grid-template-columns:1fr}
+  .modal-box{border-radius:var(--r-lg)}
+}
+@media(max-width:480px){
+  .search-btn span{display:none}
+  .pay-sec-head{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE HEADER -->
+<header class="mob-header" id="mobHeader">
+  <div class="mob-brand">
+    <div class="mob-gem">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
+    </div>
+    <span class="mob-name">MIG Society</span>
+  </div>
+  <div class="mob-right">
+    <button class="mob-theme-btn" id="mobThemeBtn" type="button" title="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/><line x1="4.3" y1="4.3" x2="5.7" y2="5.7"/><line x1="14.3" y1="14.3" x2="15.7" y2="15.7"/><line x1="14.3" y1="5.7" x2="15.7" y2="4.3"/><line x1="4.3" y1="15.7" x2="5.7" y2="14.3"/></svg>
+    </button>
+    <div class="profile-wrap">
+      <button class="mob-profile" id="profileTogMob" type="button">A</button>
+      <div class="profile-dropdown" id="pdMob">
+        <button id="logoutMob" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- DESKTOP TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-gem">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
+    </div>
+    <div class="brand-copy">
+      <div class="brand-name">MIG Society, Sector-29</div>
+      <div class="brand-tagline">Flat Search & 360° Profile</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/></svg>
+    </button>
+    <div class="profile-wrap">
+      <button class="profile-btn" id="profileTogDesk" type="button">A</button>
+      <div class="profile-dropdown" id="pdDesk">
+        <button id="logoutDesk" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- DESKTOP NAV — Flat Search is 3rd item -->
+<nav class="desknav">
+  <a class="dn-item" href="index.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+    Dashboard
+  </a>
+  <a class="dn-item" href="payments.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="11" x2="7" y2="11"/></svg>
+    Payments
+  </a>
+  <a class="dn-item active" href="flat-search.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+    Flat Search
+  </a>
+  <a class="dn-item" href="owner-tenant.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="5" r="2"/><path d="M15 14c0-2-1-3.5-3-4"/></svg>
+    Residents <span class="nav-pill" id="navResidents">0</span>
+  </a>
+  <a class="dn-item" href="emergency-contact.html">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+    Emergency
+  </a>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- Search Hero -->
+  <div class="search-hero">
+    <div class="hero-label">360° Flat Profile</div>
+    <div class="hero-title">Flat Search & Details</div>
+    <div class="hero-sub">Search by flat number, owner name, tenant name, or mobile number</div>
+    <div class="search-box-wrap">
+      <div class="search-box">
+        <div class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+        </div>
+        <input type="text" class="search-main-input" id="mainSearch" placeholder="e.g. B-101, John, 9876543210…" autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="searchClear" type="button" title="Clear">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+        </button>
+        <button class="search-btn" id="searchBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+          <span>Search</span>
+        </button>
+      </div>
+      <div class="suggestions-wrap" id="suggestionsWrap"></div>
+    </div>
+  </div>
+
+  <!-- Profile panel (initially hidden) -->
+  <div class="profile-panel" id="profilePanel">
+
+    <!-- Panel header -->
+    <div class="panel-head">
+      <div class="panel-flat-id">
+        <div class="flat-id-badge" id="flatIdBadge">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
+          <span id="flatIdText">—</span>
+        </div>
+        <div class="panel-flat-meta">
+          <div class="panel-flat-title" id="flatTitle">—</div>
+          <div class="panel-flat-sub" id="flatSub">Loading data…</div>
+        </div>
+      </div>
+      <button class="panel-close-btn" id="panelCloseBtn" type="button">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+        Close
+      </button>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div class="loading-cards" id="loadingCards">
+      <div class="loading-card"><div class="sk sk-line w-40" style="height:8px;margin-bottom:14px"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-60"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-40"></div></div>
+      <div class="loading-card"><div class="sk sk-line w-40" style="height:8px;margin-bottom:14px"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-60"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-40"></div></div>
+      <div class="loading-card"><div class="sk sk-line w-40" style="height:8px;margin-bottom:14px"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-60"></div><div class="sk sk-line w-80"></div><div class="sk sk-line w-40"></div></div>
+    </div>
+
+    <!-- Modular section cards: Flat Info | Owner | Tenant (with Vehicle + Payment Summary) -->
+    <div class="info-sections" id="infoSections" style="display:none">
+
+      <!-- Flat Information Section -->
+      <div class="section-card section-flat">
+        <div class="section-head">
+          <div class="section-head-left">
+            <div class="section-icon">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
+            </div>
+            <div>
+              <div class="section-title">Flat Information</div>
+              <div class="section-sub" id="flatInfoSub">Property details</div>
+            </div>
+          </div>
+          <!-- No edit button for flat info — read-only property data -->
+        </div>
+        <div class="section-body" id="flatInfoRows"></div>
+      </div>
+
+      <!-- Owner Details Section -->
+      <div class="section-card section-owner">
+        <div class="section-head">
+          <div class="section-head-left">
+            <div class="section-icon">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="7" r="4"/><path d="M3 18c0-4 3-7 7-7s7 3 7 7"/></svg>
+            </div>
+            <div>
+              <div class="section-title">Owner Details</div>
+              <div class="section-sub" id="ownerSub">Property owner</div>
+            </div>
+          </div>
+          <button class="section-edit-btn" id="editOwnerBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
+            Edit
+          </button>
+        </div>
+        <div class="section-body" id="ownerInfoRows"></div>
+      </div>
+
+      <!-- Tenant Details Section (includes Vehicle) -->
+      <div class="section-card section-tenant">
+        <div class="section-head">
+          <div class="section-head-left">
+            <div class="section-icon">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="7" r="3.5"/><path d="M2 18c0-3.5 2.5-6 6-6s6 2.5 6 6"/><circle cx="15" cy="7" r="2.5"/><path d="M18 18c0-2.2-1.2-4-3-5"/></svg>
+            </div>
+            <div>
+              <div class="section-title">Tenant Details</div>
+              <div class="section-sub" id="tenantSub">Current occupant</div>
+            </div>
+          </div>
+          <button class="section-edit-btn" id="editTenantBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
+            Edit
+          </button>
+        </div>
+        <div class="section-body">
+          <div id="tenantInfoRows"></div>
+          <!-- Vehicle Details sub-section (under Tenant) -->
+          <div class="vehicle-subsection" id="vehicleSubsection" style="display:none">
+            <div class="vehicle-label">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="7" width="18" height="9" rx="2"/><path d="M5 7l2-4h6l2 4"/><circle cx="5.5" cy="16" r="1.5"/><circle cx="14.5" cy="16" r="1.5"/></svg>
+              Vehicle Details
+            </div>
+            <div id="vehicleInfoRows"></div>
+          </div>
+          <!-- Payment Summary sub-section -->
+          <div class="vehicle-subsection" id="paySummarySubsection">
+            <div class="vehicle-label">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg>
+              Payment Summary
+            </div>
+            <div class="pay-summary-grid" id="paySummaryGrid">
+              <div class="pay-sum-cell"><div class="psc-label">Paid</div><div class="psc-val paid" id="sumPaid">—</div></div>
+              <div class="pay-sum-cell"><div class="psc-label">Pending</div><div class="psc-val pending" id="sumPending">—</div></div>
+              <div class="pay-sum-cell"><div class="psc-label">Partial</div><div class="psc-val partial" id="sumPartial">—</div></div>
+              <div class="pay-sum-cell"><div class="psc-label">Records</div><div class="psc-val total" id="sumTotal">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Payment alerts -->
+    <div id="payAlerts"></div>
+
+    <!-- Payment History Section -->
+    <div class="pay-section" id="paySection" style="display:none">
+      <div class="pay-sec-head">
+        <div class="pay-sec-title-wrap">
+          <div class="pay-sec-title">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg>
+            Payment History
+          </div>
+          <button class="pay-edit-btn" id="editPaymentBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
+            Edit
+          </button>
+        </div>
+        <div class="pay-filters">
+          <select class="pay-filter-select" id="payYearFilter">
+            <option value="">All Years</option>
+          </select>
+          <select class="pay-filter-select" id="payStatusFilter">
+            <option value="">All Statuses</option>
+            <option value="PAID">Paid</option>
+            <option value="PENDING">Pending</option>
+            <option value="PARTIAL">Partial</option>
+            <option value="OVERDUE">Overdue</option>
+          </select>
+          <span class="pay-count-badge" id="payCountBadge">0 records</span>
+        </div>
+      </div>
+
+      <!-- Desktop table -->
+      <div class="pay-table-wrap">
+        <table class="pay-table">
+          <thead>
+            <tr>
+              <th>Month / Year</th>
+              <th>Amount (₹)</th>
+              <th>Payment Date</th>
+              <th>Mode</th>
+              <th>Months Covered</th>
+              <th>Remarks</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="payTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="pay-card-list" id="payCardList"></div>
+
+    </div>
+
+  </div>
+
+  <!-- Default prompt -->
+  <div class="search-prompt" id="searchPrompt">
+    <div class="prompt-rings">
+      <div class="prompt-inner">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="prompt-title">Search for a Flat</div>
+    <div class="prompt-sub">Enter a flat number, owner name, tenant name, or mobile number to see the complete 360° profile</div>
+    <div class="search-tips">
+      <span class="tip-chip">Flat No: B-101</span>
+      <span class="tip-chip">Owner Name</span>
+      <span class="tip-chip">Tenant Name</span>
+      <span class="tip-chip">Mobile Number</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- MOBILE BOTTOM NAV — Flat Search is 3rd item -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <a class="mni" href="index.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="mni-label">Home</span>
+    </a>
+    <a class="mni" href="payments.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="mni-label">Payments</span>
+    </a>
+    <a class="mni active" href="flat-search.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg></div>
+      <span class="mni-label">Search</span>
+    </a>
+    <a class="mni" href="owner-tenant.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="3.5"/><path d="M2 18c0-4 2.7-7 6-7s6 3 6 7"/><circle cx="15" cy="7" r="2.5"/><path d="M18 18c0-2.5-1.2-4.5-3-5.5"/></svg></div>
+      <span class="mni-label">Residents</span>
+    </a>
+    <a class="mni" href="emergency-contact.html">
+      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="11"/><circle cx="10" cy="14" r="0.8" fill="currentColor"/></svg></div>
+      <span class="mni-label">Emergency</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ════ EDIT OWNER MODAL ════ -->
+<div class="modal-overlay" id="ownerModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Edit Owner Details</div>
+      <button class="modal-close" id="ownerModalClose" type="button">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="editOwnerName">Owner Name</label>
+        <input class="form-input" id="editOwnerName" type="text" placeholder="Full name">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editOwnerMobile">Mobile Number</label>
+          <input class="form-input" id="editOwnerMobile" type="tel" placeholder="10-digit mobile">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editOwnerEmail">Email Address</label>
+          <input class="form-input" id="editOwnerEmail" type="email" placeholder="owner@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editOwnerCity">City / Location</label>
+        <input class="form-input" id="editOwnerCity" type="text" placeholder="City or current location">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="ownerModalCancel" type="button">Cancel</button>
+      <button class="btn-save" id="ownerModalSave" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ EDIT TENANT MODAL ════ -->
+<div class="modal-overlay" id="tenantModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Edit Tenant Details</div>
+      <button class="modal-close" id="tenantModalClose" type="button">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-label">Tenant Information</div>
+      <div class="form-group">
+        <label class="form-label" for="editTenantName">Tenant Name</label>
+        <input class="form-input" id="editTenantName" type="text" placeholder="Full name">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editTenantMobile">Mobile Number</label>
+          <input class="form-input" id="editTenantMobile" type="tel" placeholder="10-digit mobile">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editTenantEmail">Email Address</label>
+          <input class="form-input" id="editTenantEmail" type="email" placeholder="tenant@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editTenantSince">Tenant Since</label>
+        <input class="form-input" id="editTenantSince" type="text" placeholder="e.g. Jan 2024 or 01/01/2024">
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-section-label">Vehicle Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editVehicleNo">Vehicle Number</label>
+          <input class="form-input" id="editVehicleNo" type="text" placeholder="e.g. CG04AB1234">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editVehicleType">Vehicle Type</label>
+          <input class="form-input" id="editVehicleType" type="text" placeholder="e.g. Car, Bike, Scooter">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="tenantModalCancel" type="button">Cancel</button>
+      <button class="btn-save" id="tenantModalSave" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ EDIT PAYMENT MODAL ════ -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Edit Payment Record</div>
+      <button class="modal-close" id="paymentModalClose" type="button">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;font-size:0.78rem;color:var(--ink-3);">
+        <strong style="color:var(--ink-2);">Note:</strong> Payment edits are logged locally. To persist changes to the spreadsheet, please update the Google Sheet directly or use the Apps Script editor.
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editPayMonth">Month</label>
+          <input class="form-input" id="editPayMonth" type="text" placeholder="e.g. Jan, Feb…">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editPayYear">Year</label>
+          <input class="form-input" id="editPayYear" type="text" placeholder="e.g. 2025">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editPayAmount">Amount (₹)</label>
+          <input class="form-input" id="editPayAmount" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editPayStatus">Status</label>
+          <select class="form-input pay-filter-select" id="editPayStatus" style="padding-right:30px">
+            <option value="PAID">Paid</option>
+            <option value="PENDING">Pending</option>
+            <option value="PARTIAL">Partial</option>
+            <option value="OVERDUE">Overdue</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editPayDate">Payment Date</label>
+          <input class="form-input" id="editPayDate" type="text" placeholder="DD/MM/YYYY">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editPayMode">Payment Mode</label>
+          <input class="form-input" id="editPayMode" type="text" placeholder="Cash, UPI, Bank…">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editPayRemarks">Remarks</label>
+        <input class="form-input" id="editPayRemarks" type="text" placeholder="Optional notes">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="paymentModalCancel" type="button">Cancel</button>
+      <button class="btn-save" id="paymentModalSave" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════ */
+const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME  = "Sheet1";
+const PAYMENT_SHEET_ID    = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+const AUTH_KEY            = "society_dashboard_auth";
+
+/* ═══════════════════════════════════════════════
+   GLOBAL STATE
+═══════════════════════════════════════════════ */
+let directoryHeaders = [], directoryRows = [];
+let allPaymentRecords = [];
+let currentFlatData = null;
+let paymentFiltered = [];
+let editingPaymentIdx = -1; // index into paymentFiltered for editing
+const PAYMENT_TABS = ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sep","Oct","Nov","Dec"];
+
+/* Overrides stored in memory (not persisted — illustrative edit layer) */
+const localOverrides = { owners:{}, tenants:{}, payments:{} };
+
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+const esc  = v => String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = v => String(v||"").trim().toLowerCase();
+const normPhone = v => String(v||"").replace(/[^\d]/g,"");
+const blockDisp = v => { const d=String(v||"").match(/\d+/); return d?`Block-${Number(d[0])}`:String(v||""); };
+
+function parseCSV(line){
+  const result=[];let cur="",inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ}
+    else if(c===','&&!inQ){result.push(cur.trim());cur="";}
+    else{cur+=c;}
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function hiIdx(pats){
+  const nh=directoryHeaders.map(h=>norm(h));
+  return pats.reduce((f,p)=>f>=0?f:nh.findIndex(h=>h.includes(p)),-1);
+}
+function personIdx(pri){
+  const excPats=["vehicle","car","bike","scooter","number plate","veh","type","parking"];
+  const nh=directoryHeaders.map(h=>norm(h));
+  for(const p of pri){
+    const i=nh.findIndex(h=>h.includes(p)&&!excPats.some(e=>h.includes(e)));
+    if(i>=0)return i;
+  }
+  return -1;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════ */
+const savedTheme = localStorage.getItem("mig_theme");
+if(savedTheme==="dark") document.body.classList.add("dark");
+
+function toggleTheme(){
+  const isDark=document.body.classList.toggle("dark");
+  localStorage.setItem("mig_theme",isDark?"dark":"light");
+}
+document.getElementById("themeToggle")?.addEventListener("click",toggleTheme);
+document.getElementById("mobThemeBtn")?.addEventListener("click",toggleTheme);
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2600);
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD DIRECTORY DATA
+═══════════════════════════════════════════════ */
+async function loadDirectory(){
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
+    `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
+  ];
+  let csv="";
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{cache:"no-cache"});
+      const t=await r.text();
+      const p=t.trim().slice(0,200).toLowerCase();
+      if(!t.trim()||p.startsWith("<!doctype")||p.includes("<html")||t.includes("File not found"))continue;
+      csv=t;break;
+    }catch(_){}
+  }
+  if(!csv)return;
+  const lines=csv.split("\n").filter(Boolean);
+  const rawH=parseCSV(lines[0]);
+  const rawR=lines.slice(1).map(parseCSV);
+  const ki=[];rawH.forEach((h,i)=>{if(String(h||"").trim())ki.push(i);});
+  directoryHeaders=ki.map(i=>String(rawH[i]||"").trim());
+  directoryRows=rawR.map(r=>ki.map(i=>r[i]||""));
+  const np=document.getElementById("navResidents");
+  if(np)np.textContent=directoryRows.length;
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD PAYMENT DATA
+   FIXED: Normalize block+flat keys for reliable matching
+═══════════════════════════════════════════════ */
+async function loadPayments(){
+  const currentYear=new Date().getFullYear();
+  const years=[currentYear-1,currentYear,currentYear+1];
+  const tabNames=[];
+  years.forEach(y=>{
+    PAYMENT_TABS.forEach(m=>{
+      tabNames.push(`${m} ${y}`);
+      tabNames.push(`${m.toUpperCase()} ${y}`);
+    });
+  });
+
+  const fetchTab=async(tabName)=>{
+    const url=`https://docs.google.com/spreadsheets/d/${PAYMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+    try{
+      const r=await fetch(url,{cache:"no-cache"});
+      const t=await r.text();
+      const lc=t.trim().slice(0,200).toLowerCase();
+      if(!t.trim()||lc.startsWith("<!doctype")||lc.includes("<html")||t.includes("File not found")||t.includes("error"))return null;
+      return{tabName,csv:t};
+    }catch(_){return null;}
+  };
+
+  const batchSize=8;
+  const results=[];
+  for(let i=0;i<tabNames.length;i+=batchSize){
+    const batch=tabNames.slice(i,i+batchSize);
+    const batchResults=await Promise.all(batch.map(fetchTab));
+    results.push(...batchResults.filter(Boolean));
+  }
+
+  const seen=new Set();
+  results.forEach(({tabName,csv})=>{
+    if(seen.has(csv.slice(0,100)))return;
+    seen.add(csv.slice(0,100));
+    parsePaymentTab(tabName,csv);
+  });
+}
+
+/* Normalize a block value to a canonical form like "block-1" for matching */
+function normBlock(v){
+  const s=String(v||"").trim().toLowerCase();
+  // Extract just the number
+  const m=s.match(/\d+/);
+  return m?`block-${Number(m[0])}`:"";
+}
+/* Normalize flat number: trim, lowercase */
+function normFlat(v){
+  return String(v||"").trim().toLowerCase();
+}
+
+function parsePaymentTab(tabName,csv){
+  const lines=csv.split("\n").filter(Boolean);
+  if(lines.length<2)return;
+  const headers=parseCSV(lines[0]).map(h=>norm(h));
+  const blockIdx=headers.findIndex(h=>h.includes("block"));
+  const flatIdx=headers.findIndex(h=>h.includes("flat")||h.includes("house")||h.includes("apartment"));
+  const amtIdx=headers.findIndex(h=>h.includes("amount")||h.includes("amt"));
+  const dateIdx=headers.findIndex(h=>h.includes("date")&&!h.includes("month"));
+  const modeIdx=headers.findIndex(h=>h.includes("mode")||h.includes("method"));
+  const statusIdx=headers.findIndex(h=>h.includes("status")||h.includes("done")||h.includes("paid"));
+  const remarksIdx=headers.findIndex(h=>h.includes("remark")||h.includes("note")||h.includes("description"));
+  const paidMonthsIdx=headers.findIndex(h=>h.includes("paid month")||h.includes("month paid"));
+  const receivedByIdx=headers.findIndex(h=>h.includes("received")||h.includes("collected by")||h.includes("received by"));
+
+  lines.slice(1).forEach(line=>{
+    const cols=parseCSV(line);
+    if(!cols.some(c=>c.trim()))return;
+    const rawBlock=blockIdx>=0?String(cols[blockIdx]||"").trim():"";
+    const rawFlat=flatIdx>=0?String(cols[flatIdx]||"").trim():"";
+    if(!rawBlock&&!rawFlat)return;
+
+    const amount=amtIdx>=0?Number(String(cols[amtIdx]||"0").replace(/[^\d.]/g,""))||0:0;
+    const paymentDate=dateIdx>=0?String(cols[dateIdx]||"").trim():"";
+    const paymentMode=modeIdx>=0?String(cols[modeIdx]||"").trim():"";
+    const rawStatus=statusIdx>=0?String(cols[statusIdx]||"").trim().toUpperCase():"";
+    const remarks=remarksIdx>=0?String(cols[remarksIdx]||"").trim():"";
+    const paidMonths=paidMonthsIdx>=0?String(cols[paidMonthsIdx]||"").trim():"";
+    const receivedBy=receivedByIdx>=0?String(cols[receivedByIdx]||"").trim():"";
+
+    let year="",month="";
+    const tabMatch=tabName.match(/(\w+)\s+(\d{4})/);
+    if(tabMatch){month=tabMatch[1];year=tabMatch[2];}
+
+    let status=rawStatus;
+    if(!status){
+      if(amount>0&&paymentDate)status="PAID";
+      else if(amount>0)status="PARTIAL";
+      else status="PENDING";
+    }
+    if(status==="DONE")status="PAID";
+    if(!["PAID","PENDING","PARTIAL","OVERDUE"].includes(status)){
+      if(amount>0&&paymentDate)status="PAID";
+      else if(amount>0)status="PARTIAL";
+      else status="PENDING";
+    }
+
+    // Store both display and normalized keys for matching
+    allPaymentRecords.push({
+      tabName,month,year,
+      block:blockDisp(rawBlock),        // display form e.g. "Block-1"
+      flat:rawFlat,                      // raw flat from payment sheet
+      blockNorm:normBlock(rawBlock),     // normalized e.g. "block-1"
+      flatNorm:normFlat(rawFlat),        // normalized flat
+      amount,paymentDate,paymentMode,status,remarks,paidMonths,receivedBy
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   SEARCH & SUGGESTIONS
+═══════════════════════════════════════════════ */
+const mainSearch=document.getElementById("mainSearch");
+const sugWrap=document.getElementById("suggestionsWrap");
+const searchClear=document.getElementById("searchClear");
+
+function getSearchCandidates(q){
+  if(!q||q.length<2)return[];
+  const bI=hiIdx(["block"]);
+  const fI=hiIdx(["flat","house","apartment"]);
+  const oI=personIdx(["owner name","owner"]);
+  const tI=personIdx(["tenant name","tenant"]);
+  const ocI=hiIdx(["occupied by","occupiedby"]);
+  const moI=hiIdx(["owner contact","owner mobile","owner phone"]);
+  const mtI=hiIdx(["tenant contact","tenant mobile","tenant phone"]);
+  const results=[];
+  directoryRows.forEach(r=>{
+    const bv=blockDisp(r[bI]||"");
+    const fv=String(r[fI]||"").trim();
+    const flatKey=`${bv}-${fv}`.toLowerCase();
+    const ov=oI>=0?String(r[oI]||"").trim():"";
+    const tv=tI>=0?String(r[tI]||"").trim():"";
+    const oMob=moI>=0?normPhone(r[moI]):"";
+    const tMob=mtI>=0?normPhone(r[mtI]):"";
+    const occ=ocI>=0?String(r[ocI]||"").trim().toLowerCase():"";
+    let score=0;
+    if(flatKey.includes(q)||bv.toLowerCase().includes(q)||fv.toLowerCase().includes(q))score+=10;
+    if(norm(ov).includes(q))score+=8;
+    if(norm(tv).includes(q))score+=8;
+    if(oMob.includes(q)||normPhone(q)&&oMob.includes(normPhone(q)))score+=9;
+    if(tMob.includes(q)||normPhone(q)&&tMob.includes(normPhone(q)))score+=9;
+    if(score>0)results.push({score,bv,fv,ov,tv,occ,row:r});
+  });
+  return results.sort((a,b)=>b.score-a.score).slice(0,8);
+}
+
+function renderSuggestions(q){
+  const items=getSearchCandidates(q);
+  if(!q||q.length<2){sugWrap.classList.remove("open");return;}
+  if(!items.length){
+    sugWrap.innerHTML=`<div class="sug-no-results">No flats found for "<strong>${esc(q)}</strong>"</div>`;
+    sugWrap.classList.add("open");return;
+  }
+  const html=`<div class="sug-header">Matching Flats</div>`+items.map(it=>{
+    const label=it.occ==="tenant"?"tenant":it.occ==="owner"?"owner":"vacant";
+    const names=[it.ov&&`Owner: ${it.ov}`,it.tv&&`Tenant: ${it.tv}`].filter(Boolean).join(" · ")||"No resident data";
+    const blockShort=it.bv.replace("Block-","B");
+    return`<div class="sug-item" data-block="${esc(it.bv)}" data-flat="${esc(it.fv)}">
+      <div class="sug-avatar">${esc(blockShort)}</div>
+      <div class="sug-info">
+        <div class="sug-flat">${esc(it.bv)} · Flat ${esc(it.fv)}</div>
+        <div class="sug-names">${esc(names)}</div>
+      </div>
+      <span class="sug-badge ${label}">${label.charAt(0).toUpperCase()+label.slice(1)}</span>
+    </div>`;
+  }).join("");
+  sugWrap.innerHTML=html;
+  sugWrap.classList.add("open");
+}
+
+mainSearch.addEventListener("input",()=>{
+  const q=norm(mainSearch.value);
+  searchClear.classList.toggle("visible",!!mainSearch.value);
+  renderSuggestions(q);
+});
+
+mainSearch.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    sugWrap.classList.remove("open");
+    const q=norm(mainSearch.value);
+    const items=getSearchCandidates(q);
+    if(items.length===1){openProfile(items[0].bv,items[0].fv);}
+    else if(items.length>1){
+      const exact=items.find(it=>it.fv.toLowerCase()===q||`${it.bv.toLowerCase()}-${it.fv.toLowerCase()}`===q);
+      if(exact)openProfile(exact.bv,exact.fv);
+    }
+  }
+});
+
+searchClear.addEventListener("click",()=>{
+  mainSearch.value="";searchClear.classList.remove("visible");
+  sugWrap.classList.remove("open");
+});
+
+document.getElementById("searchBtn")?.addEventListener("click",()=>{
+  sugWrap.classList.remove("open");
+  const q=norm(mainSearch.value);
+  const items=getSearchCandidates(q);
+  if(items.length>=1)openProfile(items[0].bv,items[0].fv);
+});
+
+sugWrap.addEventListener("click",e=>{
+  const item=e.target.closest(".sug-item");
+  if(!item)return;
+  const{block,flat}=item.dataset;
+  sugWrap.classList.remove("open");
+  openProfile(block,flat);
+});
+
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".search-box-wrap"))sugWrap.classList.remove("open");
+});
+
+/* ═══════════════════════════════════════════════
+   OPEN PROFILE
+═══════════════════════════════════════════════ */
+function openProfile(block,flat){
+  const bI=hiIdx(["block"]);
+  const fI=hiIdx(["flat","house","apartment"]);
+  const row=directoryRows.find(r=>blockDisp(r[bI]||"")===block&&String(r[fI]||"").trim()===String(flat||"").trim());
+  if(!row)return;
+
+  currentFlatData={block,flat,row};
+  mainSearch.value=`${block} · Flat ${flat}`;
+  searchClear.classList.add("visible");
+
+  document.getElementById("searchPrompt").style.display="none";
+  const panel=document.getElementById("profilePanel");
+  panel.classList.add("visible");
+
+  document.getElementById("flatIdText").textContent=`${block.replace("Block-","B")}-${flat}`;
+  document.getElementById("flatTitle").textContent=`${block} / Flat ${flat}`;
+  document.getElementById("flatSub").textContent="Loading complete profile…";
+
+  document.getElementById("loadingCards").style.display="grid";
+  document.getElementById("infoSections").style.display="none";
+  document.getElementById("paySection").style.display="none";
+  document.getElementById("payAlerts").innerHTML="";
+
+  setTimeout(()=>renderProfile(block,flat,row),200);
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER PROFILE
+═══════════════════════════════════════════════ */
+function renderProfile(block,flat,row){
+  document.getElementById("loadingCards").style.display="none";
+  document.getElementById("infoSections").style.display="grid";
+  document.getElementById("paySection").style.display="block";
+
+  // Index helpers
+  const bI=hiIdx(["block"]);
+  const fI=hiIdx(["flat","house","apartment"]);
+  const floorI=hiIdx(["floor","storey"]);
+  const typeI=hiIdx(["type","bhk","unit type"]);
+  const areaI=hiIdx(["area","sqft","sq ft"]);
+  const parkI=hiIdx(["parking","park slot"]);
+  const vehI=hiIdx(["vehicle type","veh type","vehicle"]);
+  const vehNoI=hiIdx(["vehicle no","number plate","registration"]);
+  const occI=hiIdx(["occupied by","occupiedby"]);
+
+  const oNameI=personIdx(["owner name","owner"]);
+  const oMobI=hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]);
+  const oEmailI=hiIdx(["owner email","owner mail"]);
+  const oCityI=hiIdx(["owner city","owner location","owner address"]);
+
+  const tNameI=personIdx(["tenant name","tenant"]);
+  const tMobI=hiIdx(["tenant contact","tenant mobile","tenant phone","tenant whatsapp"]);
+  const tEmailI=hiIdx(["tenant email","tenant mail"]);
+  const tSinceI=hiIdx(["tenant since","rent since","move in","joining date"]);
+
+  // Flat info (no vehicle here anymore)
+  const flatRows=[
+    {k:"Block",v:blockDisp(row[bI]||"")},
+    {k:"Flat No.",v:row[fI]||"—"},
+    floorI>=0&&{k:"Floor",v:row[floorI]||"—"},
+    typeI>=0&&{k:"Type",v:row[typeI]||"—"},
+    areaI>=0&&{k:"Area",v:row[areaI]||"—"},
+    parkI>=0&&{k:"Parking",v:row[parkI]||"—"},
+    occI>=0&&{k:"Status",v:row[occI]||"—"},
+  ].filter(Boolean);
+
+  document.getElementById("flatInfoRows").innerHTML=flatRows.map(r=>cardRow(r.k,r.v)).join("");
+  document.getElementById("flatInfoSub").textContent=`${row[fI]||""} · ${blockDisp(row[bI]||"")}`;
+
+  // Owner info (with local override support)
+  const oKey=`${block}_${flat}`;
+  const ov=localOverrides.owners[oKey]||{};
+  const oName=ov.name!==undefined?ov.name:(oNameI>=0?String(row[oNameI]||"").trim():"");
+  const oMob=ov.mobile!==undefined?ov.mobile:(oMobI>=0?String(row[oMobI]||"").trim():"");
+  const oEmail=ov.email!==undefined?ov.email:(oEmailI>=0?String(row[oEmailI]||"").trim():"");
+  const oCity=ov.city!==undefined?ov.city:(oCityI>=0?String(row[oCityI]||"").trim():"");
+
+  const ownerRows=[
+    {k:"Name",v:oName||"—"},
+    {k:"Mobile",v:oMob?phoneVal(oMob):"—",html:true},
+    {k:"Email",v:oEmail||"—"},
+    {k:"City/Location",v:oCity||"—"},
+  ];
+  document.getElementById("ownerInfoRows").innerHTML=ownerRows.map(r=>cardRow(r.k,r.v,r.html)).join("");
+  document.getElementById("ownerSub").textContent=oName||"No owner data";
+
+  // Tenant info (with local override support)
+  const tv=localOverrides.tenants[oKey]||{};
+  const tName=tv.name!==undefined?tv.name:(tNameI>=0?String(row[tNameI]||"").trim():"");
+  const tMob=tv.mobile!==undefined?tv.mobile:(tMobI>=0?String(row[tMobI]||"").trim():"");
+  const tEmail=tv.email!==undefined?tv.email:(tEmailI>=0?String(row[tEmailI]||"").trim():"");
+  const tSince=tv.since!==undefined?tv.since:(tSinceI>=0?String(row[tSinceI]||"").trim():"");
+  const vehNo=tv.vehicleNo!==undefined?tv.vehicleNo:(vehNoI>=0?String(row[vehNoI]||"").trim():"");
+  const vehType=tv.vehicleType!==undefined?tv.vehicleType:(vehI>=0?String(row[vehI]||"").trim():"");
+
+  const tenantRows=tName?[
+    {k:"Name",v:tName},
+    {k:"Mobile",v:tMob?phoneVal(tMob):"—",html:true},
+    {k:"Email",v:tEmail||"—"},
+    {k:"Tenant Since",v:tSince||"—"},
+  ]:[{k:"Status",v:"No Tenant Currently"}];
+  document.getElementById("tenantInfoRows").innerHTML=tenantRows.map(r=>cardRow(r.k,r.v,r.html)).join("");
+  document.getElementById("tenantSub").textContent=tName?`Occupied by ${tName}`:"Vacant";
+
+  // Vehicle details — now under Tenant section
+  const hasVehicle=vehNo||vehType;
+  const vehicleSub=document.getElementById("vehicleSubsection");
+  if(hasVehicle&&tName){
+    vehicleSub.style.display="block";
+    const vehicleRows=[
+      vehNo&&{k:"Vehicle No.",v:vehNo},
+      vehType&&{k:"Vehicle Type",v:vehType},
+    ].filter(Boolean);
+    document.getElementById("vehicleInfoRows").innerHTML=vehicleRows.map(r=>cardRow(r.k,r.v)).join("");
+  } else {
+    vehicleSub.style.display="none";
+  }
+
+  // Payment history for this flat — FIXED matching logic
+  // We need to match payment block/flat with directory block/flat
+  const dirBlockNorm=normBlock(block);        // e.g. "block-1"
+  const dirFlatNorm=normFlat(flat);           // e.g. "101"
+
+  const flatPayments=allPaymentRecords.filter(p=>{
+    // Match using normalized keys for reliable comparison
+    const pBlockNorm=p.blockNorm||normBlock(p.block);
+    const pFlatNorm=p.flatNorm||normFlat(p.flat);
+    // Primary: normalized match
+    if(pBlockNorm===dirBlockNorm&&pFlatNorm===dirFlatNorm)return true;
+    // Fallback: display form match
+    if(norm(p.block)===norm(block)&&norm(p.flat)===norm(flat))return true;
+    return false;
+  });
+
+  // Sort: latest first
+  const monthOrder={"jan":1,"feb":2,"mar":3,"apr":4,"may":5,"june":6,"jun":6,"july":7,"jul":7,"aug":8,"sep":9,"oct":10,"nov":11,"dec":12};
+  flatPayments.sort((a,b)=>{
+    const ya=Number(a.year)||0,yb=Number(b.year)||0;
+    if(ya!==yb)return yb-ya;
+    return(monthOrder[norm(b.month)]||0)-(monthOrder[norm(a.month)]||0);
+  });
+
+  paymentFiltered=flatPayments;
+
+  // Payment summary
+  const paid=flatPayments.filter(p=>p.status==="PAID").length;
+  const pending=flatPayments.filter(p=>p.status==="PENDING").length;
+  const partial=flatPayments.filter(p=>p.status==="PARTIAL").length;
+  const overdue=flatPayments.filter(p=>p.status==="OVERDUE").length;
+  document.getElementById("sumPaid").textContent=paid;
+  document.getElementById("sumPending").textContent=pending;
+  document.getElementById("sumPartial").textContent=partial;
+  document.getElementById("sumTotal").textContent=flatPayments.length;
+
+  // Alerts
+  let alertsHtml="";
+  if(overdue>0)alertsHtml+=`<div class="pay-alert danger"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><circle cx="10" cy="14" r="0.5" fill="currentColor"/></svg>${overdue} overdue payment${overdue>1?"s":""} — immediate attention required</div>`;
+  if(pending>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2l8 15H2z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="16" r="0.5" fill="currentColor"/></svg>${pending} pending payment${pending>1?"s":""} need to be collected</div>`;
+  document.getElementById("payAlerts").innerHTML=alertsHtml;
+
+  // Populate year filter
+  const years=[...new Set(flatPayments.map(p=>p.year).filter(Boolean))].sort((a,b)=>Number(b)-Number(a));
+  const yf=document.getElementById("payYearFilter");
+  yf.innerHTML=`<option value="">All Years</option>`+years.map(y=>`<option value="${y}">${y}</option>`).join("");
+
+  document.getElementById("payStatusFilter").value="";
+  renderPaymentTable(flatPayments);
+
+  document.getElementById("flatSub").textContent=`${flatPayments.length} payment record${flatPayments.length!==1?"s":""} · ${oName||"No owner"} · ${tName?`Tenant: ${tName}`:"Unoccupied"}`;
+}
+
+function cardRow(k,vRaw,isHtml=false){
+  return`<div class="card-row"><span class="card-key">${esc(k)}</span><span class="card-val">${isHtml?vRaw:esc(vRaw)}</span></div>`;
+}
+function phoneVal(v){
+  const clean=normPhone(v);
+  return clean?`<a href="tel:${clean}">☎ ${esc(v)}</a>`:esc(v);
+}
+
+/* ═══════════════════════════════════════════════
+   PAYMENT TABLE RENDER
+═══════════════════════════════════════════════ */
+function renderPaymentTable(records){
+  const tbody=document.getElementById("payTableBody");
+  const cardList=document.getElementById("payCardList");
+  document.getElementById("payCountBadge").textContent=`${records.length} record${records.length!==1?"s":""}`;
+
+  if(!records.length){
+    const noData=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-3);font-size:0.82rem">No payment records found for this flat</td></tr>`;
+    tbody.innerHTML=noData;
+    cardList.innerHTML=`<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/></svg></div><div class="empty-title">No Payment Records</div><div class="empty-sub">No payment history found for this flat</div></div>`;
+    return;
+  }
+
+  tbody.innerHTML=records.map((p,idx)=>{
+    const badge=statusBadge(p.status);
+    const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
+    return`<tr data-pay-idx="${idx}" style="cursor:pointer" title="Click row to edit">
+      <td class="month-col">${esc(p.month)} ${esc(p.year)}</td>
+      <td class="amount-col">${esc(amt)}</td>
+      <td class="mono">${esc(p.paymentDate)||"—"}</td>
+      <td>${esc(p.paymentMode)||"—"}</td>
+      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(p.paidMonths||"—")}</td>
+      <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3)">${esc(p.remarks||"—")}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join("");
+
+  // Make table rows clickable to edit
+  tbody.querySelectorAll("tr[data-pay-idx]").forEach(tr=>{
+    tr.addEventListener("click",()=>openPaymentEditModal(Number(tr.dataset.payIdx)));
+  });
+
+  cardList.innerHTML=records.map((p,idx)=>{
+    const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
+    return`<div class="pay-card" data-pay-idx="${idx}" style="cursor:pointer">
+      <div class="pay-card-left">
+        <div class="pay-card-month">${esc(p.month)} ${esc(p.year)}</div>
+        <div class="pay-card-date">${p.paymentDate?`Paid: ${esc(p.paymentDate)}`:p.paymentMode?esc(p.paymentMode):"—"}</div>
+      </div>
+      <div class="pay-card-right">
+        <div class="pay-card-amount">${esc(amt)}</div>
+        ${statusBadge(p.status)}
+      </div>
+    </div>`;
+  }).join("");
+
+  cardList.querySelectorAll(".pay-card[data-pay-idx]").forEach(card=>{
+    card.addEventListener("click",()=>openPaymentEditModal(Number(card.dataset.payIdx)));
+  });
+}
+
+function statusBadge(status){
+  const map={PAID:"status-paid",PENDING:"status-pending",PARTIAL:"status-partial",OVERDUE:"status-overdue"};
+  const cls=map[status]||"status-pending";
+  const label=status?status.charAt(0)+status.slice(1).toLowerCase():"Unknown";
+  return`<span class="status-badge ${cls}">${label}</span>`;
+}
+
+/* ═══════════════════════════════════════════════
+   PAYMENT FILTERS
+═══════════════════════════════════════════════ */
+function applyPaymentFilters(){
+  if(!currentFlatData)return;
+  const year=document.getElementById("payYearFilter").value;
+  const status=document.getElementById("payStatusFilter").value;
+  let filtered=paymentFiltered;
+  if(year)filtered=filtered.filter(p=>p.year===year);
+  if(status)filtered=filtered.filter(p=>p.status===status);
+  renderPaymentTable(filtered);
+}
+document.getElementById("payYearFilter").addEventListener("change",applyPaymentFilters);
+document.getElementById("payStatusFilter").addEventListener("change",applyPaymentFilters);
+
+/* ═══════════════════════════════════════════════
+   EDIT MODALS — OWNER
+═══════════════════════════════════════════════ */
+function openOwnerEditModal(){
+  if(!currentFlatData)return;
+  const{block,flat,row}=currentFlatData;
+  const oNameI=personIdx(["owner name","owner"]);
+  const oMobI=hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]);
+  const oEmailI=hiIdx(["owner email","owner mail"]);
+  const oCityI=hiIdx(["owner city","owner location","owner address"]);
+  const oKey=`${block}_${flat}`;
+  const ov=localOverrides.owners[oKey]||{};
+
+  document.getElementById("editOwnerName").value=ov.name!==undefined?ov.name:(oNameI>=0?row[oNameI]:"");
+  document.getElementById("editOwnerMobile").value=ov.mobile!==undefined?ov.mobile:(oMobI>=0?row[oMobI]:"");
+  document.getElementById("editOwnerEmail").value=ov.email!==undefined?ov.email:(oEmailI>=0?row[oEmailI]:"");
+  document.getElementById("editOwnerCity").value=ov.city!==undefined?ov.city:(oCityI>=0?row[oCityI]:"");
+
+  openModal("ownerModal");
+}
+
+function saveOwnerEdit(){
+  if(!currentFlatData)return;
+  const{block,flat,row}=currentFlatData;
+  const oKey=`${block}_${flat}`;
+  localOverrides.owners[oKey]={
+    name:document.getElementById("editOwnerName").value.trim(),
+    mobile:document.getElementById("editOwnerMobile").value.trim(),
+    email:document.getElementById("editOwnerEmail").value.trim(),
+    city:document.getElementById("editOwnerCity").value.trim(),
+  };
+  closeModal("ownerModal");
+  renderProfile(block,flat,row);
+  showToast("Owner details updated ✓");
+}
+
+document.getElementById("editOwnerBtn").addEventListener("click",openOwnerEditModal);
+document.getElementById("ownerModalSave").addEventListener("click",saveOwnerEdit);
+document.getElementById("ownerModalClose").addEventListener("click",()=>closeModal("ownerModal"));
+document.getElementById("ownerModalCancel").addEventListener("click",()=>closeModal("ownerModal"));
+
+/* ═══════════════════════════════════════════════
+   EDIT MODALS — TENANT
+═══════════════════════════════════════════════ */
+function openTenantEditModal(){
+  if(!currentFlatData)return;
+  const{block,flat,row}=currentFlatData;
+  const tNameI=personIdx(["tenant name","tenant"]);
+  const tMobI=hiIdx(["tenant contact","tenant mobile","tenant phone","tenant whatsapp"]);
+  const tEmailI=hiIdx(["tenant email","tenant mail"]);
+  const tSinceI=hiIdx(["tenant since","rent since","move in","joining date"]);
+  const vehNoI=hiIdx(["vehicle no","number plate","registration"]);
+  const vehI=hiIdx(["vehicle type","veh type","vehicle"]);
+  const oKey=`${block}_${flat}`;
+  const tv=localOverrides.tenants[oKey]||{};
+
+  document.getElementById("editTenantName").value=tv.name!==undefined?tv.name:(tNameI>=0?row[tNameI]:"");
+  document.getElementById("editTenantMobile").value=tv.mobile!==undefined?tv.mobile:(tMobI>=0?row[tMobI]:"");
+  document.getElementById("editTenantEmail").value=tv.email!==undefined?tv.email:(tEmailI>=0?row[tEmailI]:"");
+  document.getElementById("editTenantSince").value=tv.since!==undefined?tv.since:(tSinceI>=0?row[tSinceI]:"");
+  document.getElementById("editVehicleNo").value=tv.vehicleNo!==undefined?tv.vehicleNo:(vehNoI>=0?row[vehNoI]:"");
+  document.getElementById("editVehicleType").value=tv.vehicleType!==undefined?tv.vehicleType:(vehI>=0?row[vehI]:"");
+
+  openModal("tenantModal");
+}
+
+function saveTenantEdit(){
+  if(!currentFlatData)return;
+  const{block,flat,row}=currentFlatData;
+  const oKey=`${block}_${flat}`;
+  localOverrides.tenants[oKey]={
+    name:document.getElementById("editTenantName").value.trim(),
+    mobile:document.getElementById("editTenantMobile").value.trim(),
+    email:document.getElementById("editTenantEmail").value.trim(),
+    since:document.getElementById("editTenantSince").value.trim(),
+    vehicleNo:document.getElementById("editVehicleNo").value.trim(),
+    vehicleType:document.getElementById("editVehicleType").value.trim(),
+  };
+  closeModal("tenantModal");
+  renderProfile(block,flat,row);
+  showToast("Tenant details updated ✓");
+}
+
+document.getElementById("editTenantBtn").addEventListener("click",openTenantEditModal);
+document.getElementById("tenantModalSave").addEventListener("click",saveTenantEdit);
+document.getElementById("tenantModalClose").addEventListener("click",()=>closeModal("tenantModal"));
+document.getElementById("tenantModalCancel").addEventListener("click",()=>closeModal("tenantModal"));
+
+/* ═══════════════════════════════════════════════
+   EDIT MODALS — PAYMENT
+═══════════════════════════════════════════════ */
+function openPaymentEditModal(idx){
+  const records=paymentFiltered;
+  if(idx<0||idx>=records.length)return;
+  editingPaymentIdx=idx;
+  const p=records[idx];
+  document.getElementById("editPayMonth").value=p.month||"";
+  document.getElementById("editPayYear").value=p.year||"";
+  document.getElementById("editPayAmount").value=p.amount||"";
+  document.getElementById("editPayStatus").value=p.status||"PAID";
+  document.getElementById("editPayDate").value=p.paymentDate||"";
+  document.getElementById("editPayMode").value=p.paymentMode||"";
+  document.getElementById("editPayRemarks").value=p.remarks||"";
+  openModal("paymentModal");
+}
+
+function savePaymentEdit(){
+  if(editingPaymentIdx<0)return;
+  const records=paymentFiltered;
+  if(editingPaymentIdx>=records.length)return;
+  // Update in-memory record
+  const p=records[editingPaymentIdx];
+  p.month=document.getElementById("editPayMonth").value.trim();
+  p.year=document.getElementById("editPayYear").value.trim();
+  p.amount=Number(document.getElementById("editPayAmount").value)||0;
+  p.status=document.getElementById("editPayStatus").value;
+  p.paymentDate=document.getElementById("editPayDate").value.trim();
+  p.paymentMode=document.getElementById("editPayMode").value.trim();
+  p.remarks=document.getElementById("editPayRemarks").value.trim();
+  closeModal("paymentModal");
+  renderPaymentTable(records);
+  // Recount summary
+  if(currentFlatData){
+    const paid=paymentFiltered.filter(x=>x.status==="PAID").length;
+    const pending=paymentFiltered.filter(x=>x.status==="PENDING").length;
+    const partial=paymentFiltered.filter(x=>x.status==="PARTIAL").length;
+    document.getElementById("sumPaid").textContent=paid;
+    document.getElementById("sumPending").textContent=pending;
+    document.getElementById("sumPartial").textContent=partial;
+    document.getElementById("sumTotal").textContent=paymentFiltered.length;
+  }
+  showToast("Payment record updated ✓");
+  editingPaymentIdx=-1;
+}
+
+document.getElementById("editPaymentBtn").addEventListener("click",()=>{
+  if(paymentFiltered.length>0)openPaymentEditModal(0);
+  else showToast("No payment records to edit");
+});
+document.getElementById("paymentModalSave").addEventListener("click",savePaymentEdit);
+document.getElementById("paymentModalClose").addEventListener("click",()=>closeModal("paymentModal"));
+document.getElementById("paymentModalCancel").addEventListener("click",()=>closeModal("paymentModal"));
+
+/* ═══════════════════════════════════════════════
+   MODAL HELPERS
+═══════════════════════════════════════════════ */
+function openModal(id){
+  const m=document.getElementById(id);
+  if(!m)return;
+  m.classList.add("open");
+  document.body.classList.add("modal-open");
+}
+function closeModal(id){
+  const m=document.getElementById(id);
+  if(!m)return;
+  m.classList.remove("open");
+  document.body.classList.remove("modal-open");
+}
+// Close modal on overlay click
+document.querySelectorAll(".modal-overlay").forEach(ov=>{
+  ov.addEventListener("click",e=>{
+    if(e.target===ov)closeModal(ov.id);
+  });
+});
+// Close on Escape
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    document.querySelectorAll(".modal-overlay.open").forEach(m=>closeModal(m.id));
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   CLOSE PROFILE PANEL
+═══════════════════════════════════════════════ */
+document.getElementById("panelCloseBtn").addEventListener("click",()=>{
+  document.getElementById("profilePanel").classList.remove("visible");
+  document.getElementById("searchPrompt").style.display="block";
+  mainSearch.value="";searchClear.classList.remove("visible");
+  currentFlatData=null;
+});
+
+/* ═══════════════════════════════════════════════
+   DROPDOWN / PROFILE / LOGOUT
+═══════════════════════════════════════════════ */
+function setupDD(tId,dId){
+  const t=document.getElementById(tId),d=document.getElementById(dId);
+  if(!t||!d)return;
+  t.addEventListener("click",e=>{e.stopPropagation();d.classList.toggle("open");});
+}
+setupDD("profileTogDesk","pdDesk");
+setupDD("profileTogMob","pdMob");
+document.addEventListener("click",()=>document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open")));
+
+["logoutDesk","logoutMob"].forEach(id=>{
+  const b=document.getElementById(id);
+  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";});
+});
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+(async()=>{
+  await Promise.all([loadDirectory(),loadPayments()]);
+})();
+</script>
+</body>
+</html>
