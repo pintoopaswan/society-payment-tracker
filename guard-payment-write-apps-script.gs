@@ -1,6 +1,8 @@
 const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "amitm876@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIRECTORY_TAB_NAME = "Sheet1";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 
@@ -8,8 +10,16 @@ function doGet(e) {
   if (isPingRequest(e)) {
     return handlePingRequest(e);
   }
+  // Fund Ledger expense operations
+  if (isExpenseRequest(e)) {
+    return handleExpenseRequest(e);
+  }
   if (isApiSaveRequest(e)) {
     return handleApiSaveRequest(e);
+  }
+  
+  if (isApiResidentSaveRequest(e)) {
+    return handleApiResidentSaveRequest(e);
   }
   const email = getSignedInEmail();
   if (!isAllowedEmail(email)) {
@@ -53,6 +63,12 @@ function doPost(e) {
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
     }
+    if (String(payload.action || "").toLowerCase() === "saveresident") {
+      return jsonResponse(saveResidentPayload(payload));
+    }
+    if (String(payload.action || "").toLowerCase() === "deleteresidentfields") {
+      return jsonResponse(deleteResidentFieldsPayload(payload));
+    }
     return jsonResponse(handlePaymentMutation(payload));
   } catch (error) {
     return jsonResponse({ ok: false, error: error.message });
@@ -62,6 +78,12 @@ function doPost(e) {
 function isApiSaveRequest(e) {
   const params = (e && e.parameter) || {};
   return String(params.action || "").toLowerCase() === "savepayment";
+}
+
+function isApiResidentSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  const action = String(params.action || "").toLowerCase();
+  return action === "saveresident" || action === "deleteresidentfields";
 }
 
 function handleApiSaveRequest(e) {
@@ -74,6 +96,31 @@ function handleApiSaveRequest(e) {
       result = { ok: false, error: "Unauthorized" };
     } else {
       result = handlePaymentMutation(payload);
+    }
+  } catch (error) {
+    result = { ok: false, error: error.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+function handleApiResidentSaveRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const payload = parseApiPayload(params.payload);
+  const action = String(params.action || payload.action || "").toLowerCase();
+  let result;
+  try {
+    if (payload.secret !== PAYMENT_WRITE_SECRET) {
+      result = { ok: false, error: "Unauthorized" };
+    } else if (action === "deleteresidentfields") {
+      result = deleteResidentFieldsPayload(payload);
+    } else {
+      result = saveResidentPayload(payload);
     }
   } catch (error) {
     result = { ok: false, error: error.message };
@@ -251,6 +298,80 @@ function deletePaymentPayload(payload) {
   return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete" };
 }
 
+function saveResidentPayload(payload) {
+  const headers = Array.isArray(payload.headers) ? payload.headers.map(function(h) { return String(h || "").trim(); }) : [];
+  const rowValues = Array.isArray(payload.rowValues) ? payload.rowValues.map(function(v) { return v === null || v === undefined ? "" : String(v); }) : [];
+  if (!headers.length || !rowValues.length || headers.length !== rowValues.length) {
+    return { ok: false, error: "Invalid resident row payload." };
+  }
+
+  const blockIndex = findHeaderIndex(headers, ["block"]);
+  const flatIndex = findHeaderIndex(headers, ["flat", "house", "apartment"]);
+  if (blockIndex < 0 || flatIndex < 0) {
+    return { ok: false, error: "Block/Flat columns not found in resident data." };
+  }
+
+  const block = rowValues[blockIndex];
+  const flat = rowValues[flatIndex];
+  if (!block || !flat) {
+    return { ok: false, error: "Block and Flat are required." };
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(DIRECTORY_SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(DIRECTORY_TAB_NAME);
+  if (!sheet) {
+    return { ok: false, error: "Missing resident sheet tab: " + DIRECTORY_TAB_NAME };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findResidentRow(sheet, block, flat, blockIndex + 1, flatIndex + 1);
+    if (!targetRow) {
+      return { ok: false, error: "Resident row not found for " + block + " / Flat " + flat + "." };
+    }
+    sheet.getRange(targetRow, 1, 1, rowValues.length).setValues([rowValues]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, updatedRow: targetRow, action: "saveResident" };
+}
+
+function deleteResidentFieldsPayload(payload) {
+  const headers = Array.isArray(payload.headers) ? payload.headers.map(function(h) { return String(h || "").trim(); }) : [];
+  if (!headers.length) return { ok: false, error: "Invalid resident headers." };
+  const blockIndex = findHeaderIndex(headers, ["block"]);
+  const flatIndex = findHeaderIndex(headers, ["flat", "house", "apartment"]);
+  if (blockIndex < 0 || flatIndex < 0) {
+    return { ok: false, error: "Block/Flat columns not found in resident data." };
+  }
+  const block = String(payload.block || "").trim();
+  const flat = String(payload.flat || "").trim();
+  if (!block || !flat) return { ok: false, error: "Block and Flat are required." };
+
+  const spreadsheet = SpreadsheetApp.openById(DIRECTORY_SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(DIRECTORY_TAB_NAME);
+  if (!sheet) return { ok: false, error: "Missing resident sheet tab: " + DIRECTORY_TAB_NAME };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    targetRow = findResidentRow(sheet, block, flat, blockIndex + 1, flatIndex + 1);
+    if (!targetRow) return { ok: false, error: "Resident row not found for " + block + " / Flat " + flat + "." };
+    const width = headers.length;
+    const existing = sheet.getRange(targetRow, 1, 1, width).getValues()[0];
+    for (let i = 0; i < width; i++) {
+      if (i !== blockIndex && i !== flatIndex) existing[i] = "";
+    }
+    sheet.getRange(targetRow, 1, 1, width).setValues([existing]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, updatedRow: targetRow, action: "deleteResidentFields" };
+}
+
 function assertAllowedUser() {
   const email = getSignedInEmail();
   if (!isAllowedEmail(email)) {
@@ -362,6 +483,32 @@ function findPaymentRow(sheet, block, flatNo) {
   return 0;
 }
 
+function findResidentRow(sheet, block, flatNo, blockColumn, flatColumn) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const rowCount = lastRow - 1;
+  const maxCol = Math.max(blockColumn, flatColumn);
+  const values = sheet.getRange(2, 1, rowCount, maxCol).getValues();
+  const targetBlock = normalizeBlock(block);
+  const targetFlat = normalizeFlat(flatNo);
+  for (let index = 0; index < values.length; index++) {
+    const rowBlock = normalizeBlock(values[index][blockColumn - 1]);
+    const rowFlat = normalizeFlat(values[index][flatColumn - 1]);
+    if (rowBlock === targetBlock && rowFlat === targetFlat) return index + 2;
+  }
+  return 0;
+}
+
+function findHeaderIndex(headers, patterns) {
+  for (let i = 0; i < headers.length; i++) {
+    const value = String(headers[i] || "").trim().toLowerCase();
+    for (let j = 0; j < patterns.length; j++) {
+      if (value.indexOf(patterns[j]) >= 0) return i;
+    }
+  }
+  return -1;
+}
+
 function normalizeBlock(value) {
   const digits = String(value || "").replace(/[^0-9]/g, "");
   return digits ? "BLOCK-" + Number(digits) : String(value || "").trim().toUpperCase();
@@ -388,3 +535,213 @@ function jsonResponse(data) {
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FUND LEDGER — Expense Sheet Write Handlers
+// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8
+// Tab       : Sheet1 (or whichever the active tab is)
+// Columns   : TRANSACTION DATE | TRANSACTION TYPE | DESCRIPTION | AMOUNT |
+//             PAYMENT MODE | OPENING BALANCE | CLOSING BALANCE | PAID BY BILL
+// ═══════════════════════════════════════════════════════════════════════════
+
+const EXPENSE_SPREADSHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+// Candidate tab names — the handler tries each until one is found
+const EXPENSE_TAB_CANDIDATES = ["Sheet1", "Ledger", "LEDGER", "Fund Ledger",
+                                 "FUND LEDGER", "Expense", "EXPENSE"];
+
+// ── Routing: plug expense actions into the existing doGet / doPost ──────────
+// Add to isApiSaveRequest check:
+function isExpenseRequest(e) {
+  const action = String((e && e.parameter && e.parameter.action) || "").toLowerCase();
+  return action === "saveexpense" || action === "updateexpense" || action === "deleteexpense";
+}
+
+function handleExpenseRequest(e) {
+  const params   = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const payload  = parseApiPayload(params.payload);
+  let result;
+  try {
+    if (payload.secret !== PAYMENT_WRITE_SECRET) {
+      result = { ok: false, error: "Unauthorized" };
+    } else {
+      const action = String(params.action || payload.actionType || "").toLowerCase();
+      if (action === "deleteexpense") {
+        result = deleteExpensePayload(payload);
+      } else if (action === "updateexpense") {
+        result = updateExpensePayload(payload);
+      } else {
+        result = saveExpensePayload(payload);
+      }
+    }
+  } catch (err) {
+    result = { ok: false, error: err.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+// ── Helper: open the expense sheet tab ─────────────────────────────────────
+function openExpenseSheet() {
+  const ss = SpreadsheetApp.openById(EXPENSE_SPREADSHEET_ID);
+  for (var i = 0; i < EXPENSE_TAB_CANDIDATES.length; i++) {
+    var sheet = ss.getSheetByName(EXPENSE_TAB_CANDIDATES[i]);
+    if (sheet) return sheet;
+  }
+  // Fallback: first sheet
+  return ss.getSheets()[0];
+}
+
+// ── Helper: ensure header row exists with correct columns ───────────────────
+function ensureExpenseHeader(sheet) {
+  const HEADERS = [
+    "TRANSACTION DATE", "TRANSACTION TYPE", "DESCRIPTION", "AMOUNT",
+    "PAYMENT MODE", "OPENING BALANCE", "CLOSING BALANCE", "PAID BY BILL"
+  ];
+  if (sheet.getLastRow() < 1) {
+    sheet.appendRow(HEADERS);
+    return;
+  }
+  const first = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  const hasHeader = first.some(function(v) {
+    return String(v || "").toLowerCase().includes("transaction") ||
+           String(v || "").toLowerCase().includes("date") ||
+           String(v || "").toLowerCase().includes("amount");
+  });
+  if (!hasHeader) {
+    sheet.insertRowBefore(1);
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  }
+}
+
+// ── Helper: get previous closing balance (last non-empty row) ───────────────
+function getPrevClosingBalance(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  // Column 7 = CLOSING BALANCE (1-based)
+  const vals = sheet.getRange(2, 7, lastRow - 1, 1).getValues();
+  for (var i = vals.length - 1; i >= 0; i--) {
+    const v = parseFloat(String(vals[i][0] || "").replace(/[^0-9.-]/g, ""));
+    if (!isNaN(v) && v !== 0) return v;
+  }
+  return 0;
+}
+
+// ── Save (append new row) ───────────────────────────────────────────────────
+function saveExpensePayload(payload) {
+  const date   = String(payload.date   || "").trim();
+  const type   = String(payload.type   || "CREDIT").trim().toUpperCase();
+  const desc   = String(payload.desc   || "").trim();
+  const amount = parseFloat(String(payload.amount || "0").replace(/[^0-9.-]/g, "")) || 0;
+  const mode   = String(payload.paymode || payload.category || "").trim();
+  const bill   = String(payload.notes  || "").trim();
+
+  if (!date || !desc || !amount) {
+    return { ok: false, error: "Date, description and amount are required." };
+  }
+
+  const sheet = openExpenseSheet();
+  ensureExpenseHeader(sheet);
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let newRow;
+  try {
+    const openBal  = getPrevClosingBalance(sheet);
+    const closeBal = type === "CREDIT" ? openBal + amount : openBal - amount;
+    const rowData  = [date, type, desc, amount, mode, openBal, closeBal, bill];
+    sheet.appendRow(rowData);
+    newRow = sheet.getLastRow();
+    // Recompute all closing balances from scratch for integrity
+    recomputeAllBalances(sheet);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "saveExpense", newRow: newRow };
+}
+
+// ── Update (overwrite existing row) ─────────────────────────────────────────
+function updateExpensePayload(payload) {
+  const rowId  = parseInt(payload.rowId || "0", 10);
+  const date   = String(payload.date   || "").trim();
+  const type   = String(payload.type   || "CREDIT").trim().toUpperCase();
+  const desc   = String(payload.desc   || "").trim();
+  const amount = parseFloat(String(payload.amount || "0").replace(/[^0-9.-]/g, "")) || 0;
+  const mode   = String(payload.paymode || payload.category || "").trim();
+  const bill   = String(payload.notes  || "").trim();
+
+  if (!rowId || rowId < 2) return { ok: false, error: "Invalid row ID." };
+  if (!date || !desc || !amount) {
+    return { ok: false, error: "Date, description and amount are required." };
+  }
+
+  const sheet = openExpenseSheet();
+  const lastRow = sheet.getLastRow();
+  if (rowId > lastRow) return { ok: false, error: "Row " + rowId + " not found." };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    // Write the editable columns (leave balances to recompute)
+    sheet.getRange(rowId, 1, 1, 5).setValues([[date, type, desc, amount, mode]]);
+    sheet.getRange(rowId, 8, 1, 1).setValues([[bill]]);
+    recomputeAllBalances(sheet);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "updateExpense", updatedRow: rowId };
+}
+
+// ── Delete (clear row and shift up) ─────────────────────────────────────────
+function deleteExpensePayload(payload) {
+  const rowId = parseInt(payload.rowId || "0", 10);
+  if (!rowId || rowId < 2) return { ok: false, error: "Invalid row ID." };
+
+  const sheet   = openExpenseSheet();
+  const lastRow = sheet.getLastRow();
+  if (rowId > lastRow) return { ok: false, error: "Row " + rowId + " not found." };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    sheet.deleteRow(rowId);
+    recomputeAllBalances(sheet);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "deleteExpense", deletedRow: rowId };
+}
+
+// ── Recompute OPENING BALANCE and CLOSING BALANCE for all data rows ─────────
+// Rows are kept in their current order (insertion order / date order as entered).
+// Column 6 = OPENING BALANCE, Column 7 = CLOSING BALANCE (1-based).
+function recomputeAllBalances(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  const dataRange = sheet.getRange(2, 1, lastRow - 1, 8);
+  const data      = dataRange.getValues();
+
+  var balance = 0;
+  for (var i = 0; i < data.length; i++) {
+    const type   = String(data[i][1] || "").trim().toUpperCase();
+    const amount = parseFloat(String(data[i][3] || "0").replace(/[^0-9.-]/g, "")) || 0;
+    const open   = balance;
+    const close  = type.startsWith("C") ? balance + amount : balance - amount;
+    data[i][5]   = open;
+    data[i][6]   = close;
+    balance      = close;
+  }
+  dataRange.setValues(data);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PATCH: Update the existing doGet to route expense requests
+// Replace the isApiSaveRequest check at the top of doGet with:
+//   if (isExpenseRequest(e)) return handleExpenseRequest(e);
+// Add this line BEFORE the existing isApiSaveRequest check.
+// ═══════════════════════════════════════════════════════════════════════════
