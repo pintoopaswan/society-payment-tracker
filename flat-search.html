@@ -572,6 +572,7 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 }
 .pay-card-month{font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:2px}
 .pay-card-date{font-size:0.72rem;color:var(--ink-3)}
+.pay-card-paid-month{font-size:0.72rem;color:var(--blue-600);font-weight:600;margin-top:2px}
 .pay-card-right{text-align:right}
 .pay-card-amount{font-size:1rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--ink);margin-bottom:4px}
 
@@ -2300,6 +2301,7 @@ function renderPaymentTable(records){
       <div class="pay-card-left">
         <div class="pay-card-month">${esc(p.month)} ${esc(p.year)}</div>
         <div class="pay-card-date">${p.paymentDate?`Paid: ${esc(p.paymentDate)}`:p.paymentMode?esc(p.paymentMode):"—"}</div>
+        ${p.paidMonths?`<div class="pay-card-paid-month">For: ${esc(p.paidMonths)}</div>`:""}
       </div>
       <div class="pay-card-right">
         <div class="pay-card-amount">${esc(amt)}</div>
