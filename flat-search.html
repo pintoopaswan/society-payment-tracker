@@ -2093,15 +2093,24 @@ function renderProfile(block,flat,row){
   const dirBlockNorm=normBlock(block);        // e.g. "block-1"
   const dirFlatNorm=normFlat(flat);           // e.g. "101"
 
+  const nowDate=new Date();
+  const nowYear=nowDate.getFullYear();
+  const nowMonthIdx=nowDate.getMonth(); // 0-based, Jan=0
+
   const flatPayments=allPaymentRecords.filter(p=>{
     // Match using normalized keys for reliable comparison
     const pBlockNorm=p.blockNorm||normBlock(p.block);
     const pFlatNorm=p.flatNorm||normFlat(p.flat);
     // Primary: normalized match
-    if(pBlockNorm===dirBlockNorm&&pFlatNorm===dirFlatNorm)return true;
+    const blockMatch=pBlockNorm===dirBlockNorm&&pFlatNorm===dirFlatNorm;
     // Fallback: display form match
-    if(norm(p.block)===norm(block)&&norm(p.flat)===norm(flat))return true;
-    return false;
+    const fallbackMatch=norm(p.block)===norm(block)&&norm(p.flat)===norm(flat);
+    if(!blockMatch&&!fallbackMatch)return false;
+    // Only show records up to and including the current month/year
+    const pYear=Number(p.year)||0;
+    if(pYear>nowYear)return false;
+    if(pYear===nowYear&&p.monthIndex>nowMonthIdx)return false;
+    return true;
   });
 
   // Sort: latest first
@@ -2525,7 +2534,7 @@ function openPaymentEditModal(idx){
   /* Pre-fill editable fields */
   document.getElementById("editPayAmount").value=p.amount||"";
   document.getElementById("editPayMode").value=(p.paymentMode||"ONLINE").toUpperCase()==="CASH"?"CASH":"ONLINE";
-  document.getElementById("editPayDate").value=toPaymentInputDate(p.paymentDate,p);
+  document.getElementById("editPayDate").value=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
   document.getElementById("editPayDate").max=todayInputDate();
   document.getElementById("editPayRemarks").value=p.remarks||"";
 
@@ -2546,7 +2555,15 @@ async function savePaymentEdit(){
   const payDate=document.getElementById("editPayDate").value;
   const mode=document.getElementById("editPayMode").value;
   const paidMonths=getSelectedPayMonths();
-  const remarks=document.getElementById("editPayRemarks").value.trim();
+  const rawRemarks=document.getElementById("editPayRemarks").value.trim();
+  // Build audit note: "Payment added on DD/MM/YYYY for amount ₹XXX"
+  const auditDate=(()=>{
+    if(!payDate)return "";
+    const [y,m,d]=payDate.split("-");
+    return`${d}/${m}/${y}`;
+  })();
+  const auditNote=auditDate?`Payment added on ${auditDate} for amount ₹${amount}`:"";
+  const remarks=rawRemarks?(rawRemarks+(auditNote?` | ${auditNote}`:"")):auditNote;
 
   if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
   if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
