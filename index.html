@@ -175,7 +175,7 @@ body.modal-open{overflow:hidden}
 .sb-logo svg{color:#fff;position:relative;z-index:1}
 .sb-copy{min-width:0;transition:opacity 0.2s,width 0.26s;overflow:hidden;white-space:nowrap}
 .sb-name{font-size:0.88rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;font-family:'Fraunces',serif}
-.sb-tag{font-size:0.66rem;color:var(--ink-3);margin-top:1px;letter-spacing:0.01em}
+.sb-tag{font-size:0.66rem;color:var(--ink-3);margin-top:1px;letter-spacing:0.01em;font-family:'DM Sans',sans-serif}
 .sidebar.collapsed .sb-copy{opacity:0;width:0;pointer-events:none}
 
 /* Collapse toggle */
@@ -302,7 +302,7 @@ body.modal-open{overflow:hidden}
 }
 .topbar-title{flex:1;min-width:0}
 .topbar-page{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:-0.025em;font-family:'Fraunces',serif}
-.topbar-sub{font-size:0.7rem;color:var(--ink-3);margin-top:1px}
+.topbar-sub{font-size:0.7rem;color:var(--ink-3);margin-top:1px;font-family:'DM Sans',sans-serif}
 .topbar-right{display:flex;align-items:center;gap:8px}
 
 .filter-group{
@@ -546,6 +546,7 @@ body.modal-open{overflow:hidden}
   font-size:0.65rem;font-weight:700;text-transform:uppercase;
   letter-spacing:0.09em;color:var(--ink-3);margin-bottom:6px;
   display:flex;align-items:center;gap:5px;
+  font-family:'DM Sans',sans-serif;
 }
 .kpi-label-dot{
   width:6px;height:6px;border-radius:50%;
@@ -558,7 +559,7 @@ body.modal-open{overflow:hidden}
   font-family:'DM Sans',sans-serif;
   transition:all 0.3s;
 }
-.kpi-sub{font-size:0.68rem;color:var(--ink-3);margin-top:5px;font-weight:500}
+.kpi-sub{font-size:0.68rem;color:var(--ink-3);margin-top:5px;font-weight:500;font-family:'DM Sans',sans-serif}
 
 /* KPI shimmer skeleton */
 .sk{position:relative;overflow:hidden;color:transparent!important;background:var(--surface-3);border-radius:var(--r-sm);min-height:1em;pointer-events:none}
@@ -639,6 +640,7 @@ body.modal-open{overflow:hidden}
   font-size:0.62rem;font-weight:700;color:var(--ink-3);
   text-transform:uppercase;letter-spacing:0.09em;
   margin-bottom:5px;
+  font-family:'DM Sans',sans-serif;
 }
 .mk-val{
   font-size:1.65rem;font-weight:800;color:var(--ink);
@@ -647,6 +649,7 @@ body.modal-open{overflow:hidden}
 }
 .mk-sub{
   margin-top:5px;font-size:0.68rem;color:var(--ink-3);font-weight:500;
+  font-family:'DM Sans',sans-serif;
 }
 .mk-sub-bold{
   font-size:0.72rem;color:var(--ink-2);font-weight:700;margin-top:2px;
@@ -727,7 +730,7 @@ body.modal-open{overflow:hidden}
   padding:16px 20px 14px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
-.card-title{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em}
+.card-title{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;font-family:'DM Sans',sans-serif}
 .card-meta{font-size:0.72rem;color:var(--ink-3)}
 .card-body{padding:16px 20px}
 .card+.card{margin-top:16px}
@@ -752,7 +755,7 @@ body.modal-open{overflow:hidden}
 .rank-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}
 .rank-left{display:flex;align-items:center;gap:8px;min-width:0}
 .rank-dot{width:8px;height:8px;border-radius:50%;background:var(--blk-color,var(--blue-500));flex-shrink:0}
-.rank-name{font-size:0.8rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-name{font-size:0.8rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'DM Sans',sans-serif}
 .rank-badge{
   font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:999px;
   background:linear-gradient(135deg,var(--amber-400),var(--amber-500));
@@ -774,7 +777,7 @@ body.modal-open{overflow:hidden}
 }
 .act-item:hover{background:var(--blue-50);border-color:var(--blue-200);transform:translateX(3px)}
 .act-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.act-name{font-size:0.83rem;font-weight:600;color:var(--ink)}
+.act-name{font-size:0.83rem;font-weight:600;color:var(--ink);font-family:'DM Sans',sans-serif}
 .act-amt{font-size:0.8rem;font-weight:600;color:var(--green-700);font-family:'DM Mono',monospace;white-space:nowrap}
 .act-sub{margin-top:3px;font-size:0.72rem;color:var(--ink-3);line-height:1.4}
 
@@ -1256,26 +1259,6 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       <div class="kpi-val sk" id="kpiToday">—</div>
       <div class="kpi-sub" id="kpiTodaySub">Today's entries</div>
     </div>
-    <!-- Highest Block -->
-    <div class="kpi-cell">
-      <div class="kpi-ico">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,16 7,9 11,13 16,5"/><polyline points="13,5 16,5 16,8"/></svg>
-      </div>
-      <span class="kpi-badge top">↑ Top</span>
-      <div class="kpi-label"><span class="kpi-label-dot"></span>Highest Block</div>
-      <div class="kpi-val sk" id="kpiTopBlockAmt">—</div>
-      <div class="kpi-sub" id="kpiTopBlockName">—</div>
-    </div>
-    <!-- Lowest Block -->
-    <div class="kpi-cell">
-      <div class="kpi-ico">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 7,12 11,8 16,16"/><polyline points="13,16 16,16 16,13"/></svg>
-      </div>
-      <span class="kpi-badge low">↓ Low</span>
-      <div class="kpi-label"><span class="kpi-label-dot"></span>Lowest Block</div>
-      <div class="kpi-val sk" id="kpiLowBlockAmt">—</div>
-      <div class="kpi-sub" id="kpiLowBlockName">—</div>
-    </div>
   </div>
 
   <!-- MOBILE KPI — Horizontal scroll cards -->
@@ -1322,36 +1305,10 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       <div class="mk-sub">Today's entries</div>
       <div class="mk-progress"><div class="mk-progress-fill" id="mkTodayBar"></div></div>
     </div>
-    <!-- Highest Paid Block -->
-    <div class="mob-kpi-card">
-      <span class="mk-badge top">↑ Top</span>
-      <div class="mk-icon">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,16 7,9 11,13 16,5"/><polyline points="13,5 16,5 16,8"/></svg>
-      </div>
-      <div class="mk-label">Highest Block</div>
-      <div class="mk-val sk" id="mkTopBlockAmt">—</div>
-      <div class="mk-sub">Block name</div>
-      <div class="mk-sub mk-sub-bold" id="mkTopBlockName">—</div>
-      <div class="mk-progress"><div class="mk-progress-fill" id="mkTopBar" style="width:100%"></div></div>
-    </div>
-    <!-- Lowest Paid Block -->
-    <div class="mob-kpi-card">
-      <span class="mk-badge low">↓ Low</span>
-      <div class="mk-icon">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 7,12 11,8 16,16"/><polyline points="13,16 16,16 16,13"/></svg>
-      </div>
-      <div class="mk-label">Lowest Block</div>
-      <div class="mk-val sk" id="mkLowBlockAmt">—</div>
-      <div class="mk-sub">Block name</div>
-      <div class="mk-sub mk-sub-bold" id="mkLowBlockName">—</div>
-      <div class="mk-progress"><div class="mk-progress-fill" id="mkLowBar" style="width:25%"></div></div>
-    </div>
   </div>
   <!-- Scroll indicator dots -->
   <div class="kpi-scroll-dots" id="kpiScrollDots">
     <div class="kpi-scroll-dot active"></div>
-    <div class="kpi-scroll-dot"></div>
-    <div class="kpi-scroll-dot"></div>
     <div class="kpi-scroll-dot"></div>
     <div class="kpi-scroll-dot"></div>
     <div class="kpi-scroll-dot"></div>
@@ -1466,6 +1423,25 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
           <div class="card">
             <div class="card-head"><div class="card-title">Recent Expenses</div><div class="card-meta"><a href="fund-ledger.html" style="color:var(--blue-600);font-size:0.72rem;font-weight:600">View all →</a></div></div>
             <div class="card-body"><div class="act-list sk" id="recentExp" style="min-height:80px"></div></div>
+          </div>
+        </div>
+
+        <!-- Block Collection: Current Month vs Last Month -->
+        <div class="card" style="margin-top:18px">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Block Collection Performance</div>
+              <div class="card-meta" id="blockCmpMeta">Current month vs last month · all blocks</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:14px;font-size:0.69rem;font-weight:600;color:var(--ink-3)">
+                <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#2563eb"></span>This Month</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#94a3b8"></span>Last Month</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="position:relative;height:220px;width:100%"><canvas id="blockCmpChart"></canvas></div>
           </div>
         </div>
       </div>
@@ -1987,14 +1963,154 @@ function renderRecentExp(entries){
   rmSk("recentExp");
 }
 
+/* ── Block Collection Comparison Chart ── */
+function renderBlockCmpChart(allBlocks, blockMonthTotals){
+  const canvas = document.getElementById("blockCmpChart"); if(!canvas) return;
+  const now = new Date();
+  const curMi = now.getMonth();
+  const lastMi = curMi === 0 ? 11 : curMi - 1;
+  const blocks = [...allBlocks].sort();
+  const curData  = blocks.map(b => blockMonthTotals.get(`${b}:${curMi}`)  || 0);
+  const lastData = blocks.map(b => blockMonthTotals.get(`${b}:${lastMi}`) || 0);
+
+  const curLabel  = MONTHS_FULL[curMi];
+  const lastLabel = MONTHS_FULL[lastMi];
+  setTxt("blockCmpMeta", `${curLabel} vs ${lastLabel} · all blocks`);
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = rect.width || 560, H = rect.height || 220;
+  canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr);
+  canvas.style.width = W+"px"; canvas.style.height = H+"px";
+  const ctx = canvas.getContext("2d"); ctx.scale(dpr, dpr);
+
+  const n = blocks.length;
+  const pad = {t:14, r:14, b:42, l:56};
+  const chartW = W - pad.l - pad.r, chartH = H - pad.t - pad.b;
+  const groupW = chartW / n;
+  const gap = groupW * 0.14;
+  const barW = (groupW - gap * 3) / 2;
+  const maxVal = Math.max(...curData, ...lastData, 1);
+
+  const BLUE = "#2563eb", GRAY = "#94a3b8";
+  const blueRgb = hexToRgb(BLUE);
+
+  function drawAll(hoverGroup, hoverBar){
+    ctx.clearRect(0, 0, W, H);
+    // Grid
+    const gridLines = 4;
+    for(let i = 0; i <= gridLines; i++){
+      const y = pad.t + chartH - (chartH / gridLines * i);
+      ctx.strokeStyle = i===0 ? "#e2e8f0" : "rgba(226,232,240,0.55)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + chartW, y); ctx.stroke();
+      const val = Math.round(maxVal * (i / gridLines));
+      ctx.fillStyle = "#94a3b8"; ctx.font = "500 9.5px 'DM Mono',monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(val >= 1000 ? `₹${(val/1000).toFixed(0)}k` : `₹${val}`, pad.l-6, y+4);
+    }
+    // Bars
+    blocks.forEach((block, gi)=>{
+      const gx = pad.l + gi * groupW;
+      const x0 = gx + gap;       // current month bar x
+      const x1 = x0 + barW + gap; // last month bar x
+
+      [
+        {x: x0, val: curData[gi],  color: BLUE, rgb: blueRgb, isCur: true},
+        {x: x1, val: lastData[gi], color: GRAY, rgb: hexToRgb(GRAY), isCur: false},
+      ].forEach(({x, val, color, rgb, isCur})=>{
+        const bH = val > 0 ? Math.max(4, (val/maxVal)*chartH) : 3;
+        const y = pad.t + chartH - bH;
+        const isHov = gi===hoverGroup && ((isCur && hoverBar===0) || (!isCur && hoverBar===1));
+        const alpha = hoverGroup>=0 && gi!==hoverGroup ? 0.25 : 1;
+
+        if(val === 0){
+          ctx.fillStyle = `rgba(226,232,240,${0.8*alpha})`;
+          ctx.beginPath(); ctx.roundRect(x, pad.t+chartH-3, barW, 3, 2); ctx.fill();
+        } else {
+          const grd = ctx.createLinearGradient(x, y, x, y+bH);
+          grd.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${(isHov?1:0.82)*alpha})`);
+          grd.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},${(isHov?0.55:0.38)*alpha})`);
+          ctx.fillStyle = grd;
+          ctx.beginPath(); ctx.roundRect(x, y, barW, bH, [4,4,1,1]); ctx.fill();
+          if(isHov){
+            // value label
+            ctx.fillStyle = color; ctx.font = "700 9px 'DM Sans',sans-serif"; ctx.textAlign = "center";
+            const lbl = val>=1000 ? `₹${(val/1000).toFixed(1)}k` : `₹${val}`;
+            ctx.fillText(lbl, x+barW/2, y-5);
+          }
+        }
+      });
+
+      // Block label
+      const midX = gx + groupW/2;
+      const isHovG = gi === hoverGroup;
+      ctx.fillStyle = isHovG ? BLUE : "#64748b";
+      ctx.font = isHovG ? `700 9px 'DM Sans',sans-serif` : `500 9px 'DM Sans',sans-serif`;
+      ctx.textAlign = "center";
+      // Shorten label: "Block-1" → "B-1"
+      const shortLbl = block.replace(/^Block-?/i,"B-");
+      ctx.fillText(shortLbl, midX, H - pad.b + 14);
+    });
+  }
+
+  drawAll(-1, -1);
+
+  // Interactivity
+  canvas._cmpHandlers?.forEach(({type,fn})=>canvas.removeEventListener(type,fn));
+  canvas._cmpHandlers=[];
+  function addCH(type,fn){canvas.addEventListener(type,fn,{passive:true});canvas._cmpHandlers.push({type,fn});}
+
+  function getHit(clientX){
+    const r2 = canvas.getBoundingClientRect();
+    const mx = clientX - r2.left;
+    for(let gi=0; gi<n; gi++){
+      const gx = pad.l + gi*groupW;
+      const x0 = gx + gap, x1 = x0 + barW + gap;
+      if(mx >= x0 && mx <= x0+barW) return {gi, bar:0};
+      if(mx >= x1 && mx <= x1+barW) return {gi, bar:1};
+      // within group but between bars
+      if(mx >= gx && mx <= gx+groupW) return {gi, bar:-1};
+    }
+    return null;
+  }
+
+  let _hg=-1,_hb=-1;
+  addCH("mousemove",e=>{
+    const hit = getHit(e.clientX);
+    const ng = hit?hit.gi:-1, nb = hit?hit.bar:-1;
+    if(ng!==_hg||nb!==_hb){_hg=ng;_hb=nb;drawAll(ng,nb);}
+    if(hit&&hit.bar>=0){
+      const val  = hit.bar===0?curData[hit.gi]:lastData[hit.gi];
+      const lbl  = hit.bar===0?curLabel:lastLabel;
+      const clr  = hit.bar===0?BLUE:GRAY;
+      _tt.show(e.clientX, e.clientY, `${blocks[hit.gi]} · ${lbl}`, val, clr);
+    } else _tt.hide();
+  });
+  addCH("mouseleave",()=>{_hg=-1;_hb=-1;drawAll(-1,-1);_tt.hide();});
+  addCH("touchstart",e=>{
+    const t=e.touches[0]; const hit=getHit(t.clientX);
+    const ng=hit?hit.gi:-1,nb=hit?hit.bar:-1;
+    _hg=ng;_hb=nb;drawAll(ng,nb);
+    if(hit&&hit.bar>=0){
+      const val=hit.bar===0?curData[hit.gi]:lastData[hit.gi];
+      const lbl=hit.bar===0?curLabel:lastLabel;
+      _tt.show(t.clientX,t.clientY,`${blocks[hit.gi]} · ${lbl}`,val,hit.bar===0?BLUE:GRAY);
+    }
+  });
+  addCH("touchend",()=>{setTimeout(()=>{_hg=-1;_hb=-1;drawAll(-1,-1);_tt.hide();},700);});
+}
+
 /* ── Render dashboard ── */
 function renderDash({pd,rd,ec,year,expData}){
   const total=pd.monthTotals.reduce((s,a)=>s+a,0);
   const compl=rd.stats.total?Math.round(((rd.stats.total-rd.stats.pending)/rd.stats.total)*100):0;
   const now=new Date();const curMonthIdx=now.getMonth();
-  const todayStr=`${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()}`;
+  // Canonical today key YYYY-MM-DD for reliable cross-format comparison
+  const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+  const toDateKey=v=>{const d=parseD(v);if(!d)return"";return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
   const monthTotal=pd.monthTotals[curMonthIdx]||0;
-  const todayTotal=pd.payments.filter(p=>p.date===todayStr).reduce((s,p)=>s+p.amount,0);
+  const todayTotal=pd.payments.filter(p=>toDateKey(p.date)===todayKey).reduce((s,p)=>s+p.amount,0);
   const curMonthName=MONTHS_FULL[curMonthIdx];
   const availBal=(expData?.totalCredits||0)-(expData?.totalDebits||0);
   const balSign=availBal>=0?"Surplus":"Deficit";
@@ -2055,6 +2171,7 @@ function renderDash({pd,rd,ec,year,expData}){
   _cachedPayments=pd.payments;_cachedAllBlocks=pd.allBlocks;
   _cachedBlockTotals=pd.blockTotals;_cachedBlockMonthTotals=pd.blockMonthTotals;
   renderBlocksFiltered(_blockMonth);
+  renderBlockCmpChart(pd.allBlocks, pd.blockMonthTotals);
   renderRecentPay(pd.payments);
   renderModes(pd.modeTotals);
   renderRecentRes(rd);
@@ -2149,6 +2266,9 @@ window.addEventListener("resize",()=>{
       const mt=Array(12).fill(0);
       (_cachedPayments||[]).forEach(p=>{if(p.monthIndex>=0)mt[p.monthIndex]+=p.amount;});
       renderTrend(mt);
+    }
+    if(_cachedAllBlocks&&_cachedBlockMonthTotals){
+      renderBlockCmpChart(_cachedAllBlocks, _cachedBlockMonthTotals);
     }
   },200);
 });
