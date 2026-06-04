@@ -317,12 +317,50 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 }
 .kpi-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);margin-bottom:5px}
 .kpi-val{
-  font-size:1.65rem;font-weight:800;letter-spacing:-0.04em;
+  font-size:1.55rem;font-weight:800;letter-spacing:-0.04em;
   color:var(--ink);line-height:1;
   font-family:'DM Sans',sans-serif;
   animation:kpiIn 0.5s var(--ease-out) both;
 }
-.kpi-sub{font-size:0.68rem;color:var(--ink-3);margin-top:5px;font-weight:500}
+/* Secondary metric row: percentage badge + context text */
+.kpi-meta{
+  display:flex;align-items:center;gap:7px;
+  margin-top:8px;flex-wrap:wrap;
+}
+.kpi-pct{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--kpi-accent-bg,var(--blue-50));
+  color:var(--kpi-accent,var(--blue-600));
+  border:1px solid color-mix(in srgb,var(--kpi-accent,var(--blue-500)) 18%,transparent);
+  border-radius:999px;padding:2px 8px;
+  font-size:0.7rem;font-weight:800;letter-spacing:-0.01em;
+  white-space:nowrap;line-height:1.4;
+}
+.kpi-pct svg{flex-shrink:0}
+.kpi-sub{font-size:0.65rem;color:var(--ink-4);font-weight:500;line-height:1.3}
+/* Progress bar */
+.kpi-bar-wrap{
+  margin-top:10px;height:4px;border-radius:999px;
+  background:var(--kpi-accent-bg,var(--blue-50));
+  overflow:hidden;
+}
+.kpi-bar-fill{
+  height:100%;border-radius:999px;
+  background:var(--kpi-accent,var(--blue-500));
+  width:0%;transition:width 0.7s var(--ease-out);
+}
+/* Mobile KPI enhancements */
+.mk-meta{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.mk-pct{
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--card-accent-bg,var(--blue-50));
+  color:var(--card-accent,var(--blue-600));
+  border-radius:999px;padding:2px 7px;
+  font-size:0.67rem;font-weight:800;line-height:1.4;white-space:nowrap;
+}
+.mk-sub-txt{font-size:0.63rem;color:var(--ink-4);font-weight:500}
+.mk-bar-wrap{margin-top:8px;height:3px;border-radius:999px;background:var(--card-accent-bg,var(--blue-50));overflow:hidden}
+.mk-bar-fill{height:100%;border-radius:999px;background:var(--card-accent,var(--blue-500));width:0%;transition:width 0.7s var(--ease-out)}
 
 /* ══════════════════════════════════════
    MOBILE OVERLAY + DRAWER
@@ -431,7 +469,7 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
   background:var(--card-accent-bg,var(--blue-50));opacity:0.7;pointer-events:none;
 }
 .mk-label{font-size:0.62rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:5px}
-.mk-val{font-size:1.45rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1;font-family:'DM Sans',sans-serif}
+.mk-val{font-size:1.32rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1;font-family:'DM Sans',sans-serif}
 .mk-sub{margin-top:5px;font-size:0.68rem;color:var(--ink-3);font-weight:500}
 
 /* ══════════════════════════════════════
@@ -501,7 +539,8 @@ th{
 }
 th:nth-child(1),th:nth-child(2){z-index:11}
 .month-head{display:flex;flex-direction:column;align-items:center;gap:3px}
-.month-head-name{color:rgba(255,255,255,0.92)}
+.month-head-name{color:rgba(255,255,255,0.75);font-size:0.64rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase}
+.month-total-val{font-size:0.72rem;font-weight:800;letter-spacing:-0.02em;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;background:rgba(255,255,255,0.13);border-radius:4px;padding:1px 5px;transition:background 0.2s}
 .month-total-val{font-size:0.62rem;color:#bfdbfe;font-weight:600;font-family:'DM Mono',monospace}
 
 td{
@@ -532,7 +571,13 @@ tr:hover td.empty{background:#ffe4e6}
   padding:2px 6px;border-radius:999px;border:1px solid var(--blue-100);
   display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.cell-paid-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green-700);background:var(--green-100);border:1px solid var(--green-200);border-radius:999px;padding:1px 7px;margin-top:1px}
+td.empty.has-tx{background:var(--red-50);cursor:pointer}
+td.empty.has-tx:hover{background:#ffe4e6}
 .cell-mode{font-size:0.58rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.mt-paid-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green-700);background:var(--green-100);border:1px solid var(--green-200);border-radius:999px;padding:2px 8px;margin-top:4px}
+.mt-pending-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--red-600);background:var(--red-50);border:1px solid var(--red-100);border-radius:999px;padding:2px 8px;margin-top:4px}
+.mt-amount-red{color:var(--red-600)!important}
 
 /* ══════════════════════════════════════
    MOBILE CARDS
@@ -859,6 +904,10 @@ body.dark-mode .month-option{background:var(--surface-2);color:var(--ink-2)}
 body.dark-mode td:nth-child(1),body.dark-mode td:nth-child(2){background:var(--surface)}
 body.dark-mode tr:hover td:nth-child(1),body.dark-mode tr:hover td:nth-child(2){background:rgba(37,99,235,0.08)}
 body.dark-mode .year-sel{background:var(--surface-2);border-color:var(--line-md);color:var(--blue-400)}
+body.dark-mode .kpi-pct{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12)}
+body.dark-mode .kpi-bar-wrap{background:rgba(255,255,255,0.07)}
+body.dark-mode .mk-pct{background:rgba(255,255,255,0.08)}
+body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
 </style>
 </head>
 <body>
@@ -944,10 +993,42 @@ body.dark-mode .year-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- ══ MOBILE KPI STRIP ══ -->
 <div class="mob-kpi-strip">
-  <div class="mob-kpi-card"><div class="mk-label">Collected</div><div class="mk-val" id="mkTotal">—</div><div class="mk-sub">Year total</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Flats</div><div class="mk-val" id="mkFlats">—</div><div class="mk-sub">On record</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Paid</div><div class="mk-val" id="mkPaid">—</div><div class="mk-sub">Month slots</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Pending</div><div class="mk-val" id="mkPend">—</div><div class="mk-sub">Remaining</div></div>
+  <div class="mob-kpi-card">
+    <div class="mk-label">Total Collection</div>
+    <div class="mk-val" id="mkTotal">—</div>
+    <div class="mk-meta">
+      <span class="mk-pct" id="mkTotalPct">—%</span>
+      <span class="mk-sub-txt" id="mkTotalCtx">collected</span>
+    </div>
+    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkTotalBar"></div></div>
+  </div>
+  <div class="mob-kpi-card">
+    <div class="mk-label">Paid Flats</div>
+    <div class="mk-val" id="mkFlats">—</div>
+    <div class="mk-meta">
+      <span class="mk-pct" id="mkFlatsPct">—%</span>
+      <span class="mk-sub-txt" id="mkFlatsCtx">of flats</span>
+    </div>
+    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkFlatsBar"></div></div>
+  </div>
+  <div class="mob-kpi-card">
+    <div class="mk-label">Online</div>
+    <div class="mk-val" id="mkOnline">—</div>
+    <div class="mk-meta">
+      <span class="mk-pct" id="mkOnlinePct">—%</span>
+      <span class="mk-sub-txt">UPI / transfer</span>
+    </div>
+    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkOnlineBar"></div></div>
+  </div>
+  <div class="mob-kpi-card">
+    <div class="mk-label">Cash</div>
+    <div class="mk-val" id="mkCash">—</div>
+    <div class="mk-meta">
+      <span class="mk-pct" id="mkCashPct">—%</span>
+      <span class="mk-sub-txt">physical</span>
+    </div>
+    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkCashBar"></div></div>
+  </div>
 </div>
 
 <!-- ══ APP SHELL ══ -->
@@ -1049,30 +1130,81 @@ body.dark-mode .year-sel{background:var(--surface-2);border-color:var(--line-md)
 
   <!-- KPI STRIP -->
   <div class="kpi-strip">
+
+    <!-- 1. Total Collection -->
     <div class="kpi-cell">
-      <div class="kpi-ico"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
-      <div class="kpi-label">Total Collected</div>
+      <div class="kpi-ico">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="16" height="11" rx="2"/>
+          <line x1="2" y1="9" x2="18" y2="9"/>
+          <line x1="6" y1="13.5" x2="8" y2="13.5"/>
+        </svg>
+      </div>
+      <div class="kpi-label">Total Collection</div>
       <div class="kpi-val sk" id="kpiTotal">—</div>
-      <div class="kpi-sub" id="kpiSub">Year 2026</div>
+      <div class="kpi-meta">
+        <span class="kpi-pct" id="kpiTotalPct">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 5,3 8,7"/></svg>
+          —%
+        </span>
+        <span class="kpi-sub" id="kpiSub">of expected</span>
+      </div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiTotalBar"></div></div>
     </div>
+
+    <!-- 2. Paid Flats -->
     <div class="kpi-cell">
-      <div class="kpi-ico"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
-      <div class="kpi-label">Flats on Record</div>
+      <div class="kpi-ico">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </div>
+      <div class="kpi-label">Paid Flats</div>
       <div class="kpi-val sk" id="kpiFlats">—</div>
-      <div class="kpi-sub">Unique residents</div>
+      <div class="kpi-meta">
+        <span class="kpi-pct" id="kpiFlatsPct">—%</span>
+        <span class="kpi-sub" id="kpiFlatsCtx">of total flats</span>
+      </div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiFlatsBar"></div></div>
     </div>
+
+    <!-- 3. Online Collection -->
     <div class="kpi-cell">
-      <div class="kpi-ico"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg></div>
-      <div class="kpi-label">Paid Slots</div>
-      <div class="kpi-val sk" id="kpiPaid">—</div>
-      <div class="kpi-sub">Month entries done</div>
+      <div class="kpi-ico">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="8"/>
+          <path d="M2 10h16M10 2a14 14 0 0 1 0 16M10 2a14 14 0 0 0 0 16"/>
+        </svg>
+      </div>
+      <div class="kpi-label">Online Collection</div>
+      <div class="kpi-val sk" id="kpiOnline">—</div>
+      <div class="kpi-meta">
+        <span class="kpi-pct" id="kpiOnlinePct">—%</span>
+        <span class="kpi-sub">of total collected</span>
+      </div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiOnlineBar"></div></div>
     </div>
+
+    <!-- 4. Cash Collection -->
     <div class="kpi-cell">
-      <div class="kpi-ico"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
-      <div class="kpi-label">Pending Slots</div>
-      <div class="kpi-val sk" id="kpiPend">—</div>
-      <div class="kpi-sub">Remaining this year</div>
+      <div class="kpi-ico">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="5" width="18" height="11" rx="2"/>
+          <circle cx="10" cy="10.5" r="2.5"/>
+          <line x1="4" y1="10.5" x2="4" y2="10.5"/>
+          <line x1="16" y1="10.5" x2="16" y2="10.5"/>
+        </svg>
+      </div>
+      <div class="kpi-label">Cash Collection</div>
+      <div class="kpi-val sk" id="kpiCash">—</div>
+      <div class="kpi-meta">
+        <span class="kpi-pct" id="kpiCashPct">—%</span>
+        <span class="kpi-sub">of total collected</span>
+      </div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiCashBar"></div></div>
     </div>
+
   </div>
 
   <!-- PAGE -->
@@ -1284,6 +1416,19 @@ function resetState(){
   document.getElementById("tableBody").innerHTML="";
 }
 
+/* ── Parse paidMonths raw string → unique Set of 0-based month indices ── */
+function parsePaidMonthIndices(raw){
+  const result=new Set();
+  if(!raw||!String(raw).trim())return result;
+  const parts=String(raw).split(/[,;|\/]+|\s+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
+  parts.forEach(p=>{
+    let idx=months.findIndex(m=>m===p||m.substring(0,3)===p.substring(0,3));
+    if(idx<0){const n=parseInt(p,10);if(n>=1&&n<=12)idx=n-1;}
+    if(idx>=0&&idx<=11)result.add(idx);
+  });
+  return result;
+}
+
 /* ── Process row ── */
 function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw,recvRaw,notesRaw){
   if(!block||block==="TOTAL"||!flat||!amount)return;
@@ -1296,11 +1441,16 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
   let [mo,dy,yr]=[parseInt(p[0]),parseInt(p[1]),parseInt(p[2])];
   if(isNaN(dy)||isNaN(mo)||isNaN(yr)||monthIndex<0||monthIndex>11)return;
   const key=`${nb}-${flat}`;
-  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0};
-  if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{}};
+  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set()};
+  if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{},paidMonthIndices:new Set()};
   const fmtDate=`${String(dy).padStart(2,"0")}/${String(mo).padStart(2,"0")}/${yr}`;
   const amtN=Number(amount||0);
   const mode=String(modeRaw||"").trim().toUpperCase();
+
+  // Paid Months field is the ONLY source of truth for green status — no fallback.
+  // If paidMonths is empty, nothing is marked paid (transaction month stays Red).
+  const paidIndices=parsePaidMonthIndices(paidMonthsRaw);
+
   let paidHtml="";
   if(paidMonthsRaw){
     const pts=String(paidMonthsRaw).split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean);
@@ -1309,16 +1459,24 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
       paidHtml=`<span class="paid-months-compact" title="${pts.join(", ")}">${sh}</span>`;
     }
   }
-  const entry={amount:amtN,date:fmtDate,paidMonthsHtml:paidHtml,paymentMode:mode,receivedBy:String(recvRaw||"").trim(),notes:String(notesRaw||"").trim(),paidMonths:String(paidMonthsRaw||"").trim()};
+  const entry={amount:amtN,date:fmtDate,paidMonthsHtml:paidHtml,paymentMode:mode,receivedBy:String(recvRaw||"").trim(),notes:String(notesRaw||"").trim(),paidMonths:String(paidMonthsRaw||"").trim(),paidIndices};
   groupedData[key].years[year].months[monthIndex]=entry;
   groupedData[key].years[year].total+=amtN;
+  // Accumulate all paid month indices for this flat/year (Set deduplicates)
+  paidIndices.forEach(i=>groupedData[key].years[year].paidMonthIndices.add(i));
+  // Also accumulate into flat-level set (used when viewing all years)
+  paidIndices.forEach(i=>groupedData[key].paidMonthIndices.add(i));
+
   if(!groupedData[key].months[monthIndex]){
-    groupedData[key].months[monthIndex]={amount:0,date:fmtDate,paidMonthsHtml:"",paymentMode:"",receivedBy:"",notes:"",paidMonths:""};
+    groupedData[key].months[monthIndex]={amount:0,date:fmtDate,paidMonthsHtml:"",paymentMode:"",receivedBy:"",notes:"",paidMonths:"",paidIndices:new Set()};
   }
   const mc=groupedData[key].months[monthIndex];
   mc.amount+=amtN; mc.paidMonthsHtml=mc.paidMonthsHtml||paidHtml;
   mc.paymentMode=mc.paymentMode||mode; mc.receivedBy=mc.receivedBy||entry.receivedBy;
   mc.notes=mc.notes||entry.notes; mc.paidMonths=mc.paidMonths||entry.paidMonths;
+  if(!mc.paidIndices)mc.paidIndices=new Set();
+  paidIndices.forEach(i=>mc.paidIndices.add(i));
+
   groupedData[key].total+=amtN; monthlyTotals[monthIndex]+=amtN;
 }
 
@@ -1398,11 +1556,28 @@ function renderAll(){
   /* Table */
   let html="";
   sorted.forEach(row=>{
+    const paidSet=year==="all"
+      ? (row.paidMonthIndices||new Set())
+      : (row.years?.[year]?.paidMonthIndices||new Set());
+
     html+=`<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
     months.forEach((_,i)=>{
-      if(row.months[i]&&row.months[i].amount>0){
-        const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
-        html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(row.months[i].amount)}</span><span class="cell-date">${row.months[i].date}</span>${row.months[i].paidMonthsHtml||""}<span class="cell-mode">${row.months[i].paymentMode||""}</span></div></td>`;
+      const isPaid=paidSet.has(i);
+      let txEntry=null;
+      const _searchYrs=year==="all"?Object.keys(row.years||{}):[year];
+      for(const _yr of _searchYrs){
+        const _yd=row.years?.[_yr];
+        if(_yd?.months?.[i]){txEntry=_yd.months[i];break;}
+      }
+      const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+      if(isPaid&&txEntry){
+        const pmPill=txEntry.paidMonths?`<span class="paid-months-compact" style="margin-top:2px">${txEntry.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span>`:"";
+        html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
+      }else if(isPaid&&!txEntry){
+        html+=`<td class="paid month-cell"${ea}></td>`;
+      }else if(!isPaid&&txEntry){
+        const pmPill=txEntry.paidMonths?`<span class="paid-months-compact" style="margin-top:2px">${txEntry.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span>`:"";
+        html+=`<td class="empty month-cell has-tx"${ea}><div class="month-cell-content"><span class="cell-amount" style="color:var(--red-600)">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
       }else{
         html+=`<td class="empty month-cell">—</td>`;
       }
@@ -1414,33 +1589,19 @@ function renderAll(){
   html+=`<td>—</td></tr>`;
   document.getElementById("tableBody").innerHTML=html;
 
-  /* Month header totals */
+  /* Month header totals (initial render — full dataset) */
   monthlyTotals.forEach((t,i)=>setTxt(`mTot${i}`,fmt$(t)));
 
-  /* Block filter */
+  /* Block filter dropdown */
   const bf=document.getElementById("blockFilter");
   const sel=bf.value;
   bf.innerHTML=`<option value="">All Blocks</option>`+sortedBlocks.map(b=>`<option value="${b}">${b}</option>`).join("");
   if(sel&&sortedBlocks.includes(sel))bf.value=sel;
 
-  /* KPI */
-  const total=monthlyTotals.reduce((s,a)=>s+a,0);
-  const flats=Object.keys(groupedData).length;
-  let paid=0;
-  Object.values(groupedData).forEach(row=>{
-    const yd=row.years?.[year];
-    if(yd)Object.values(yd.months).forEach(m=>{if(Number(m?.amount||0)>0)paid++;});
-  });
-  const pending=Math.max(flats*12-paid,0);
-  ["kpiTotal","kpiFlats","kpiPaid","kpiPend"].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.classList.remove("sk");
-  });
-  setTxt("kpiTotal",fmt$(total)); setTxt("kpiSub",`Year ${year}`);
-  setTxt("kpiFlats",fmtN(flats)); setTxt("kpiPaid",fmtN(paid)); setTxt("kpiPend",fmtN(pending));
+  /* KPIs — computed fresh; applyFilters will recompute after block filter is applied */
+  updateKpis();
+
   document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
-  setTxt("mkTotal",fmt$(total)); setTxt("mkFlats",fmtN(flats)); setTxt("mkPaid",fmtN(paid)); setTxt("mkPend",fmtN(pending));
-  setTxt("navResidents",fmtN(flats));
-  setTxt("drawerNavResidents",fmtN(flats));
 
   /* Mobile cards */
   let chtml="";
@@ -1464,13 +1625,23 @@ function renderAll(){
         chtml+=`<div class="year-section"><div class="year-row" data-year="${yr}"><span class="year-label">${yr}</span><div class="year-right"><span class="year-total">${fmt$(yd.total)}</span><span class="year-chevron"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></span></div></div>
         <div class="year-months"><div class="month-grid">`;
         months.forEach((m,i)=>{
-          const md=yd.months[i];
-          const hasPay=md&&md.amount>0;
-          const ea=hasPay?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
-          const modeClass=md?.paymentMode==="CASH"?"cash":"online";
-          chtml+=`<div class="month-tile${hasPay?" has-payment":""}"${ea}>
+          const isPaidTile=yd.paidMonthIndices?.has(i)||false;
+          const txMd=yd.months?.[i]||null;
+          const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+          const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
+          let tileContent;
+          if(isPaidTile&&txMd){
+            tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonths?`<div class="mt-paid-months"><span class="paid-months-compact">${txMd.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span></div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
+          }else if(isPaidTile&&!txMd){
+            tileContent=``;
+          }else if(!isPaidTile&&txMd){
+            tileContent=`<div class="mt-amount mt-amount-red">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonths?`<div class="mt-paid-months"><span class="paid-months-compact">${txMd.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span></div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
+          }else{
+            tileContent=`<div class="mt-empty">—</div>`;
+          }
+          chtml+=`<div class="month-tile${isPaidTile?" has-payment":""}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
-            ${hasPay?`<div class="mt-amount">${fmt$(md.amount)}</div><div class="mt-date">${md.date}</div>${md.paidMonthsHtml?`<div class="mt-paid-months">${md.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${md.paymentMode||""}</span>`:`<div class="mt-empty">—</div>`}
+            ${tileContent}
           </div>`;
         });
         chtml+=`</div><div class="year-summary"><span>Paid in ${yr}</span><strong>${fmt$(yd.total)}</strong></div></div></div>`;
@@ -1482,6 +1653,153 @@ function renderAll(){
   });
   document.getElementById("mobileCards").innerHTML=chtml;
   applyFilters();
+}
+
+/* ── KPI computation (filter-aware) ──────────────────────────────────────────
+   Reads the active block filter and recalculates all 4 KPIs plus the 12
+   monthly column-header totals based only on visible (matching) rows.
+   Called by renderAll (initial) and applyFilters (on every filter change).
+─────────────────────────────────────────────────────────────────────────── */
+function updateKpis(){
+  const year     = activeYear();
+  const blockSel = (document.getElementById("blockFilter")?.value||"").toLowerCase();
+  const sv       = (document.getElementById("search")?.value||"").toLowerCase();
+  const st       = (document.getElementById("searchType")?.value||"all");
+
+  /* ── Accumulate filtered metrics ── */
+  let totalCollection  = 0;
+  let onlineCollection = 0;
+  let cashCollection   = 0;
+  const paidFlatKeys   = new Set();
+  const filteredMonthlyTotals = new Array(12).fill(0);
+
+  /* Also track total visible flat count (denominator for Paid Flats %) */
+  let totalVisibleFlats = 0;
+
+  Object.entries(groupedData).forEach(([key, row])=>{
+    /* Block filter */
+    if(blockSel && row.Block.toLowerCase() !== blockSel) return;
+
+    /* Text search filter */
+    if(sv){
+      const rb = row.Block.toLowerCase();
+      const rf = String(row.Flat).toLowerCase();
+      let textMatch = false;
+      if(st==="block")      textMatch = rb.includes(sv);
+      else if(st==="flat")  textMatch = rf.includes(sv);
+      else                  textMatch = rb.includes(sv) || rf.includes(sv);
+      if(!textMatch) return;
+    }
+
+    totalVisibleFlats++;
+
+    const searchYears = year==="all" ? Object.keys(row.years||{}) : [year];
+    let flatHasPayment = false;
+
+    searchYears.forEach(yr=>{
+      const yd = row.years?.[yr]; if(!yd) return;
+      Object.entries(yd.months||{}).forEach(([mi, entry])=>{
+        const amt = Number(entry.amount||0);
+        if(!amt) return;
+        flatHasPayment = true;
+        totalCollection  += amt;
+        filteredMonthlyTotals[Number(mi)] += amt;
+        const mode = String(entry.paymentMode||"").toUpperCase();
+        if(mode==="CASH") cashCollection   += amt;
+        else              onlineCollection += amt;
+      });
+    });
+
+    if(flatHasPayment) paidFlatKeys.add(key);
+  });
+
+  /* ── Percentage calculations ── */
+  /* 1. Total Collection %: collected vs expected (flats × 12 months × standard rate)
+        We don't know the standard rate, so we derive "expected" as:
+        totalVisibleFlats × 12 × median or average per-payment amount.
+        Practical approach: expected = totalVisibleFlats × 12 × 200 (₹200/month guard fee).
+        If you want a different denominator, change EXPECTED_PER_FLAT_YEAR below.       */
+  const EXPECTED_PER_FLAT_YEAR = 200 * 12; /* ₹200/month × 12 months */
+  const expectedTotal  = totalVisibleFlats * EXPECTED_PER_FLAT_YEAR;
+  const totalPct       = expectedTotal > 0 ? Math.round((totalCollection / expectedTotal) * 100) : 0;
+
+  /* 2. Paid Flats %: paid flats / total visible flats */
+  const flatsPct = totalVisibleFlats > 0 ? Math.round((paidFlatKeys.size / totalVisibleFlats) * 100) : 0;
+
+  /* 3. Online %: online / total collected */
+  const onlinePct = totalCollection > 0 ? Math.round((onlineCollection / totalCollection) * 100) : 0;
+
+  /* 4. Cash %: cash / total collected */
+  const cashPct   = totalCollection > 0 ? Math.round((cashCollection   / totalCollection) * 100) : 0;
+
+  /* ── Helper: set progress bar width with clamped animation ── */
+  function setBar(id, pct){
+    const el = document.getElementById(id);
+    if(!el) return;
+    /* Small delay so the CSS transition fires after initial paint */
+    requestAnimationFrame(()=>{ el.style.width = Math.min(Math.max(pct, 0), 100) + "%"; });
+  }
+
+  /* ── Helper: pct label with cap display ── */
+  const pctLabel = p => p > 0 ? `${p}%` : "0%";
+
+  /* ── Update desktop KPI tiles ── */
+  const skIds = ["kpiTotal","kpiFlats","kpiOnline","kpiCash"];
+  skIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove("sk"); });
+
+  /* Tile 1 — Total Collection */
+  setTxt("kpiTotal",    fmt$(totalCollection));
+  setTxt("kpiTotalPct", pctLabel(totalPct));
+  setTxt("kpiSub",      blockSel
+    ? `${pctLabel(totalPct)} collected · ${blockSel.replace(/^block-?/i,"Block ")}`
+    : `${pctLabel(totalPct)} collected · ${year==="all"?"all years":"year "+year}`);
+  setBar("kpiTotalBar", totalPct);
+
+  /* Tile 2 — Paid Flats */
+  setTxt("kpiFlats",    `${fmtN(paidFlatKeys.size)} / ${fmtN(totalVisibleFlats)}`);
+  setTxt("kpiFlatsPct", pctLabel(flatsPct));
+  setTxt("kpiFlatsCtx", `${pctLabel(flatsPct)} of flats paid`);
+  setBar("kpiFlatsBar", flatsPct);
+
+  /* Tile 3 — Online */
+  setTxt("kpiOnline",    fmt$(onlineCollection));
+  setTxt("kpiOnlinePct", pctLabel(onlinePct));
+  setBar("kpiOnlineBar", onlinePct);
+
+  /* Tile 4 — Cash */
+  setTxt("kpiCash",    fmt$(cashCollection));
+  setTxt("kpiCashPct", pctLabel(cashPct));
+  setBar("kpiCashBar", cashPct);
+
+  /* ── Update mobile KPI cards ── */
+  setTxt("mkTotal",    fmt$(totalCollection));
+  setTxt("mkTotalPct", pctLabel(totalPct));
+  setTxt("mkTotalCtx", `${pctLabel(totalPct)} collected`);
+  setBar("mkTotalBar", totalPct);
+
+  setTxt("mkFlats",    `${fmtN(paidFlatKeys.size)} / ${fmtN(totalVisibleFlats)}`);
+  setTxt("mkFlatsPct", pctLabel(flatsPct));
+  setTxt("mkFlatsCtx", `${pctLabel(flatsPct)} of flats`);
+  setBar("mkFlatsBar", flatsPct);
+
+  setTxt("mkOnline",    fmt$(onlineCollection));
+  setTxt("mkOnlinePct", pctLabel(onlinePct));
+  setBar("mkOnlineBar", onlinePct);
+
+  setTxt("mkCash",    fmt$(cashCollection));
+  setTxt("mkCashPct", pctLabel(cashPct));
+  setBar("mkCashBar", cashPct);
+
+  /* ── Sidebar resident badge (full dataset, not filtered) ── */
+  const totalFlatCount = Object.keys(groupedData).length;
+  setTxt("navResidents",       fmtN(totalFlatCount));
+  setTxt("drawerNavResidents", fmtN(totalFlatCount));
+
+  /* ── Month column header totals ── */
+  filteredMonthlyTotals.forEach((t,i)=>setTxt(`mTot${i}`, fmt$(t)));
+
+  /* ── Reveal KPI animation ── */
+  document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
 }
 
 /* ── Filters ── */
@@ -1505,6 +1823,9 @@ function applyFilters(){
   });
   const fc=document.getElementById("filterCount");
   if(fc)fc.textContent=vis?`${fmtN(vis)} flat${vis!==1?"s":""}`:""
+
+  /* Recompute KPIs & monthly header totals for the active filter combination */
+  updateKpis();
 }
 
 /* ── Excel export ── */
