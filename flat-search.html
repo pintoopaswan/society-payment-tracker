@@ -225,120 +225,232 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 /* ════ PAGE BODY ════ */
 .page{padding:20px 26px;max-width:1560px;margin:0 auto}
 
-/* ════ SEARCH HERO — dashboard-aligned clean card ════ */
+/* ════ SEARCH HERO — revamped ════ */
 .search-hero{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:var(--r-xl);
-  padding:24px 26px 22px;
-  margin-bottom:20px;
+  background:linear-gradient(135deg,#e8e4f9 0%,#f3e8ff 40%,#fde8f0 75%,#fef3e2 100%);
+  border:1px solid rgba(167,139,250,0.20);
+  border-radius:var(--r-2xl);
+  padding:36px 36px 32px;
+  margin-bottom:22px;
   position:relative;overflow:hidden;
-  box-shadow:var(--s-sm);
+  box-shadow:0 4px 24px rgba(139,92,246,0.08),0 1px 4px rgba(139,92,246,0.05);
   animation:fadeUp 0.4s var(--ease-out) both;
 }
+
+/* Decorative mesh blobs */
 .search-hero::before{
   content:'';position:absolute;
-  top:-40px;right:-40px;
-  width:200px;height:200px;border-radius:50%;
-  background:radial-gradient(circle,var(--blue-50) 0%,transparent 70%);
+  top:-60px;right:-60px;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(167,139,250,0.18) 0%,transparent 70%);
   pointer-events:none;
 }
 .search-hero::after{
   content:'';position:absolute;
-  bottom:-60px;left:15%;
-  width:180px;height:180px;border-radius:50%;
-  background:radial-gradient(circle,var(--green-50) 0%,transparent 70%);
+  bottom:-80px;left:8%;
+  width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(251,191,147,0.22) 0%,transparent 70%);
   pointer-events:none;
 }
-.hero-label{
-  font-size:0.66rem;font-weight:700;letter-spacing:0.1em;
-  color:var(--blue-600);text-transform:uppercase;
-  margin-bottom:8px;position:relative;z-index:1;
+
+/* Top label row */
+.hero-eyebrow{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;position:relative;z-index:1;
 }
+.hero-eyebrow-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(139,92,246,0.10);
+  border:1px solid rgba(139,92,246,0.18);
+  border-radius:99px;padding:4px 12px;
+  font-size:0.65rem;font-weight:700;letter-spacing:0.09em;
+  color:#6d4fc2;text-transform:uppercase;
+  backdrop-filter:blur(6px);
+}
+.hero-eyebrow-pill svg{opacity:0.7}
+.hero-eyebrow-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green-500);
+  box-shadow:0 0 6px var(--green-400);
+  animation:pulse 2s ease-in-out infinite;
+  flex-shrink:0;
+}
+
 .hero-title{
-  font-size:1.55rem;font-weight:700;color:var(--ink);
-  letter-spacing:-0.03em;line-height:1.15;
+  font-size:1.75rem;font-weight:700;color:#1e1b3a;
+  letter-spacing:-0.035em;line-height:1.12;
   font-family:'Fraunces',serif;
-  margin-bottom:4px;position:relative;z-index:1;
+  margin-bottom:6px;position:relative;z-index:1;
+}
+.hero-title em{
+  font-style:normal;
+  background:linear-gradient(90deg,#7c3aed,#db2777);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hero-sub{
-  font-size:0.78rem;color:var(--ink-3);
-  margin-bottom:18px;position:relative;z-index:1;
+  font-size:0.8rem;color:#6b6880;
+  margin-bottom:24px;position:relative;z-index:1;
+  font-weight:400;letter-spacing:0.01em;
 }
-.search-box-wrap{position:relative;z-index:2;max-width:680px;overflow:visible}
+
+/* ── Search field ── */
+.search-box-wrap{position:relative;z-index:2;max-width:700px;overflow:visible}
 .search-box{
   display:flex;align-items:center;
-  background:var(--surface-2);
-  border:1.5px solid var(--line-md);
-  border-radius:var(--r-lg);
+  background:#fff;
+  border:1.5px solid rgba(139,92,246,0.20);
+  border-radius:var(--r-xl);
   overflow:hidden;
-  transition:border-color 0.2s,box-shadow 0.2s;
+  box-shadow:0 2px 12px rgba(139,92,246,0.10),0 1px 3px rgba(0,0,0,0.05);
+  transition:border-color 0.2s,box-shadow 0.2s,transform 0.18s var(--ease-spring);
 }
 .search-box:focus-within{
-  border-color:var(--blue-400);
-  box-shadow:0 0 0 3px rgba(37,99,235,0.10),var(--s-sm);
+  border-color:#a78bfa;
+  box-shadow:0 0 0 3px rgba(167,139,250,0.18),0 4px 20px rgba(139,92,246,0.12);
+  transform:translateY(-1px);
 }
 .search-icon{
-  padding:0 14px;color:var(--ink-3);flex-shrink:0;
+  padding:0 16px;color:#a78bfa;flex-shrink:0;
   display:flex;align-items:center;
 }
 .search-main-input{
   flex:1;background:transparent;color:var(--ink);
-  font-size:0.92rem;font-weight:500;
-  padding:13px 0;min-width:0;
+  font-size:0.95rem;font-weight:500;
+  padding:15px 0;min-width:0;
+  letter-spacing:-0.01em;
 }
-.search-main-input::placeholder{color:var(--ink-4)}
+.search-main-input::placeholder{color:#b8b4cc;font-weight:400}
 .search-main-input:focus{outline:none}
 .search-clear{
-  padding:0 12px;color:var(--ink-4);
+  padding:0 12px;color:#b8b4cc;
   display:none;align-items:center;justify-content:center;
   transition:color 0.15s;
 }
 .search-clear.visible{display:flex}
 .search-clear:hover{color:var(--red-500)}
 .search-btn{
-  height:100%;padding:0 18px;
-  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
-  color:#fff;font-size:0.8rem;font-weight:700;
+  height:100%;padding:0 22px;
+  background:linear-gradient(135deg,#7c3aed,#a78bfa);
+  color:#fff;font-size:0.82rem;font-weight:700;
   display:flex;align-items:center;gap:7px;
-  transition:opacity 0.15s,filter 0.15s;
+  transition:opacity 0.15s,filter 0.15s,transform 0.15s;
   white-space:nowrap;
-  box-shadow:var(--s-blue);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.15);
+  letter-spacing:0.01em;
 }
-.search-btn:hover{opacity:0.92;filter:brightness(1.05)}
+.search-btn:hover{opacity:0.93;filter:brightness(1.07)}
+.search-btn:active{transform:scale(0.98)}
+
+/* ── Search hint chips below search bar ── */
+.search-hints{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-top:12px;position:relative;z-index:1;
+}
+.search-hint{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,0.60);
+  border:1px solid rgba(139,92,246,0.15);
+  border-radius:99px;padding:4px 11px;
+  font-size:0.68rem;font-weight:600;color:#6d5b9a;
+  cursor:pointer;transition:background 0.15s,border-color 0.15s,color 0.15s;
+  backdrop-filter:blur(4px);
+}
+.search-hint:hover{background:rgba(139,92,246,0.10);color:#5b21b6;border-color:rgba(139,92,246,0.3)}
+.search-hint-label{font-size:0.6rem;opacity:0.55;margin-right:2px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* Stats strip inside hero */
+.hero-stats{
+  display:flex;align-items:center;gap:20px;
+  margin-top:22px;padding-top:18px;
+  border-top:1px solid rgba(139,92,246,0.12);
+  position:relative;z-index:1;
+}
+.hero-stat{display:flex;align-items:center;gap:8px}
+.hero-stat-val{
+  font-size:1.05rem;font-weight:800;color:#1e1b3a;
+  font-family:'DM Mono',monospace;letter-spacing:-0.02em;
+}
+.hero-stat-label{font-size:0.68rem;color:#8b84a8;font-weight:500}
+.hero-stat-sep{width:1px;height:26px;background:rgba(139,92,246,0.14);flex-shrink:0}
+
+/* dark mode: gentle dark surface instead of white */
+body.dark-mode .search-hero{
+  background:linear-gradient(135deg,#1e1a2e 0%,#251c38 40%,#2a1d30 75%,#271e22 100%);
+  border-color:rgba(167,139,250,0.12);
+}
+body.dark-mode .hero-title{color:#e9e4ff}
+body.dark-mode .hero-sub{color:#9990b8}
+body.dark-mode .hero-eyebrow-pill{background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.2);color:#c4b5fd}
+body.dark-mode .hero-stat-val{color:#e9e4ff}
+body.dark-mode .hero-stat-label{color:#7068a0}
+body.dark-mode .search-hint{background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.15);color:#c4b5fd}
+body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18)}
 
 
-/* ════ SUGGESTIONS DROPDOWN ════ */
+/* ════ SUGGESTIONS DROPDOWN — revamped ════ */
 .suggestions-wrap{
   position:static!important;
   display:none;margin-top:10px;
-  background:var(--surface);border:1px solid var(--line-md);
-  border-radius:var(--r-lg);box-shadow:var(--s-md);
-  max-height:320px;overflow-y:auto;z-index:auto;
+  background:var(--surface);
+  border:1px solid var(--line-md);
+  border-radius:var(--r-xl);
+  box-shadow:0 8px 32px rgba(15,23,42,0.14),0 2px 8px rgba(15,23,42,0.06);
+  max-height:340px;overflow-y:auto;z-index:auto;
+  overflow:hidden;
 }
-.suggestions-wrap.open{display:block;animation:scaleIn 0.2s var(--ease-out) both;transform-origin:top center}
+.suggestions-wrap.open{display:block;animation:scaleIn 0.22s var(--ease-out) both;transform-origin:top center}
 .suggestions-wrap::-webkit-scrollbar{width:4px}
 .suggestions-wrap::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:999px}
-.sug-header{padding:9px 14px 6px;font-size:0.66rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em}
-.sug-item{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 14px;cursor:pointer;transition:background 0.12s;
+.sug-header{
+  padding:10px 16px 7px;
+  font-size:0.63rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.12em;
+  display:flex;align-items:center;gap:7px;
+  border-bottom:1px solid var(--line);
+  background:var(--surface-2);
 }
-.sug-item:hover{background:var(--surface-2)}
+.sug-header-count{
+  background:var(--blue-100);color:var(--blue-700);
+  border-radius:99px;padding:1px 7px;font-size:0.6rem;font-weight:800;
+}
+.sug-item{
+  display:flex;align-items:center;gap:13px;
+  padding:11px 16px;cursor:pointer;
+  transition:background 0.1s;
+  border-bottom:1px solid var(--line);
+  position:relative;
+}
+.sug-item:last-child{border-bottom:none}
+.sug-item:hover{background:var(--blue-50)}
+.sug-item:hover .sug-avatar{transform:scale(1.06)}
 .sug-avatar{
-  width:36px;height:36px;border-radius:10px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-700),var(--blue-500));
   display:flex;align-items:center;justify-content:center;
   font-size:0.72rem;font-weight:800;color:#fff;
+  box-shadow:0 2px 8px rgba(37,99,235,0.22);
+  transition:transform 0.18s var(--ease-spring);
 }
+.sug-avatar.tenant{background:linear-gradient(135deg,var(--teal-600),#06b6d4)}
+.sug-avatar.vacant{background:linear-gradient(135deg,#94a3b8,#64748b)}
 .sug-info{flex:1;min-width:0}
-.sug-flat{font-size:0.86rem;font-weight:700;color:var(--ink)}
-.sug-names{font-size:0.73rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.sug-badge{font-size:0.66rem;font-weight:700;padding:2px 8px;border-radius:99px;flex-shrink:0}
-.sug-badge.tenant{background:var(--teal-100);color:var(--teal-600)}
-.sug-badge.owner{background:var(--blue-100);color:var(--blue-700)}
-.sug-badge.vacant{background:var(--surface-3);color:var(--ink-3)}
-.sug-no-results{padding:20px;text-align:center;color:var(--ink-3);font-size:0.82rem}
+.sug-flat{font-size:0.88rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+.sug-flat strong{color:var(--blue-600)}
+.sug-names{font-size:0.73rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.sug-badge{font-size:0.63rem;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;letter-spacing:0.03em}
+.sug-badge.tenant{background:var(--teal-100);color:var(--teal-600);border:1px solid #a5f3fc}
+.sug-badge.owner{background:var(--blue-100);color:var(--blue-700);border:1px solid var(--blue-200)}
+.sug-badge.vacant{background:var(--surface-3);color:var(--ink-3);border:1px solid var(--line)}
+.sug-no-results{
+  padding:28px 20px;text-align:center;color:var(--ink-3);font-size:0.84rem;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.sug-no-results-icon{
+  width:40px;height:40px;border-radius:12px;background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-4);
+  margin-bottom:2px;
+}
+.sug-no-results strong{color:var(--ink);font-weight:700}
 
 
 /* ════ PROFILE PANEL ════ */
@@ -676,39 +788,67 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 .empty-title{font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:4px}
 .empty-sub{font-size:0.76rem;color:var(--ink-3);max-width:240px;margin:0 auto}
 
-/* Profile default (before search) */
+/* Profile default (before search) — revamped */
 .search-prompt{
   background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-lg);padding:48px 32px;
+  border-radius:var(--r-xl);padding:52px 32px;
   text-align:center;box-shadow:var(--s-sm);
   animation:fadeUp 0.4s 0.1s var(--ease-out) both;
+  position:relative;overflow:hidden;
+}
+.search-prompt::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--blue-600),var(--violet-500),var(--blue-400));
 }
 .prompt-rings{
-  position:relative;width:72px;height:72px;margin:0 auto 20px;
+  position:relative;width:76px;height:76px;margin:0 auto 22px;
 }
 .prompt-rings::before,.prompt-rings::after{
   content:'';position:absolute;border-radius:50%;
-  border:1.5px solid var(--line-md);
   animation:fadeIn 0.5s ease both;
 }
-.prompt-rings::before{inset:0}
-.prompt-rings::after{inset:12px}
+.prompt-rings::before{
+  inset:0;
+  border:1.5px solid var(--blue-200);
+  background:var(--blue-50);
+}
+.prompt-rings::after{
+  inset:12px;
+  border:1.5px dashed var(--blue-300);
+  animation:none;
+  border-radius:50%;
+}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.prompt-rings::after{animation:spin-slow 12s linear infinite}
 .prompt-inner{
   position:absolute;inset:24px;border-radius:50%;
-  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
+  background:linear-gradient(135deg,var(--blue-700),var(--blue-500));
   display:flex;align-items:center;justify-content:center;
   color:#fff;box-shadow:var(--s-blue);
 }
-.prompt-title{font-size:1.1rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;margin-bottom:6px}
-.prompt-sub{font-size:0.78rem;color:var(--ink-3);max-width:320px;margin:0 auto 20px}
+.prompt-title{
+  font-size:1.1rem;font-weight:700;color:var(--ink);
+  letter-spacing:-0.02em;margin-bottom:7px;
+  font-family:'Fraunces',serif;
+}
+.prompt-sub{font-size:0.79rem;color:var(--ink-3);max-width:300px;margin:0 auto 22px;line-height:1.55}
 .search-tips{
   display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
   margin-top:4px;
 }
 .tip-chip{
   background:var(--surface-2);border:1px solid var(--line-md);
-  border-radius:99px;padding:4px 12px;
+  border-radius:99px;padding:5px 13px;
   font-size:0.72rem;font-weight:600;color:var(--ink-3);
+  display:flex;align-items:center;gap:6px;
+  transition:background 0.14s,border-color 0.14s,color 0.14s;cursor:pointer;
+}
+.tip-chip:hover{background:var(--blue-50);border-color:var(--blue-200);color:var(--blue-700)}
+.tip-chip-key{
+  background:var(--surface-3);border:1px solid var(--line-md);
+  border-radius:4px;padding:1px 6px;font-size:0.64rem;
+  font-family:'DM Mono',monospace;color:var(--ink-3);
 }
 
 /* Loading skeleton */
@@ -1104,8 +1244,8 @@ body.modal-open{overflow:hidden;position:static;width:auto}
 .mob-drawer .sb-icon{width:34px;height:34px;border-radius:10px}
 /* Page container */
 .page{padding:20px 28px 32px;max-width:1600px;margin:0 auto;flex:1;width:100%}
-/* Search hero override - ensure clean card style */
-.search-hero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--s-sm);overflow:visible;margin-bottom:24px;padding:24px 26px;position:relative;z-index:20}
+/* Search hero override - preserve gradient, just fix overflow/z-index */
+.search-hero{overflow:visible;margin-bottom:24px;position:relative;z-index:20}
 .search-box-wrap{overflow:visible;max-width:760px}
 .suggestions-wrap{position:static!important;display:none;margin-top:10px;width:100%;max-height:340px;z-index:auto;border-radius:var(--r-lg);transform-origin:top center}
 .suggestions-wrap.open{display:block}
@@ -1118,7 +1258,7 @@ body.dark-mode{--bg:#0f172a;--surface:#1e293b;--surface-2:#1a2540;--surface-3:#2
 body.dark-mode .topbar,body.dark-mode .mob-header{background:rgba(15,23,42,.97);border-color:var(--line)}
 body.dark-mode .sidebar,body.dark-mode .mob-drawer{background:var(--surface)}
 body.dark-mode .mob-hamburger,body.dark-mode .mob-theme-btn{background:var(--surface-2);border-color:var(--line-md)}
-body.dark-mode .search-hero{background:var(--surface);border-color:var(--line)}
+/* dark-mode hero keeps its gradient — no override needed */
 body.dark-mode .pay-card{background:var(--surface);border-color:var(--line-md)}
 body.dark-mode .pay-card-footer{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-3)}
@@ -1272,27 +1412,69 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 <!-- PAGE -->
 <div class="page">
 
-  <!-- Search Hero -->
+  <!-- Search Hero — Revamped -->
   <div class="search-hero">
-    
-    <div class="hero-title">Flat Search and Details</div>
-    <div class="hero-sub">Search by flat number, owner name, tenant name, or mobile number</div>
+
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-pill">
+        <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="19" y2="19"/></svg>
+        MIG Society · Flat Search
+      </div>
+      <div class="hero-eyebrow-dot"></div>
+    </div>
+
+    <div class="hero-title">Find any flat, <em>instantly.</em></div>
+    <div class="hero-sub">Search by flat number, owner, tenant name or mobile number</div>
+
     <div class="search-box-wrap">
       <div class="search-box">
         <div class="search-icon">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
         </div>
-        <input type="text" class="search-main-input" id="mainSearch" placeholder="e.g. B-101, John, 9876543210…" autocomplete="off" spellcheck="false">
+        <input type="text" class="search-main-input" id="mainSearch" placeholder="Flat no., name, mobile… e.g. B-101" autocomplete="off" spellcheck="false">
         <button class="search-clear" id="searchClear" type="button" title="Clear">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
         </button>
         <button class="search-btn" id="searchBtn" type="button">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
           <span>Search</span>
         </button>
       </div>
       <div class="suggestions-wrap" id="suggestionsWrap"></div>
     </div>
+
+    <div class="search-hints">
+      <span class="search-hint" onclick="document.getElementById('mainSearch').value='B-1';document.getElementById('mainSearch').dispatchEvent(new Event('input'))">
+        <span class="search-hint-label">Try</span>B-101
+      </span>
+      <span class="search-hint" onclick="document.getElementById('mainSearch').focus()">
+        <span class="search-hint-label">Try</span>Owner name
+      </span>
+      <span class="search-hint" onclick="document.getElementById('mainSearch').focus()">
+        <span class="search-hint-label">Try</span>Mobile no.
+      </span>
+      <span class="search-hint" onclick="document.getElementById('mainSearch').focus()">
+        <span class="search-hint-label">Try</span>Tenant name
+      </span>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="heroStatFlats">—</div>
+        <div class="hero-stat-label">Total Flats</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="heroStatOccupied">—</div>
+        <div class="hero-stat-label">Occupied</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="heroStatPayments">—</div>
+        <div class="hero-stat-label">Payment Records</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Profile panel (initially hidden) -->
@@ -1502,12 +1684,24 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
       </div>
     </div>
     <div class="prompt-title">Search for a Flat</div>
-    <div class="prompt-sub">Enter a flat number, owner name, tenant name, or mobile number to see the complete 360° profile</div>
+    <div class="prompt-sub">Enter a flat number, owner name, tenant name, or mobile number to view the complete resident profile &amp; payment history</div>
     <div class="search-tips">
-      <span class="tip-chip">Flat No: B-101</span>
-      <span class="tip-chip">Owner Name</span>
-      <span class="tip-chip">Tenant Name</span>
-      <span class="tip-chip">Mobile Number</span>
+      <span class="tip-chip">
+        <span class="tip-chip-key">B-101</span>
+        Flat No.
+      </span>
+      <span class="tip-chip">
+        <span class="tip-chip-key">Raj</span>
+        Owner Name
+      </span>
+      <span class="tip-chip">
+        <span class="tip-chip-key">987…</span>
+        Mobile No.
+      </span>
+      <span class="tip-chip">
+        <span class="tip-chip-key">Priya</span>
+        Tenant Name
+      </span>
     </div>
   </div>
 
@@ -1853,6 +2047,15 @@ async function loadDirectory(){
     const np=document.getElementById(id);
     if(np)np.textContent=directoryRows.length;
   });
+  // Hero stats
+  const heroFlats=document.getElementById("heroStatFlats");
+  const heroOcc=document.getElementById("heroStatOccupied");
+  if(heroFlats)heroFlats.textContent=directoryRows.length;
+  if(heroOcc){
+    const ocI=hiIdx(["occupied by","occupiedby"]);
+    const occupiedCount=ocI>=0?directoryRows.filter(r=>String(r[ocI]||"").trim().toLowerCase()!=="vacant"&&String(r[ocI]||"").trim()!=="").length:directoryRows.length;
+    heroOcc.textContent=occupiedCount;
+  }
 }
 
 async function fetchCsv(sheetId,tabName){
@@ -2009,17 +2212,17 @@ function renderSuggestions(q){
   const items=getSearchCandidates(q);
   if(!q||q.length<2){sugWrap.classList.remove("open");return;}
   if(!items.length){
-    sugWrap.innerHTML=`<div class="sug-no-results">No flats found for "<strong>${esc(q)}</strong>"</div>`;
+    sugWrap.innerHTML=`<div class="sug-no-results"><div class="sug-no-results-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="19" y2="19"/><line x1="6" y1="9" x2="12" y2="9"/></svg></div>No flats found for <strong>"${esc(q)}"</strong><div style="font-size:0.72rem;color:var(--ink-4);margin-top:2px">Try flat number, name, or mobile</div></div>`;
     sugWrap.classList.add("open");return;
   }
-  const html=`<div class="sug-header">Matching Flats</div>`+items.map(it=>{
+  const html=`<div class="sug-header">Matching Flats <span class="sug-header-count">${items.length}</span></div>`+items.map(it=>{
     const label=it.occ==="tenant"?"tenant":it.occ==="owner"?"owner":"vacant";
     const names=[it.ov&&`Owner: ${it.ov}`,it.tv&&`Tenant: ${it.tv}`].filter(Boolean).join(" · ")||"No resident data";
     const blockShort=it.bv.replace("Block-","B");
     return`<div class="sug-item" data-block="${esc(it.bv)}" data-flat="${esc(it.fv)}">
-      <div class="sug-avatar">${esc(blockShort)}</div>
+      <div class="sug-avatar ${label}">${esc(blockShort)}</div>
       <div class="sug-info">
-        <div class="sug-flat">${esc(it.bv)} · Flat ${esc(it.fv)}</div>
+        <div class="sug-flat">${esc(it.bv)} · Flat <strong>${esc(it.fv)}</strong></div>
         <div class="sug-names">${esc(names)}</div>
       </div>
       <span class="sug-badge ${label}">${label.charAt(0).toUpperCase()+label.slice(1)}</span>
@@ -2929,6 +3132,8 @@ document.addEventListener("click",()=>document.querySelectorAll(".profile-dropdo
 ═══════════════════════════════════════════════ */
 (async()=>{
   await Promise.all([loadDirectory(),loadPayments()]);
+  const heroPayments=document.getElementById("heroStatPayments");
+  if(heroPayments)heroPayments.textContent=allPaymentRecords.length;
 })();
 </script>
 </body>
