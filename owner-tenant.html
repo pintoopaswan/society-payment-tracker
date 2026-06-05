@@ -5,317 +5,457 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0B1628">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2563eb">
 <title>MIG Society · Residents</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
-/* ════════════════════════════════════════════════
-   RESET & TOKENS
-════════════════════════════════════════════════ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{font-size:15px;scroll-behavior:smooth}
-body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
-body.modal-open{overflow:hidden;position:fixed;width:100%}
+html{font-size:15px;scroll-behavior:smooth;height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100%;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:none}
+img{display:block}
+body.modal-open{overflow:hidden}
 
 :root{
-  --midnight-900:#0b1628;
-  --midnight-800:#112040;
-  --midnight-700:#172c58;
-  --midnight-600:#1e3a72;
-  --midnight-500:#274d96;
-  --midnight-400:#3b66b8;
-  --midnight-300:#6b94d4;
-  --midnight-200:#a8c4ec;
-  --midnight-100:#d8e8f8;
-  --midnight-50: #eef5fc;
-
-  --jade-700:#065f46;
-  --jade-600:#047857;
-  --jade-500:#059669;
-  --jade-400:#10b981;
-  --jade-100:#d1fae5;
-  --jade-50: #ecfdf5;
-
-  --coral-600:#dc2626;
-  --coral-500:#ef4444;
-  --coral-100:#fee2e2;
-  --coral-50: #fef2f2;
-
+  --blue-950:#0a1628;
+  --blue-900:#0f2042;
+  --blue-800:#1a3a6b;
+  --blue-700:#1d4ed8;
+  --blue-600:#2563eb;
+  --blue-500:#3b82f6;
+  --blue-400:#60a5fa;
+  --blue-300:#93c5fd;
+  --blue-200:#bfdbfe;
+  --blue-100:#dbeafe;
+  --blue-50:#eff6ff;
+  --violet-600:#7c3aed;
+  --violet-500:#8b5cf6;
+  --violet-400:#a78bfa;
+  --violet-100:#ede9fe;
+  --violet-50:#f5f3ff;
+  --green-700:#047857;
+  --green-600:#059669;
+  --green-500:#10b981;
+  --green-400:#34d399;
+  --green-100:#d1fae5;
+  --green-50:#ecfdf5;
+  --amber-700:#b45309;
   --amber-600:#d97706;
   --amber-500:#f59e0b;
+  --amber-400:#fbbf24;
   --amber-100:#fef3c7;
-  --amber-50: #fffbeb;
-
-  --teal-600:#0d9488;
-  --teal-500:#14b8a6;
-  --teal-100:#ccfbf1;
-  --teal-50: #f0fdfa;
-
-  --violet-600:#7c3aed;
-  --violet-100:#ede9fe;
-  --violet-50: #f5f3ff;
-
-  --bg:       #f2f6fb;
-  --surface:  #ffffff;
-  --surface-2:#f8fafd;
-  --surface-3:#eef3f9;
-
-  --ink:      #0b1628;
-  --ink-2:    #344f6e;
-  --ink-3:    #6a86a4;
-  --ink-4:    #a0b4c8;
-
-  --line:     rgba(23,44,88,0.08);
-  --line-md:  rgba(23,44,88,0.13);
-  --line-lg:  rgba(23,44,88,0.20);
-
-  --s-xs: 0 1px 3px rgba(7,15,35,0.05);
-  --s-sm: 0 2px 8px rgba(7,15,35,0.07),0 1px 2px rgba(7,15,35,0.04);
-  --s-md: 0 6px 20px rgba(7,15,35,0.09),0 2px 6px rgba(7,15,35,0.04);
-  --s-lg: 0 18px 48px rgba(7,15,35,0.12),0 4px 12px rgba(7,15,35,0.05);
-  --s-blue:0 8px 28px rgba(30,58,114,0.28);
-  --s-jade:0 8px 24px rgba(6,120,87,0.22);
-
-  --r-sm:  8px;
-  --r-md:  12px;
-  --r-lg:  18px;
-  --r-xl:  24px;
-
-  --ease-out:    cubic-bezier(0.16,1,0.3,1);
-  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-
-  --topbar-h:   56px;
-  --desknav-h:  50px;
-  --mobnav-h:   70px;
-  --safe-bot:   env(safe-area-inset-bottom,0px);
-  --safe-top:   env(safe-area-inset-top,0px);
+  --amber-50:#fffbeb;
+  --red-700:#be123c;
+  --red-600:#e11d48;
+  --red-500:#f43f5e;
+  --red-400:#fb7185;
+  --red-100:#ffe4e6;
+  --red-50:#fff1f2;
+  --teal-600:#0891b2;
+  --teal-500:#06b6d4;
+  --teal-100:#cffafe;
+  --teal-50:#f0fdff;
+  --bg:#f0f4f8;
+  --surface:#ffffff;
+  --surface-2:#f8fafc;
+  --surface-3:#f1f5f9;
+  --surface-4:#e2e8f0;
+  --ink:#0f172a;
+  --ink-2:#1e293b;
+  --ink-3:#64748b;
+  --ink-4:#94a3b8;
+  --line:#e2e8f0;
+  --line-md:#cbd5e1;
+  --line-lg:#94a3b8;
+  --s-xs:0 1px 2px rgba(15,23,42,0.04);
+  --s-sm:0 1px 3px rgba(15,23,42,0.06),0 1px 2px rgba(15,23,42,0.04);
+  --s-md:0 4px 12px rgba(15,23,42,0.08),0 2px 4px rgba(15,23,42,0.04);
+  --s-lg:0 12px 32px rgba(15,23,42,0.10),0 4px 8px rgba(15,23,42,0.04);
+  --s-xl:0 24px 64px rgba(15,23,42,0.12),0 8px 16px rgba(15,23,42,0.06);
+  --s-blue:0 4px 20px rgba(37,99,235,0.20),0 1px 4px rgba(37,99,235,0.12);
+  --s-green:0 4px 16px rgba(5,150,105,0.18);
+  --r-xs:4px;
+  --r-sm:8px;
+  --r-md:12px;
+  --r-lg:16px;
+  --r-xl:20px;
+  --r-2xl:28px;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth:cubic-bezier(0.4,0,0.2,1);
+  --sidebar-w:256px;
+  --sidebar-w-col:68px;
+  --topbar-h:60px;
+  --mobnav-h:68px;
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
 }
 
-/* ════════════════════════════════════════════════
-   KEYFRAMES
-════════════════════════════════════════════════ */
-@keyframes fadeUp  {from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-@keyframes fadeIn  {from{opacity:0}to{opacity:1}}
-@keyframes scaleIn {from{opacity:0;transform:scale(0.93) translateY(-4px)}to{opacity:1;transform:none}}
-@keyframes shimmer {from{transform:translateX(-100%)}to{transform:translateX(200%)}}
-@keyframes kpiIn   {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes slideUp {from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes fadeUp   {from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeDown {from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn   {from{opacity:0}to{opacity:1}}
+@keyframes scaleIn  {from{opacity:0;transform:scale(0.94) translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes shimmer  {from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes spin     {to{transform:rotate(360deg)}}
+@keyframes kpiIn    {from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none}}
+@keyframes slideIn  {from{transform:translateX(-100%)}to{transform:translateX(0)}}
 
-/* ════════════════════════════════════════════════
-   DESKTOP TOP-BAR
-════════════════════════════════════════════════ */
-.topbar{
-  position:sticky;top:0;z-index:200;
-  height:var(--topbar-h);
-  background:rgba(255,255,255,0.92);
-  backdrop-filter:blur(24px) saturate(200%);
-  -webkit-backdrop-filter:blur(24px) saturate(200%);
+/* ══ APP SHELL ══ */
+.app-shell{display:flex;min-height:100vh}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:#ffffff;
+  border-right:1px solid var(--line);
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  display:flex;flex-direction:column;
+  transition:width 0.26s var(--ease-smooth),transform 0.3s var(--ease-out);
+  overflow:hidden;
+  box-shadow:2px 0 12px rgba(15,23,42,0.04);
+}
+.sidebar.collapsed{width:var(--sidebar-w-col)}
+.sb-brand{
+  display:flex;align-items:center;gap:12px;
+  padding:20px 16px 18px;
   border-bottom:1px solid var(--line);
-  box-shadow:var(--s-xs);
-  display:flex;align-items:center;
-  padding:0 28px;gap:16px;
-  animation:fadeDown 0.4s var(--ease-out) both;
+  flex-shrink:0;min-height:72px;
 }
-.topbar-brand{flex:1;min-width:0;display:flex;align-items:center;gap:11px}
-.brand-gem{
-  width:36px;height:36px;border-radius:11px;flex-shrink:0;
-  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-500));
+.sb-logo{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
   display:flex;align-items:center;justify-content:center;
   box-shadow:var(--s-blue);position:relative;overflow:hidden;
 }
-.brand-gem::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent 60%)}
-.brand-gem svg{color:#fff;position:relative;z-index:1}
-.brand-copy{min-width:0}
-.brand-name{font-size:0.9rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand-tagline{font-size:0.68rem;color:var(--ink-3);font-weight:400;margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:9px}
+.sb-logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent)}
+.sb-logo svg{color:#fff;position:relative;z-index:1}
+.sb-copy{min-width:0;transition:opacity 0.2s,width 0.26s;overflow:hidden;white-space:nowrap}
+.sb-name{font-size:0.88rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;font-family:'Fraunces',serif}
+.sb-tag{font-size:0.66rem;color:var(--ink-3);margin-top:1px;letter-spacing:0.01em}
+.sidebar.collapsed .sb-copy{opacity:0;width:0;pointer-events:none}
+.sb-toggle{
+  position:absolute;right:-13px;top:22px;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--line-md);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-md);cursor:pointer;
+  transition:transform 0.26s var(--ease-smooth),box-shadow 0.18s,background 0.15s;
+  z-index:10;color:var(--blue-600);
+}
+.sb-toggle:hover{box-shadow:var(--s-lg);transform:scale(1.08);background:var(--blue-50)}
+.sb-toggle svg{transition:transform 0.26s var(--ease-smooth)}
+.sidebar.collapsed .sb-toggle svg{transform:rotate(180deg)}
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+.sb-section-label{
+  font-size:0.6rem;font-weight:700;
+  color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em;
+  padding:5px 8px;margin-bottom:3px;margin-top:14px;
+  white-space:nowrap;overflow:hidden;transition:opacity 0.2s;
+}
+.sidebar.collapsed .sb-section-label{opacity:0}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r-md);
+  color:var(--ink-3);font-size:0.84rem;font-weight:500;
+  text-decoration:none;white-space:nowrap;
+  transition:all 0.15s var(--ease-smooth);
+  position:relative;overflow:hidden;
+  letter-spacing:-0.005em;margin-bottom:2px;
+}
+.sb-item:hover{background:var(--blue-50);color:var(--blue-700)}
+.sb-item.active{background:var(--blue-50);color:var(--blue-700);font-weight:600}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;
+  width:3px;border-radius:0 3px 3px 0;
+  background:var(--blue-600);
+}
+.sb-icon{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s,color 0.15s;
+}
+.sb-item:hover .sb-icon,.sb-item.active .sb-icon{background:rgba(37,99,235,0.1);color:var(--blue-600)}
+.sb-label{flex:1;min-width:0;overflow:hidden;transition:opacity 0.2s,width 0.26s}
+.sb-badge{
+  min-width:20px;height:20px;border-radius:999px;
+  padding:0 6px;font-size:0.64rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--blue-100);color:var(--blue-700);
+  transition:opacity 0.2s;flex-shrink:0;
+}
+.sidebar.collapsed .sb-label,.sidebar.collapsed .sb-badge{opacity:0;width:0;overflow:hidden}
+.sb-footer{padding:12px 10px;border-top:1px solid var(--line);flex-shrink:0}
+.sb-user{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r-md);
+  cursor:pointer;transition:background 0.15s;
+}
+.sb-user:hover{background:var(--surface-3)}
+.sb-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:0.76rem;font-weight:700;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+}
+.sb-user-info{min-width:0;flex:1;transition:opacity 0.2s}
+.sb-user-name{font-size:0.8rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:0.65rem;color:var(--ink-3);margin-top:1px}
+.sidebar.collapsed .sb-user-info{opacity:0;width:0;overflow:hidden}
+.sb-logout{
+  width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-4);transition:all 0.15s;
+}
+.sb-user:hover .sb-logout{background:var(--red-50);color:var(--red-500)}
+.sidebar.collapsed .sb-logout{opacity:0}
+.sb-item[data-tooltip]{position:relative}
+.sidebar.collapsed .sb-item::after{
+  content:attr(data-tooltip);
+  position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
+  background:var(--ink);color:#fff;font-size:0.77rem;font-weight:600;
+  padding:5px 10px;border-radius:7px;white-space:nowrap;
+  box-shadow:var(--s-lg);pointer-events:none;
+  opacity:0;transition:opacity 0.15s;z-index:400;
+}
+.sidebar.collapsed .sb-item:hover::after{opacity:1}
+
+/* ══ MAIN ══ */
+.main{
+  flex:1;margin-left:var(--sidebar-w);min-width:0;
+  display:flex;flex-direction:column;
+  transition:margin-left 0.26s var(--ease-smooth);
+}
+.main.sidebar-collapsed{margin-left:var(--sidebar-w-col)}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  height:var(--topbar-h);
+  background:rgba(255,255,255,0.96);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 1px 8px rgba(15,23,42,0.04);
+  display:flex;align-items:center;
+  padding:0 24px;gap:12px;
+  animation:fadeDown 0.4s var(--ease-out) both;
+}
+.topbar-title{flex:1;min-width:0}
+.topbar-page{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:-0.025em;font-family:'Fraunces',serif}
+.topbar-sub{font-size:0.7rem;color:var(--ink-3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
 .profile-wrap{position:relative}
 .profile-btn{
-  width:36px;height:36px;border-radius:50%;
-  background:linear-gradient(140deg,var(--midnight-700),var(--midnight-400));
-  color:#fff;font-size:0.82rem;font-weight:700;
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
+  color:#fff;font-size:0.76rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:var(--s-blue);
-  transition:transform 0.18s var(--ease-spring);
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+  transition:box-shadow 0.18s,transform 0.18s;
 }
-.profile-btn:hover{transform:scale(1.09)}
+.profile-btn:hover{box-shadow:0 4px 14px rgba(37,99,235,0.4);transform:scale(1.06)}
 .profile-dropdown{
-  position:absolute;right:0;top:calc(100% + 10px);
-  background:var(--surface);border:1px solid var(--line-md);
+  position:absolute;top:calc(100%+8px);right:0;
+  background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r-md);box-shadow:var(--s-lg);
-  min-width:145px;overflow:hidden;display:none;z-index:300;
+  padding:6px;min-width:140px;
+  display:none;animation:scaleIn 0.18s var(--ease-out) both;
   transform-origin:top right;
-  animation:scaleIn 0.22s var(--ease-spring) both;
 }
 .profile-dropdown.open{display:block}
 .profile-dropdown button{
-  width:100%;background:transparent;
-  padding:11px 16px;text-align:left;
-  color:var(--ink);font-size:0.84rem;font-weight:500;
-  display:flex;align-items:center;gap:9px;
-  transition:background 0.12s;
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:8px 11px;border-radius:var(--r-sm);
+  font-size:0.8rem;font-weight:500;color:var(--ink-2);
+  transition:background 0.13s,color 0.13s;background:transparent;
 }
-.profile-dropdown button:hover{background:var(--surface-2);color:var(--coral-600)}
-.pd-divider{height:1px;background:var(--line);margin:3px 0}
+.profile-dropdown button:hover{background:var(--red-50);color:var(--red-600)}
 
-/* ════════════════════════════════════════════════
-   DESKTOP NAV
-════════════════════════════════════════════════ */
-.desknav{
-  background:rgba(255,255,255,0.95);
-  backdrop-filter:blur(16px);
+/* ══ MOBILE OVERLAY + DRAWER ══ */
+.mob-overlay{
+  display:none;position:fixed;inset:0;z-index:290;
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);
+  animation:fadeIn 0.22s ease both;
+}
+.mob-overlay.open{display:block}
+.mob-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  width:270px;background:#fff;
+  border-right:1px solid var(--line);
+  box-shadow:var(--s-xl);
+  transform:translateX(-100%);transition:transform 0.3s var(--ease-out);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.mob-drawer.open{transform:translateX(0)}
+.mob-drawer .sb-brand{padding:calc(18px + var(--safe-top)) 16px 16px}
+.mob-drawer .sb-nav{padding:8px 10px}
+.mob-drawer .sb-item{font-size:0.9rem;padding:11px 12px}
+.mob-drawer .sb-icon{width:34px;height:34px;border-radius:10px}
+.mob-drawer .sb-footer{padding:12px 10px}
+
+/* ══ MOBILE HEADER ══ */
+.mob-header{
+  display:none;
+  position:sticky;top:0;z-index:200;
+  flex-direction:column;
+  background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   border-bottom:1px solid var(--line);
-  display:flex;align-items:stretch;padding:0 20px;
-  animation:fadeIn 0.35s 0.05s var(--ease-out) both;
+  box-shadow:0 1px 8px rgba(15,23,42,0.05);
 }
-.dn-item{
-  display:flex;align-items:center;gap:7px;
-  padding:0 16px;height:var(--desknav-h);
-  font-size:0.83rem;font-weight:500;color:var(--ink-3);
-  border-bottom:2.5px solid transparent;
-  text-decoration:none;white-space:nowrap;
-  transition:color 0.16s,border-color 0.16s;
+.mob-header-top{
+  display:flex;align-items:center;
+  height:var(--topbar-h);padding:0 16px;gap:10px;
+  padding-top:var(--safe-top);
 }
-.dn-item:hover{color:var(--midnight-600)}
-.dn-item.active{color:var(--midnight-600);font-weight:600;border-bottom-color:var(--midnight-500)}
-.dn-item svg{opacity:0.6;transition:opacity 0.16s}
-.dn-item:hover svg,.dn-item.active svg{opacity:1}
-.nav-pill{
-  min-width:20px;height:20px;border-radius:999px;
-  padding:0 6px;font-size:0.65rem;font-weight:700;
-  display:inline-flex;align-items:center;justify-content:center;
-  background:var(--midnight-100);color:var(--midnight-600);
+.mob-hamburger{
+  width:36px;height:36px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4.5px;
+  cursor:pointer;flex-shrink:0;
+  transition:background 0.15s,border-color 0.15s;
 }
-.dn-item.active .nav-pill{background:var(--midnight-500);color:#fff}
+.mob-hamburger:hover{background:var(--blue-50);border-color:var(--blue-300)}
+.mob-hamburger span{display:block;width:16px;height:1.7px;background:var(--ink-2);border-radius:2px;transition:all 0.25s}
+.mob-header-title{
+  flex:1;text-align:center;
+  font-size:1rem;font-weight:700;color:var(--ink);
+  letter-spacing:-0.02em;font-family:'Fraunces',serif;
+}
+.mob-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.mob-theme-btn{
+  width:36px;height:36px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);cursor:pointer;flex-shrink:0;
+  transition:background 0.15s,color 0.15s;
+}
+.mob-theme-btn:hover{background:var(--blue-50);color:var(--blue-700)}
 
-/* ════════════════════════════════════════════════
-   KPI STRIP
-════════════════════════════════════════════════ */
+/* ══ KPI STRIP — Desktop premium cards row ══ */
 .kpi-strip{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  background:var(--surface);border-bottom:1px solid var(--line);
-  animation:fadeIn 0.35s 0.08s var(--ease-out) both;
+  display:flex;gap:0;
+  padding:20px 28px;
+  background:var(--bg);
+  animation:fadeDown 0.5s 0.05s var(--ease-out) both;
+  overflow-x:auto;scrollbar-width:none;
 }
+.kpi-strip::-webkit-scrollbar{display:none}
 .kpi-cell{
-  padding:15px 24px;border-right:1px solid var(--line);
+  flex:1;min-width:180px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r-xl);
+  padding:20px 22px 18px;
   position:relative;overflow:hidden;
+  transition:transform 0.2s var(--ease-spring),box-shadow 0.2s;
+  margin-right:14px;
+  box-shadow:var(--s-sm);
 }
-.kpi-cell:last-child{border-right:none}
+.kpi-cell:last-child{margin-right:0}
+.kpi-cell::after{
+  content:'';position:absolute;bottom:-20px;right:-20px;
+  width:80px;height:80px;border-radius:50%;
+  background:var(--kpi-accent-bg,var(--blue-50));
+  opacity:0.6;pointer-events:none;
+}
+.kpi-cell:hover{transform:translateY(-2px);box-shadow:var(--s-md)}
 .kpi-cell::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  transform:scaleX(0);transform-origin:left;
-  transition:transform 0.6s var(--ease-out);
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  border-radius:0 0 var(--r-xl) var(--r-xl);
+  background:var(--kpi-accent,var(--blue-500));
+  transform:scaleX(0);transition:transform 0.6s var(--ease-out);
+  transform-origin:left;
 }
 .kpi-cell.reveal::before{transform:scaleX(1)}
-.kpi-cell:nth-child(1)::before{background:linear-gradient(90deg,var(--midnight-600),var(--midnight-300))}
-.kpi-cell:nth-child(2)::before{background:linear-gradient(90deg,var(--jade-600),var(--jade-400))}
-.kpi-cell:nth-child(3)::before{background:linear-gradient(90deg,var(--amber-600),var(--amber-500))}
-.kpi-cell:nth-child(4)::before{background:linear-gradient(90deg,var(--violet-600),var(--teal-500))}
-.kpi-label{font-size:0.67rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.09em}
-.kpi-val{margin-top:5px;font-size:1.62rem;font-weight:700;color:var(--ink);letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;animation:kpiIn 0.5s var(--ease-out) both}
-.kpi-sub{margin-top:2px;font-size:0.7rem;color:var(--ink-3);font-weight:400}
-
-/* ════════════════════════════════════════════════
-   MOBILE HEADER
-════════════════════════════════════════════════ */
-.mob-header{
-  display:none;position:sticky;top:0;z-index:200;
-  height:calc(58px + var(--safe-top));padding-top:var(--safe-top);
-  background:rgba(11,22,40,0.97);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  align-items:center;justify-content:space-between;
-  padding-left:18px;padding-right:18px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.3);
-}
-.mob-brand{display:flex;align-items:center;gap:9px}
-.mob-gem{
-  width:32px;height:32px;border-radius:9px;
-  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
+.kpi-cell:nth-child(1){--kpi-accent:var(--blue-500);--kpi-accent-bg:var(--blue-50)}
+.kpi-cell:nth-child(2){--kpi-accent:var(--green-500);--kpi-accent-bg:var(--green-50)}
+.kpi-cell:nth-child(3){--kpi-accent:var(--amber-500);--kpi-accent-bg:var(--amber-50)}
+.kpi-cell:nth-child(4){--kpi-accent:var(--violet-500);--kpi-accent-bg:var(--violet-50)}
+.kpi-ico{
+  width:36px;height:36px;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 12px rgba(39,77,150,0.4);
+  background:var(--kpi-accent-bg,var(--blue-50));
+  color:var(--kpi-accent,var(--blue-500));
+  margin-bottom:12px;
 }
-.mob-gem svg{color:#fff}
-.mob-name{font-size:0.92rem;font-weight:700;color:#fff;letter-spacing:-0.01em}
-.mob-right{display:flex;align-items:center;gap:8px}
-.mob-profile{
-  width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(140deg,var(--midnight-500),var(--midnight-400));
-  color:#fff;font-size:0.76rem;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 10px rgba(39,77,150,0.4);
+.kpi-label{
+  font-size:0.65rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.09em;color:var(--ink-3);margin-bottom:6px;
+  display:flex;align-items:center;gap:5px;
 }
-.mob-header .profile-wrap{position:relative}
-.mob-header .profile-dropdown button{background:var(--surface);color:var(--ink)}
-.mob-header .profile-dropdown button:hover{background:var(--surface-2)}
+.kpi-label-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--kpi-accent,var(--blue-500));
+  display:inline-block;flex-shrink:0;
+}
+.kpi-val{
+  font-size:1.75rem;font-weight:800;letter-spacing:-0.04em;
+  color:var(--ink);line-height:1;
+  font-family:'DM Sans',sans-serif;
+  transition:all 0.3s;
+}
+.kpi-val.reveal{animation:kpiIn 0.5s var(--ease-out) both}
+.kpi-sub{font-size:0.68rem;color:var(--ink-3);margin-top:5px;font-weight:500}
 
-/* ════════════════════════════════════════════════
-   MOBILE KPI SCROLL
-════════════════════════════════════════════════ */
+/* ══ MOBILE KPI STRIP ══ */
 .mob-kpi-strip{
-  display:none;overflow-x:auto;padding:14px 18px;gap:10px;
-  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;background:var(--midnight-900);
+  display:none;
+  overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:16px 16px 14px;gap:12px;
+  background:var(--bg);
 }
 .mob-kpi-strip::-webkit-scrollbar{display:none}
-.mob-kpi-card{flex-shrink:0;border-radius:var(--r-lg);padding:14px 16px;scroll-snap-align:start;min-width:138px}
-.mob-kpi-card:nth-child(1){background:linear-gradient(140deg,var(--midnight-600),var(--midnight-500));border:1px solid rgba(255,255,255,0.1);box-shadow:0 6px 20px rgba(0,0,0,0.3)}
-.mob-kpi-card:nth-child(1) .mk-label,.mob-kpi-card:nth-child(1) .mk-sub{color:rgba(255,255,255,0.6)}
-.mob-kpi-card:nth-child(1) .mk-val{color:#fff}
-.mob-kpi-card:nth-child(2){background:var(--jade-50);border:1px solid var(--jade-100)}
-.mob-kpi-card:nth-child(3){background:var(--amber-50);border:1px solid var(--amber-100)}
-.mob-kpi-card:nth-child(4){background:var(--violet-50);border:1px solid var(--violet-100)}
-.mk-label{font-size:0.64rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em}
-.mk-val{margin-top:5px;font-size:1.28rem;font-weight:700;color:var(--ink);font-family:'JetBrains Mono',monospace;letter-spacing:-0.02em}
-.mk-sub{margin-top:2px;font-size:0.64rem;color:var(--ink-3)}
-
-/* ════════════════════════════════════════════════
-   MOBILE BOTTOM NAV (4 tabs — no Status)
-════════════════════════════════════════════════ */
-.mob-nav{
-  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
-  padding-bottom:var(--safe-bot);
-  background:rgba(255,255,255,0.96);
-  backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
-  border-top:1px solid var(--line);box-shadow:0 -6px 30px rgba(7,15,35,0.10);
+.mob-kpi-card{
+  flex-shrink:0;scroll-snap-align:start;
+  width:200px;
+  background:#fff;border-radius:20px;
+  padding:20px 18px 16px;
+  border:1px solid rgba(0,0,0,0.06);
+  box-shadow:0 2px 12px rgba(15,23,42,0.07),0 1px 3px rgba(15,23,42,0.04);
+  position:relative;overflow:hidden;
+  transition:transform 0.2s var(--ease-spring);
 }
-.mob-nav-inner{display:grid;grid-template-columns:repeat(5,1fr);height:var(--mobnav-h)}
-.mni{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;text-decoration:none;color:var(--ink-3);font-size:0.6rem;font-weight:600;
-  letter-spacing:0.01em;position:relative;transition:color 0.16s;
-  -webkit-tap-highlight-color:transparent;
+.mob-kpi-card:active{transform:scale(0.97)}
+.mob-kpi-card::after{
+  content:'';position:absolute;bottom:-18px;right:-18px;
+  width:72px;height:72px;border-radius:50%;
+  background:var(--card-accent-bg,var(--blue-50));
+  opacity:0.7;pointer-events:none;
 }
-.mni.active{color:var(--midnight-600)}
-.mni-icon-wrap{position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
-.mni-bg{position:absolute;inset:0;border-radius:10px;background:var(--midnight-50);transform:scale(0);transition:transform 0.22s var(--ease-spring)}
-.mni.active .mni-bg{transform:scale(1)}
-.mni svg{position:relative;z-index:1;transition:transform 0.22s var(--ease-spring)}
-.mni.active svg{transform:scale(1.1)}
-.mni::before{
-  content:'';position:absolute;top:0;left:50%;
-  transform:translateX(-50%) scaleX(0);
-  width:24px;height:3px;border-radius:0 0 4px 4px;
-  background:linear-gradient(90deg,var(--midnight-500),var(--midnight-300));
-  transition:transform 0.22s var(--ease-spring);
+.mob-kpi-card:nth-child(1){--card-accent:var(--blue-500);--card-accent-bg:var(--blue-50)}
+.mob-kpi-card:nth-child(2){--card-accent:var(--green-500);--card-accent-bg:var(--green-50)}
+.mob-kpi-card:nth-child(3){--card-accent:var(--amber-500);--card-accent-bg:var(--amber-50)}
+.mob-kpi-card:nth-child(4){--card-accent:var(--violet-500);--card-accent-bg:var(--violet-50)}
+.mk-icon{
+  width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--card-accent-bg,var(--blue-50));
+  color:var(--card-accent,var(--blue-500));
+  margin-bottom:12px;flex-shrink:0;
 }
-.mni.active::before{transform:translateX(-50%) scaleX(1)}
-.mni-label{position:relative;z-index:1}
+.mk-label{font-size:0.62rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:5px}
+.mk-val{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1;font-family:'DM Sans',sans-serif}
+.mk-sub{margin-top:5px;font-size:0.68rem;color:var(--ink-3);font-weight:500}
 
-/* ════════════════════════════════════════════════
-   PAGE BODY
-════════════════════════════════════════════════ */
-.page{padding:20px 26px;max-width:1560px;margin:0 auto}
+/* ══ SKELETON ══ */
+.sk{position:relative;overflow:hidden;color:transparent!important;background:var(--surface-3);border-radius:var(--r-sm);min-height:1em;pointer-events:none}
+.sk::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.7) 50%,transparent 100%);animation:shimmer 1.5s infinite}
+.sk *{visibility:hidden}
+.kpi-val.sk{background:var(--surface-3);border-radius:6px;height:38px;width:65%}
 
-/* ════════════════════════════════════════════════
-   FILTER BAR
-════════════════════════════════════════════════ */
+/* ══ PAGE WRAPPER ══ */
+.page{padding:20px 28px 32px;max-width:1600px;margin:0 auto;flex:1}
+
+/* ══ FILTER BAR ══ */
 .filter-bar{
   background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r-lg);padding:13px 18px;
@@ -331,218 +471,181 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 }
 .filter-select{
   appearance:none;-webkit-appearance:none;padding-right:28px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232563eb' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 9px center;cursor:pointer;
 }
-.filter-select:focus,.filter-input:focus{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
+.filter-select:focus,.filter-input:focus{border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,0.10)}
 .filter-input{min-width:220px;flex:1}
 .filter-input::placeholder{color:var(--ink-4)}
 .filter-count{font-size:0.72rem;font-weight:600;color:var(--ink-3);white-space:nowrap;margin-left:4px}
 
-/* ════════════════════════════════════════════════
-   TABLE CARD
-════════════════════════════════════════════════ */
+/* ══ TABLE CARD ══ */
 .table-card{
   background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-lg);box-shadow:var(--s-sm);overflow:hidden;
-  animation:fadeUp 0.45s 0.14s var(--ease-out) both;
+  border-radius:var(--r-xl);box-shadow:var(--s-sm);
+  overflow:hidden;
+  animation:fadeUp 0.5s 0.12s var(--ease-out) both;
 }
-.table-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px)}
-.table-wrap::-webkit-scrollbar{width:5px;height:5px}
-.table-wrap::-webkit-scrollbar-track{background:var(--surface-2)}
-.table-wrap::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:999px}
-
-table{width:100%;border-collapse:collapse;table-layout:auto}
-th,td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-th{
-  background:linear-gradient(160deg,var(--midnight-900) 0%,var(--midnight-800) 100%);
-  color:#fff;padding:12px 12px;text-align:left;
-  font-size:0.67rem;font-weight:600;
-  letter-spacing:0.07em;text-transform:uppercase;
-  border-bottom:2px solid var(--midnight-600);
-  position:sticky;top:0;z-index:10;
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;min-width:700px;border-collapse:collapse;font-size:0.8rem;table-layout:fixed}
+thead th{
+  background:var(--surface-2);
+  font-size:0.63rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--ink-3);padding:10px 14px;
+  border-bottom:1px solid var(--line);
+  white-space:nowrap;text-align:left;position:sticky;top:0;
 }
-td{
-  border-bottom:1px solid var(--surface-3);
-  padding:11px 12px;font-size:0.8rem;color:var(--ink-2);
-  vertical-align:middle;
-  transition:background 0.1s;
+thead th.th-actions{width:100px;text-align:center}
+thead th.th-status{width:110px}
+tbody tr{border-bottom:1px solid var(--line);transition:background 0.13s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--blue-50)}
+tbody td{
+  padding:10px 14px;color:var(--ink-2);
+  font-size:0.81rem;vertical-align:middle;
+  white-space:nowrap;
 }
-tr:hover td{background:var(--midnight-50)}
-td:first-child{font-weight:600;color:var(--midnight-700)}
-
-/* Status chips */
-.chip{
+tbody td.td-wrap{white-space:normal}
+.td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem}
+.td-name{font-weight:600;color:var(--ink)}
+.td-phone a,.call-link{
+  color:var(--blue-600);font-weight:500;
+  display:inline-flex;align-items:center;gap:4px;
+  transition:color 0.13s;
+}
+.td-phone a:hover,.call-link:hover{color:var(--blue-700)}
+.call-icon{font-size:0.85em;opacity:0.7}
+.occ-badge{
   display:inline-flex;align-items:center;
-  height:22px;padding:0 9px;border-radius:999px;
-  font-size:0.65rem;font-weight:700;
-  letter-spacing:0.04em;text-transform:uppercase;border:1px solid transparent;
+  font-size:0.63rem;font-weight:700;letter-spacing:0.04em;
+  padding:3px 9px;border-radius:999px;white-space:nowrap;
 }
-.chip-owner  {background:var(--midnight-50); color:var(--midnight-700);border-color:var(--midnight-200)}
-.chip-tenant {background:var(--jade-50);     color:var(--jade-700);    border-color:var(--jade-100)}
-.chip-pending{background:var(--amber-50);    color:var(--amber-600);   border-color:var(--amber-100)}
-
-/* Action buttons */
-.action-group{display:inline-flex;align-items:center;gap:6px}
-.act-btn{
-  width:30px;height:30px;border-radius:50%;
-  border:1px solid var(--line-md);background:var(--surface-2);
-  color:var(--ink-3);
+.occ-owner{background:var(--blue-50);color:var(--blue-700);border:1px solid var(--blue-100)}
+.occ-tenant{background:var(--green-50);color:var(--green-700);border:1px solid var(--green-100)}
+.occ-unoccupied{background:var(--surface-3);color:var(--ink-3);border:1px solid var(--line)}
+.occ-phq{background:var(--amber-50);color:var(--amber-700);border:1px solid var(--amber-100)}
+/* Icon-only action buttons */
+.action-btns{display:flex;gap:5px;align-items:center;justify-content:center}
+.btn-action{
+  width:30px;height:30px;border-radius:var(--r-sm);
   display:inline-flex;align-items:center;justify-content:center;
-  transition:all 0.14s;
+  border:1.5px solid;transition:all 0.15s;flex-shrink:0;
+  padding:0;
 }
-.act-btn:hover{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600);transform:scale(1.1)}
-.act-btn.del{border-color:var(--coral-100);background:var(--coral-50);color:var(--coral-600)}
-.act-btn.del:hover{background:var(--coral-100);border-color:var(--coral-500)}
+/* View — blue */
+.btn-action.view-btn{background:var(--blue-50);color:var(--blue-600);border-color:var(--blue-200)}
+.btn-action.view-btn:hover{background:var(--blue-100);color:var(--blue-700);border-color:var(--blue-400);transform:scale(1.1);box-shadow:0 2px 8px rgba(37,99,235,0.18)}
+/* Edit — green */
+.btn-action.edit{background:var(--green-50);color:var(--green-600);border-color:var(--green-100)}
+.btn-action.edit:hover{background:var(--green-100);color:var(--green-700);border-color:var(--green-400);transform:scale(1.1);box-shadow:0 2px 8px rgba(5,150,105,0.18)}
+/* Delete — red */
+.btn-action.del{background:var(--red-50);color:var(--red-500);border-color:var(--red-100)}
+.btn-action.del:hover{background:var(--red-100);color:var(--red-600);border-color:var(--red-400);transform:scale(1.1);box-shadow:0 2px 8px rgba(225,29,72,0.18)}
 
-/* ════════════════════════════════════════════════
-   MOBILE CARDS
-════════════════════════════════════════════════ */
-.card-list{display:none;padding:0}
+/* ══ MOBILE CARDS ══ */
+.card-list{display:none;animation:fadeUp 0.5s 0.1s var(--ease-out) both}
 .mob-res-card{
   background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-lg);box-shadow:var(--s-xs);
+  border-radius:var(--r-xl);box-shadow:var(--s-sm);
   margin-bottom:10px;overflow:hidden;
-  animation:fadeUp 0.38s var(--ease-out) both;
+  transition:box-shadow 0.18s;
 }
+.mob-res-card:last-child{margin-bottom:0}
 .mob-res-head{
   display:flex;align-items:center;gap:12px;
   padding:14px 16px;cursor:pointer;
-  transition:background 0.14s;
 }
-.mob-res-head:hover{background:var(--surface-2)}
-.res-avatar{
-  width:42px;height:42px;border-radius:var(--r-md);flex-shrink:0;
-  background:linear-gradient(140deg,var(--midnight-100),var(--midnight-50));
-  border:1px solid var(--midnight-200);
+.mob-res-avatar{
+  width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
   display:flex;align-items:center;justify-content:center;
-  font-size:0.72rem;font-weight:700;color:var(--midnight-600);
-  font-family:'JetBrains Mono',monospace;
+  color:#fff;font-size:0.82rem;font-weight:700;
+  box-shadow:0 2px 8px rgba(37,99,235,0.25);
 }
-.res-card-info{flex:1;min-width:0}
-.res-card-title{font-size:0.88rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
-.res-card-sub{font-size:0.72rem;color:var(--ink-3);margin-top:2px}
-.res-card-right{display:flex;align-items:center;gap:7px}
-.res-chevron{
-  width:28px;height:28px;border-radius:50%;flex-shrink:0;
-  background:var(--surface-3);border:1px solid var(--line-md);
-  display:flex;align-items:center;justify-content:center;
-  transition:transform 0.26s var(--ease-out),background 0.14s;
+.mob-res-avatar.tenant{background:linear-gradient(135deg,var(--green-500),var(--green-700))}
+.mob-res-avatar.unoccupied{background:var(--surface-3);color:var(--ink-4);box-shadow:none}
+.mob-res-info{flex:1;min-width:0}
+.mob-res-flat{font-weight:700;color:var(--ink);font-size:0.9rem;font-family:'DM Mono',monospace}
+.mob-res-name{font-size:0.78rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mob-res-badge{flex-shrink:0}
+.mob-res-chevron{
+  width:22px;height:22px;flex-shrink:0;color:var(--ink-4);
+  transition:transform 0.22s var(--ease-spring);
 }
-.mob-res-card.expanded .res-chevron{transform:rotate(180deg);background:var(--midnight-50);border-color:var(--midnight-200)}
-
+.mob-res-card.expanded .mob-res-chevron{transform:rotate(180deg)}
 .mob-res-body{
-  max-height:0;overflow:hidden;
-  transition:max-height 0.38s var(--ease-out);
-  border-top:1px solid transparent;
-  transition:max-height 0.38s var(--ease-out),border-color 0.2s;
+  display:none;padding:0 16px 16px;
+  border-top:1px solid var(--line);
 }
-.mob-res-card.expanded .mob-res-body{max-height:2000px;border-color:var(--line)}
-
-.detail-grid{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 16px 14px}
-.detail-row{
-  display:grid;grid-template-columns:minmax(100px,0.45fr) 1fr;
-  gap:8px;align-items:start;
-  padding:10px 12px;
-  background:var(--surface-2);border:1px solid var(--line);
-  border-radius:var(--r-md);
-}
-.detail-key{font-size:0.68rem;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.07em}
-.detail-val{font-size:0.82rem;color:var(--ink);font-weight:500;text-align:right;overflow-wrap:anywhere;word-break:break-word}
-.call-link{
-  display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;
-  color:var(--jade-700);text-decoration:none;font-weight:inherit;
-}
-.call-icon{
-  width:24px;height:24px;border-radius:50%;
-  background:var(--jade-500);color:#fff;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:0.72rem;flex-shrink:0;
-}
-
-.mob-card-actions{
-  display:flex;gap:8px;padding:0 16px 14px;
-}
-.mob-act-btn{
-  flex:1;height:36px;border-radius:var(--r-sm);
-  font-size:0.76rem;font-weight:600;
+.mob-res-card.expanded .mob-res-body{display:block}
+.mob-res-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding-top:12px}
+.mob-res-field{background:var(--surface-2);border-radius:var(--r-md);padding:9px 11px;border:1px solid var(--line)}
+.mob-res-field-key{font-size:0.6rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em}
+.mob-res-field-val{font-size:0.82rem;font-weight:600;color:var(--ink);margin-top:3px;overflow-wrap:anywhere}
+.mob-res-actions{display:flex;gap:8px}
+.mob-btn{
+  flex:1;height:38px;border-radius:var(--r-md);
+  font-size:0.78rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;gap:6px;
-  border:1px solid var(--line-md);background:var(--surface-2);color:var(--ink-2);
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);
   transition:all 0.14s;
 }
-.mob-act-btn:hover{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600)}
-.mob-act-btn.edit-btn{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600)}
-.mob-act-btn.del-btn{background:var(--coral-50);border-color:var(--coral-100);color:var(--coral-600)}
+.mob-btn:hover{background:var(--blue-50);color:var(--blue-700);border-color:var(--blue-200)}
+.mob-btn.edit{background:var(--green-50);color:var(--green-700);border-color:var(--green-100)}
+.mob-btn.del{background:var(--red-50);color:var(--red-600);border-color:var(--red-100)}
 
-/* ════ RESIDENT CARD ICON BUTTONS (shown above details, in header) ════ */
-.res-icon-btn{
-  width:30px;height:30px;border-radius:var(--r-sm);
-  border:1px solid var(--line-md);background:var(--surface-2);color:var(--ink-3);
-  display:inline-flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all 0.14s;flex-shrink:0;-webkit-tap-highlight-color:transparent;
-}
-.res-icon-btn:active{transform:scale(0.93)}
-.edit-icon-btn:hover,.edit-icon-btn:focus{background:var(--midnight-50);border-color:var(--midnight-200);color:var(--midnight-600)}
-.del-icon-btn{border-color:var(--coral-100);background:var(--coral-50);color:var(--coral-500)}
-.del-icon-btn:hover,.del-icon-btn:focus{background:var(--coral-100);border-color:var(--coral-500);color:var(--coral-600)}
-
-/* ════════════════════════════════════════════════
-   RESIDENT EDIT MODAL
-════════════════════════════════════════════════ */
+/* ══ MODAL ══ */
 .modal-overlay{
-  position:fixed;inset:0;z-index:400;
-  background:rgba(7,15,35,0.55);backdrop-filter:blur(4px);
+  position:fixed;inset:0;z-index:380;
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);
   display:flex;align-items:center;justify-content:center;
   padding:20px;
   opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity 0.26s var(--ease-out),visibility 0s linear 0.26s;
+  transition:opacity 0.22s var(--ease-out),visibility 0s linear 0.22s;
 }
-.modal-overlay.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 0.26s var(--ease-out),visibility 0s linear 0s}
+.modal-overlay.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 0.22s var(--ease-out),visibility 0s linear 0s}
 .res-modal{
-  width:min(780px,100%);max-height:92vh;overflow:hidden;
-  background:var(--surface);border:1px solid var(--line-md);
-  border-radius:var(--r-xl);box-shadow:var(--s-lg);
+  width:min(680px,100%);max-height:90vh;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-2xl);box-shadow:var(--s-xl);
   display:flex;flex-direction:column;
-  transform:translateY(16px) scale(0.97);
-  transition:transform 0.28s var(--ease-spring);
+  transform:scale(0.96) translateY(10px);
+  transition:transform 0.24s var(--ease-spring);
 }
 .modal-overlay.open .res-modal{transform:none}
-
 .modal-head{
-  padding:18px 22px;
-  background:linear-gradient(140deg,var(--midnight-800),var(--midnight-600) 55%,var(--teal-600));
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  position:relative;overflow:hidden;flex-shrink:0;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--line);
+  background:var(--surface-2);
+  border-radius:var(--r-2xl) var(--r-2xl) 0 0;
+  flex-shrink:0;
 }
-.modal-head::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.08),transparent 60%);pointer-events:none}
-.modal-head-copy{position:relative;z-index:1}
-.modal-title{font-size:1.05rem;font-weight:700;color:#fff;letter-spacing:-0.01em}
-.modal-subtitle{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:2px;font-weight:400;text-transform:uppercase;letter-spacing:0.06em}
+.modal-title{font-size:1rem;font-weight:700;color:var(--ink);font-family:'Fraunces',serif;letter-spacing:-0.02em}
+.modal-subtitle{font-size:0.72rem;color:var(--ink-3);margin-top:3px}
 .modal-close{
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);
-  color:#fff;font-size:1.1rem;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--surface-3);border:1px solid var(--line-md);
+  color:var(--ink-3);font-size:1.1rem;
   display:flex;align-items:center;justify-content:center;
-  transition:background 0.14s;position:relative;z-index:1;flex-shrink:0;
+  transition:background 0.12s,color 0.12s;
 }
-.modal-close:hover{background:rgba(255,255,255,0.22)}
-
-.modal-form{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.modal-close:hover{background:var(--red-50);color:var(--red-600);border-color:var(--red-100)}
+.modal-form{display:flex;flex-direction:column;flex:1;min-height:0}
 .form-scroll{
   flex:1;min-height:0;overflow-y:auto;
-  padding:18px 22px 14px;
+  padding:18px 24px 14px;
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:11px 14px;
-  align-content:start;
+  gap:11px 14px;align-content:start;
 }
 .form-scroll::-webkit-scrollbar{width:4px}
-.form-scroll::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:999px}
-
+.form-scroll::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:999px}
 .form-field{display:grid;gap:5px}
 .form-field.full{grid-column:1/-1}
 .form-field label{
   font-size:0.68rem;font-weight:700;
-  color:var(--midnight-600);text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--blue-700);text-transform:uppercase;letter-spacing:0.08em;
 }
 .form-field input,.form-field select{
   width:100%;min-height:42px;
@@ -551,17 +654,15 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   font-size:0.88rem;padding:0 12px;
   transition:border-color 0.15s,box-shadow 0.15s;
 }
-.form-field input:focus{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
+.form-field input:focus{border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,0.10)}
 .form-field select{
   appearance:none;-webkit-appearance:none;padding-right:32px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232563eb' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;
   cursor:pointer;background-color:var(--surface-2);
 }
-.form-field select:focus{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
+.form-field select:focus{border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,0.10)}
 .form-field input[readonly]{background:var(--surface-3);color:var(--ink-3);cursor:default}
-
-/* Vehicle type multi-select */
 .veh-picker-wrap{position:relative}
 .veh-picker-trigger{
   width:100%;min-height:42px;
@@ -578,7 +679,7 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);
   transform:translateY(-65%) rotate(45deg);transition:transform 0.2s;
 }
-.veh-picker-wrap.open .veh-picker-trigger{border-color:var(--midnight-400)}
+.veh-picker-wrap.open .veh-picker-trigger{border-color:var(--blue-400)}
 .veh-picker-wrap.open .veh-picker-trigger::after{transform:translateY(-35%) rotate(-135deg)}
 .veh-picker-dropdown{
   position:absolute;left:0;right:0;top:calc(100% + 6px);
@@ -593,23 +694,18 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   text-align:center;cursor:pointer;
   font-size:0.76rem;font-weight:600;
   color:var(--ink-2);background:var(--surface-2);
-  border:1.5px solid transparent;transition:all 0.14s;
-  position:relative;
+  border:1.5px solid transparent;transition:all 0.14s;position:relative;
 }
-.veh-option:hover{background:var(--midnight-50);color:var(--midnight-600)}
-.veh-option.selected{background:var(--midnight-500);color:#fff;border-color:var(--midnight-500);box-shadow:0 3px 8px rgba(39,77,150,0.25)}
+.veh-option:hover{background:var(--blue-50);color:var(--blue-700)}
+.veh-option.selected{background:var(--blue-600);color:#fff;border-color:var(--blue-600);box-shadow:var(--s-blue)}
 .veh-option input{position:absolute;opacity:0;pointer-events:none}
-
-.form-msg{
-  grid-column:1/-1;font-size:0.78rem;font-weight:600;
-  min-height:18px;color:var(--coral-600);
-}
-.form-msg.ok{color:var(--jade-700)}
-
+.form-msg{grid-column:1/-1;font-size:0.78rem;font-weight:600;min-height:18px;color:var(--red-600)}
+.form-msg.ok{color:var(--green-700)}
 .modal-footer{
   display:flex;justify-content:flex-end;gap:9px;
-  padding:13px 22px calc(13px + env(safe-area-inset-bottom));
+  padding:13px 24px calc(13px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--surface);flex-shrink:0;
+  border-radius:0 0 var(--r-2xl) var(--r-2xl);
 }
 .btn-cancel{
   height:40px;padding:0 16px;
@@ -620,21 +716,18 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
 .btn-cancel:hover{background:var(--surface-3);border-color:var(--line-lg)}
 .btn-save{
   height:40px;padding:0 18px;border-radius:var(--r-sm);
-  background:linear-gradient(135deg,var(--jade-600),var(--jade-500));
+  background:linear-gradient(135deg,var(--green-600),var(--green-500));
   color:#fff;font-size:0.82rem;font-weight:700;
-  box-shadow:var(--s-jade);transition:all 0.14s;
+  box-shadow:var(--s-green);transition:all 0.14s;
 }
-.btn-save:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(6,120,87,0.28)}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(5,150,105,0.28)}
 .btn-save:disabled{opacity:0.65;cursor:wait;transform:none}
 
-/* ════════════════════════════════════════════════
-   VIEW MODAL
-════════════════════════════════════════════════ */
+/* ══ VIEW MODAL ══ */
 .view-overlay{
   position:fixed;inset:0;z-index:380;
-  background:rgba(7,15,35,0.52);backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity 0.22s var(--ease-out),visibility 0s linear 0.22s;
 }
@@ -642,29 +735,29 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
 .view-modal{
   width:min(760px,100%);max-height:90vh;overflow-y:auto;
   background:var(--surface);border:1px solid var(--line-md);
-  border-radius:var(--r-xl);box-shadow:var(--s-lg);
+  border-radius:var(--r-2xl);box-shadow:var(--s-xl);
   transform:scale(0.96) translateY(8px);
   transition:transform 0.24s var(--ease-spring);
 }
 .view-overlay.open .view-modal{transform:none}
 .view-modal::-webkit-scrollbar{width:4px}
-.view-modal::-webkit-scrollbar-thumb{background:var(--midnight-200);border-radius:999px}
+.view-modal::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:999px}
 .view-head{
-  padding:14px 20px;border-bottom:1px solid var(--line);
+  padding:16px 24px;border-bottom:1px solid var(--line);
   background:var(--surface-2);
   display:flex;justify-content:space-between;align-items:center;
-  position:sticky;top:0;z-index:1;
+  position:sticky;top:0;z-index:1;border-radius:var(--r-2xl) var(--r-2xl) 0 0;
 }
-.view-head-title{font-size:0.95rem;font-weight:700;color:var(--ink)}
+.view-head-title{font-size:0.95rem;font-weight:700;color:var(--ink);font-family:'Fraunces',serif}
 .view-close{
   width:30px;height:30px;border-radius:50%;
   background:var(--surface-3);border:1px solid var(--line-md);
   color:var(--ink-3);font-size:1rem;
   display:flex;align-items:center;justify-content:center;
-  transition:background 0.12s;
+  transition:all 0.12s;
 }
-.view-close:hover{background:var(--surface-4)}
-.view-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:16px 20px}
+.view-close:hover{background:var(--red-50);color:var(--red-600);border-color:var(--red-100)}
+.view-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:18px 24px}
 .view-item{
   background:var(--surface-2);border:1px solid var(--line);
   border-radius:var(--r-md);padding:10px 12px;
@@ -672,32 +765,56 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
 .view-key{font-size:0.67rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em}
 .view-val{margin-top:5px;font-size:0.85rem;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
 
-/* ════════════════════════════════════════════════
-   SKELETON
-════════════════════════════════════════════════ */
-.sk{position:relative;overflow:hidden;background:var(--surface-3)!important;border-radius:var(--r-sm);color:transparent!important;pointer-events:none}
-.sk *{visibility:hidden!important}
-.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,0.68) 50%,transparent);animation:shimmer 1.6s ease-in-out infinite}
-
 .hidden{display:none!important}
 
-/* ════════════════════════════════════════════════
-   RESPONSIVE — TABLET
-════════════════════════════════════════════════ */
-@media(max-width:1100px){
-  .kpi-strip{grid-template-columns:repeat(4,1fr)}
+/* ══ DARK MODE ══ */
+body.dark-mode{
+  --bg:#0f172a;
+  --surface:#1e293b;
+  --surface-2:#1a2540;
+  --surface-3:#243050;
+  --surface-4:#2d3a56;
+  --ink:#f1f5f9;
+  --ink-2:#e2e8f0;
+  --ink-3:#94a3b8;
+  --ink-4:#64748b;
+  --line:#2d3a56;
+  --line-md:#3a4d6b;
+  --line-lg:#4a5f80;
+  --s-xs:0 1px 2px rgba(0,0,0,0.2);
+  --s-sm:0 1px 3px rgba(0,0,0,0.3),0 1px 2px rgba(0,0,0,0.2);
+  --s-md:0 4px 12px rgba(0,0,0,0.35),0 2px 4px rgba(0,0,0,0.2);
+  --s-lg:0 12px 32px rgba(0,0,0,0.4),0 4px 8px rgba(0,0,0,0.2);
 }
+body.dark-mode .mob-header{background:rgba(15,23,42,0.97);border-color:var(--line)}
+body.dark-mode .mob-hamburger{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-theme-btn{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-kpi-card{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .kpi-cell{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .sidebar{background:var(--surface)}
+body.dark-mode .mob-drawer{background:var(--surface)}
+body.dark-mode .topbar{background:rgba(15,23,42,0.97)}
+body.dark-mode .filter-select,body.dark-mode .filter-input{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode tbody tr:hover{background:rgba(37,99,235,0.08)}
+body.dark-mode .mob-res-card{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .mob-res-field{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .modal-head,.view-head{background:var(--surface-2)}
+body.dark-mode .form-field input,.dark-mode .form-field select{background:var(--surface-2);border-color:var(--line-md);color:var(--ink)}
+body.dark-mode .veh-picker-trigger{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .veh-picker-dropdown{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .veh-option{background:var(--surface-2)}
+body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md)}
 
-/* ════════════════════════════════════════════════
-   RESPONSIVE — MOBILE
-════════════════════════════════════════════════ */
-@media(max-width:700px){
-  .topbar,.desknav,.kpi-strip{display:none}
+/* ══ RESPONSIVE ══ */
+@media(max-width:1100px){
+  .sidebar{display:none}
+  .main{margin-left:0!important}
   .mob-header{display:flex}
   .mob-kpi-strip{display:flex}
-  .mob-nav{display:block}
-  body{background:#eef3fa}
-  .page{padding:12px 14px;padding-bottom:calc(var(--mobnav-h) + var(--safe-bot) + 16px)}
+  .kpi-strip{display:none}
+}
+@media(max-width:700px){
+  .page{padding:12px 14px;padding-bottom:20px}
   .filter-bar{flex-wrap:wrap;gap:8px;padding:11px 14px}
   .filter-select{height:40px}
   .filter-input{min-width:0;flex:1 1 100%;height:40px}
@@ -706,6 +823,7 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   .modal-overlay{align-items:flex-end;padding:0}
   .res-modal{width:100%;max-width:100%;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:96vh}
   .modal-head{border-radius:var(--r-xl) var(--r-xl) 0 0}
+  .modal-footer{border-radius:0}
   .form-scroll{grid-template-columns:1fr;padding:14px 16px 10px;gap:10px}
   .form-field.full{grid-column:1}
   .veh-picker-dropdown{position:static;margin-top:6px;box-shadow:none;border:1px solid var(--line-md)}
@@ -716,171 +834,259 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   .view-grid{grid-template-columns:1fr;padding:12px 14px}
 }
 @media(max-width:400px){
-  .mob-kpi-card{min-width:122px}
+  .mob-kpi-card{width:180px}
 }
 </style>
 </head>
 <body>
 
-<!-- ════════ MOBILE HEADER ════════ -->
+<!-- MOBILE OVERLAY + DRAWER -->
+<div class="mob-overlay" id="mobOverlay"></div>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
+      </svg>
+    </div>
+    <div class="sb-copy">
+      <div class="sb-name">MIG Society</div>
+      <div class="sb-tag">Sector-29 · Admin</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section-label">Main</div>
+    <a class="sb-item" href="index.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="sb-label">Dashboard</span>
+    </a>
+    <a class="sb-item" href="payments.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">Payments</span>
+    </a>
+    <a class="sb-item" href="fund-ledger.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
+      <span class="sb-label">Fund Ledger</span>
+    </a>
+    <a class="sb-item" href="flat-search.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
+      <span class="sb-label">Flat Search</span>
+    </a>
+    <div class="sb-section-label">Directory</div>
+    <a class="sb-item active" href="owner-tenant.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <span class="sb-label">Residents</span>
+      <span class="sb-badge" id="drawerNavResidents">0</span>
+    </a>
+    <a class="sb-item" href="emergency-contact.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <span class="sb-label">Emergency</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user" id="drawerLogoutBtn">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Admin</div>
+        <div class="sb-user-role">Society Manager</div>
+      </div>
+      <div class="sb-logout" title="Logout">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MOBILE HEADER -->
 <header class="mob-header" id="mobHeader">
-  <div class="mob-brand">
-    <div class="mob-gem">
-      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg>
-    </div>
-    <span class="mob-name">MIG Society</span>
-  </div>
-  <div class="mob-right">
-    <div class="profile-wrap">
-      <button class="mob-profile" id="profileTogMob" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-      <div class="profile-dropdown" id="pdMob">
-        <button id="logoutMob" type="button">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-          Logout
-        </button>
-      </div>
+  <div class="mob-header-top">
+    <button class="mob-hamburger" id="mobMenuBtn" type="button" aria-label="Open navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="mob-header-title">Resident Directory</div>
+    <div class="mob-header-actions">
+      <button class="mob-theme-btn" id="mobThemeBtn" type="button" aria-label="Toggle theme"></button>
     </div>
   </div>
 </header>
 
-<!-- ════════ DESKTOP TOP-BAR ════════ -->
-<header class="topbar">
-  <div class="topbar-brand">
-    <div class="brand-gem">
-      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg>
+<!-- APP SHELL -->
+<div class="app-shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
+      </svg>
     </div>
-    <div class="brand-copy">
-      <div class="brand-name">MIG Society, Sector-29</div>
-      <div class="brand-tagline">Resident Directory</div>
+    <div class="sb-copy">
+      <div class="sb-name">MIG Society</div>
+      <div class="sb-tag">Sector-29 · Admin Panel</div>
     </div>
   </div>
-  <div class="topbar-right">
-    <div class="profile-wrap">
-      <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-      <div class="profile-dropdown" id="pdDesk">
-        <button id="logoutDesk" type="button">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-          Logout
-        </button>
+  <button class="sb-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="8,2 4,6 8,10"/>
+    </svg>
+  </button>
+  <nav class="sb-nav">
+    <div class="sb-section-label">Main Menu</div>
+    <a class="sb-item" href="index.html" data-tooltip="Dashboard">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="sb-label">Dashboard</span>
+    </a>
+    <a class="sb-item" href="payments.html" data-tooltip="Payments">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">Payments</span>
+    </a>
+    <a class="sb-item" href="fund-ledger.html" data-tooltip="Fund Ledger">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
+      <span class="sb-label">Fund Ledger</span>
+    </a>
+    <a class="sb-item" href="flat-search.html" data-tooltip="Flat Search">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
+      <span class="sb-label">Flat Search</span>
+    </a>
+    <div class="sb-section-label">Directory</div>
+    <a class="sb-item active" href="owner-tenant.html" data-tooltip="Residents">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <span class="sb-label">Residents</span>
+      <span class="sb-badge" id="navResidents">0</span>
+    </a>
+    <a class="sb-item" href="emergency-contact.html" data-tooltip="Emergency">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <span class="sb-label">Emergency</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user" id="logoutDesk">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Admin</div>
+        <div class="sb-user-role">Society Manager</div>
+      </div>
+      <div class="sb-logout" title="Logout">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
       </div>
     </div>
   </div>
-</header>
+</aside>
 
-<!-- ════════ DESKTOP NAV ════════ -->
-<nav class="desknav">
-  <a class="dn-item" href="index.html">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
-    Dashboard
-  </a>
-  <a class="dn-item" href="payments.html">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="11" x2="7" y2="11"/></svg>
-    Payments
-  </a>
-  <a class="dn-item" href="fund-ledger.html">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h12M2 8h12M2 11h12"/><path d="M6 2.5l-1.5 11M11.5 2.5L10 13.5"/></svg>
-    Fund Ledger
-  </a>
-  <a class="dn-item active" href="owner-tenant.html">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="13" cy="5" r="2"/><path d="M15 14c0-2-1-3.5-3-4"/></svg>
-    Residents <span class="nav-pill" id="navResidents">0</span>
-  </a>
-  <a class="dn-item" href="emergency-contact.html">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
-    Emergency <span class="nav-pill" id="navEmergency">0</span>
-  </a>
-</nav>
+<!-- MAIN -->
+<div class="main" id="mainContent">
 
-<!-- ════════ KPI STRIP ════════ -->
-<div class="kpi-strip">
-  <div class="kpi-cell">
-    <div class="kpi-label">Total Residents</div>
-    <div class="kpi-val sk" id="kpiTotal">—</div>
-    <div class="kpi-sub">All records</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kpi-label">Owner Occupied</div>
-    <div class="kpi-val sk" id="kpiOwner">—</div>
-    <div class="kpi-sub">Active owners</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kpi-label">Tenant Occupied</div>
-    <div class="kpi-val sk" id="kpiTenant">—</div>
-    <div class="kpi-sub">Active tenants</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kpi-label">Pending Update</div>
-    <div class="kpi-val sk" id="kpiPending">—</div>
-    <div class="kpi-sub">Needs attention</div>
-  </div>
-</div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <div class="topbar-page">Resident Directory</div>
+      <div class="topbar-sub">MIG Society, Sector-29 · Owner &amp; Tenant records</div>
+    </div>
+    <div class="topbar-right">
+      <div class="profile-wrap">
+        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+        <div class="profile-dropdown" id="pdDesk">
+          <button id="logoutDeskMenu" type="button">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
 
-<!-- ════════ MOBILE KPI SCROLL ════════ -->
-<div class="mob-kpi-strip">
-  <div class="mob-kpi-card"><div class="mk-label">Total</div><div class="mk-val" id="mkTotal">—</div><div class="mk-sub">Residents</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Owners</div><div class="mk-val" id="mkOwner">—</div><div class="mk-sub">Owner occupied</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Tenants</div><div class="mk-val" id="mkTenant">—</div><div class="mk-sub">Tenant occupied</div></div>
-  <div class="mob-kpi-card"><div class="mk-label">Pending</div><div class="mk-val" id="mkPending">—</div><div class="mk-sub">Needs update</div></div>
-</div>
-
-<!-- ════════ PAGE ════════ -->
-<div class="page">
-
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <select id="blockFilter" class="filter-select" aria-label="Filter by block"><option value="">All Blocks</option></select>
-    <select id="searchType" class="filter-select" aria-label="Search type">
-      <option value="all">All Fields</option>
-      <option value="name">Owner / Tenant</option>
-      <option value="mobile">Mobile</option>
-      <option value="vehicle">Vehicle</option>
-    </select>
-    <input id="searchInput" type="text" class="filter-input" placeholder="Search owner, tenant, mobile, vehicle…" autocomplete="off">
-    <span class="filter-count" id="filterCount"></span>
-  </div>
-
-  <!-- Desktop table -->
-  <div class="table-card">
-    <div class="table-wrap">
-      <table id="directoryTable">
-        <thead id="tableHead"></thead>
-        <tbody id="tableBody"></tbody>
-      </table>
+  <!-- KPI STRIP — Desktop -->
+  <div class="kpi-strip">
+    <div class="kpi-cell">
+      <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <div class="kpi-label"><span class="kpi-label-dot"></span>Total Residents</div>
+      <div class="kpi-val sk" id="kpiTotal">—</div>
+      <div class="kpi-sub">All records</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l7-7 7 7"/><path d="M5 17V9h10v8"/><path d="M9 17v-5h2v5"/></svg></div>
+      <div class="kpi-label"><span class="kpi-label-dot"></span>Owner Occupied</div>
+      <div class="kpi-val sk" id="kpiOwner">—</div>
+      <div class="kpi-sub">Active owners</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="14" height="11" rx="1.5"/><path d="M7 8V6a3 3 0 0 1 6 0v2"/><circle cx="10" cy="13" r="1.5"/></svg></div>
+      <div class="kpi-label"><span class="kpi-label-dot"></span>Tenant Occupied</div>
+      <div class="kpi-val sk" id="kpiTenant">—</div>
+      <div class="kpi-sub">Active tenants</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <div class="kpi-label"><span class="kpi-label-dot"></span>Pending Update</div>
+      <div class="kpi-val sk" id="kpiPending">—</div>
+      <div class="kpi-sub">Needs attention</div>
     </div>
   </div>
 
-  <!-- Mobile cards -->
-  <div class="card-list" id="cardList"></div>
-
-</div>
-
-<!-- ════════ MOBILE BOTTOM NAV ════════ -->
-<nav class="mob-nav">
-  <div class="mob-nav-inner">
-    <a class="mni" href="index.html">
-      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
-      <span class="mni-label">Home</span>
-    </a>
-    <a class="mni" href="payments.html">
-      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="mni-label">Payments</span>
-    </a>
-    <a class="mni" href="fund-ledger.html">
-      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3l-2 14M15 3l-2 14"/></svg></div>
-      <span class="mni-label">Ledger</span>
-    </a>
-    <a class="mni active" href="owner-tenant.html">
-      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="3.5"/><path d="M2 18c0-4 2.7-7 6-7s6 3 6 7"/><circle cx="15" cy="7" r="2.5"/><path d="M18 18c0-2.5-1.2-4.5-3-5.5"/></svg></div>
-      <span class="mni-label">Residents</span>
-    </a>
-    <a class="mni" href="emergency-contact.html">
-      <div class="mni-icon-wrap"><div class="mni-bg"></div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="11"/><circle cx="10" cy="14" r="0.8" fill="currentColor"/></svg></div>
-      <span class="mni-label">Emergency</span>
-    </a>
+  <!-- MOBILE KPI STRIP -->
+  <div class="mob-kpi-strip">
+    <div class="mob-kpi-card">
+      <div class="mk-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <div class="mk-label">Total</div>
+      <div class="mk-val sk" id="mkTotal">—</div>
+      <div class="mk-sub">Residents</div>
+    </div>
+    <div class="mob-kpi-card">
+      <div class="mk-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l7-7 7 7"/><path d="M5 17V9h10v8"/><path d="M9 17v-5h2v5"/></svg></div>
+      <div class="mk-label">Owners</div>
+      <div class="mk-val sk" id="mkOwner">—</div>
+      <div class="mk-sub">Owner occupied</div>
+    </div>
+    <div class="mob-kpi-card">
+      <div class="mk-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="14" height="11" rx="1.5"/><path d="M7 8V6a3 3 0 0 1 6 0v2"/><circle cx="10" cy="13" r="1.5"/></svg></div>
+      <div class="mk-label">Tenants</div>
+      <div class="mk-val sk" id="mkTenant">—</div>
+      <div class="mk-sub">Tenant occupied</div>
+    </div>
+    <div class="mob-kpi-card">
+      <div class="mk-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <div class="mk-label">Pending</div>
+      <div class="mk-val sk" id="mkPending">—</div>
+      <div class="mk-sub">Needs update</div>
+    </div>
   </div>
-</nav>
 
-<!-- ════════ EDIT MODAL ════════ -->
+  <!-- PAGE -->
+  <div class="page">
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <select id="blockFilter" class="filter-select" aria-label="Filter by block"><option value="">All Blocks</option></select>
+      <select id="searchType" class="filter-select" aria-label="Search type">
+        <option value="all">All Fields</option>
+        <option value="name">Owner / Tenant</option>
+        <option value="mobile">Mobile</option>
+        <option value="vehicle">Vehicle</option>
+      </select>
+      <input id="searchInput" type="text" class="filter-input" placeholder="Search owner, tenant, mobile, vehicle…" autocomplete="off">
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <!-- Desktop table -->
+    <div class="table-card">
+      <div class="table-wrap">
+        <table id="directoryTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="card-list" id="cardList"></div>
+
+  </div><!-- /page -->
+
+</div><!-- /main -->
+</div><!-- /app-shell -->
+
+<!-- EDIT MODAL -->
 <div class="modal-overlay" id="resModalOverlay" aria-hidden="true">
   <div class="res-modal" role="dialog" aria-modal="true" aria-labelledby="resModalTitle">
     <div class="modal-head">
@@ -900,7 +1106,7 @@ td:first-child{font-weight:600;color:var(--midnight-700)}
   </div>
 </div>
 
-<!-- ════════ VIEW MODAL ════════ -->
+<!-- VIEW MODAL -->
 <div class="view-overlay" id="viewModalOverlay" aria-hidden="true">
   <div class="view-modal" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
     <div class="view-head">
@@ -939,11 +1145,10 @@ const setTxt   = (id,v) => { const el=document.getElementById(id); if(el)el.text
 const rmSk     = id => { const el=document.getElementById(id); if(el)el.classList.remove("sk"); };
 
 function phoneLink(v){
-  const ph=normPhone(v); if(!ph)return v||"";
-  return`<a class="call-link" href="tel:${ph}"><span class="call-icon">☎</span><span>${v}</span></a>`;
+  const ph=normPhone(v); if(!ph)return esc(v)||"";
+  return`<a class="call-link" href="tel:${ph}"><span class="call-icon">☎</span><span>${esc(v)}</span></a>`;
 }
 function isPhoneHdr(h){ const l=norm(h); return["mobile","phone","contact","whatsapp"].some(p=>l.includes(p)); }
-
 function hiIdx(pats){ const nh=headers.map(h=>norm(h)); return pats.reduce((f,p)=>f>=0?f:nh.findIndex(h=>h.includes(p)),-1); }
 function personIdx(pri,exc=[]){ const excPats=["vehicle","car","bike","scooter","number plate","registration","veh","type","parking"]; const nh=headers.map(h=>norm(h)); for(const p of pri){ const i=nh.findIndex(h=>h.includes(p)&&!excPats.some(e=>h.includes(e))); if(i>=0)return i; } return-1; }
 function occIdx(){ return hiIdx(["occupied by","occupiedby","occupancy"]); }
@@ -976,7 +1181,7 @@ function dispCols(){
   ].filter(i=>i>=0);
 }
 
-/* ── KPI & badges ── */
+/* ── KPI ── */
 function updateKPI(){
   const ownerI=personIdx(["owner"],["resident name","name"]);
   const tenantI=personIdx(["tenant"],["occupant"]);
@@ -992,155 +1197,201 @@ function updateKPI(){
   setTxt("mkTotal",rows.length); setTxt("mkOwner",owners);
   setTxt("mkTenant",tenants); setTxt("mkPending",pending);
   setTxt("navResidents",rows.length);
+  setTxt("drawerNavResidents",rows.length);
   document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
 }
 
 function updateBlockFilter(){
   const bf=document.getElementById("blockFilter"),bI=hiIdx(["block"]);
   const sel=bf.value;
-  const blocks=Array.from(new Set(rows.map(r=>blockDisp(r[bI]||"")).filter(Boolean))).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  bf.innerHTML=`<option value="">All Blocks</option>`+blocks.map(b=>`<option value="${b}">${b}</option>`).join("");
-  if(sel&&blocks.includes(sel))bf.value=sel;
+  const blocks=[...new Set(rows.map(r=>bI>=0?String(r[bI]||"").trim():"").filter(Boolean))].sort((a,b)=>{
+    const na=parseInt(a),nb=parseInt(b);return!isNaN(na)&&!isNaN(nb)?na-nb:a.localeCompare(b);
+  });
+  bf.innerHTML=`<option value="">All Blocks</option>`+blocks.map(b=>`<option value="${esc(b)}"${b===sel?` selected`:``}>${esc(blockDisp(b))}</option>`).join("");
 }
 
-/* ── Chip helper ── */
-function statusChip(owner,tenant){
-  if(tenant)return`<span class="chip chip-tenant">Tenant</span>`;
-  if(owner)return`<span class="chip chip-owner">Owner</span>`;
-  return`<span class="chip chip-pending">Pending</span>`;
+/* ── Occupancy badge ── */
+function occBadge(row){
+  const oi=occIdx();
+  const v=oi>=0?String(row[oi]||"").trim().toUpperCase():"";
+  if(v==="OWNER")return`<span class="occ-badge occ-owner">Owner</span>`;
+  if(v==="TENANT")return`<span class="occ-badge occ-tenant">Tenant</span>`;
+  if(v==="PHQ")return`<span class="occ-badge occ-phq">PHQ</span>`;
+  return`<span class="occ-badge occ-unoccupied">Unoccupied</span>`;
 }
 
 /* ── Render table ── */
 function renderTable(data){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
-  const oI=personIdx(["owner"],["resident name","name"]);
-  const tI=personIdx(["tenant"],["occupant"]);
   const cols=dispCols();
+  const thead=document.getElementById("tableHead");
+  const tbody=document.getElementById("tableBody");
+  if(!cols.length){thead.innerHTML="";tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-3)">No data available.</td></tr>`;return;}
 
-  document.getElementById("tableHead").innerHTML=`<tr>${cols.map(i=>`<th>${esc(headers[i])}</th>`).join("")}<th>Status</th><th>Actions</th></tr>`;
-  document.getElementById("tableBody").innerHTML=data.map(r=>{
-    const bv=blockDisp(r[bI]||""),fv=r[fI]||"";
-    const ov=oI>=0?String(r[oI]||"").trim():"";
-    const tv=tI>=0?String(r[tI]||"").trim():"";
+  const colLabels={};
+  headers.forEach((h,i)=>colLabels[i]=h);
+  thead.innerHTML=`<tr>${cols.slice(0,2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Status</th>${cols.slice(2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Actions</th></tr>`;
+
+  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  tbody.innerHTML=data.map(row=>{
+    const b=bI>=0?row[bI]:"",f=fI>=0?row[fI]:"";
+    const cells=cols.slice(2).map(i=>`<td class="${isPhoneHdr(headers[i])?"td-phone":""}">${isPhoneHdr(headers[i])?phoneLink(row[i]):esc(row[i]||"—")}</td>`).join("");
     return`<tr>
-      ${cols.map(i=>`<td>${i===bI?blockDisp(r[i]||""):esc(r[i]||"")}</td>`).join("")}
-      <td>${statusChip(ov,tv)}</td>
-      <td>
-        <div class="action-group">
-          <button class="act-btn" title="View" data-action="view" data-block="${esc(bv)}" data-flat="${esc(fv)}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M1 8C2.5 4 4.5 2 8 2s5.5 2 7 6c-1.5 4-3.5 6-7 6S2.5 12 1 8z"/></svg></button>
-          <button class="act-btn" title="Edit" data-action="edit" data-block="${esc(bv)}" data-flat="${esc(fv)}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3-9 9H2v-3L11 2z"/></svg></button>
-          <button class="act-btn del" title="Delete" data-action="del" data-block="${esc(bv)}" data-flat="${esc(fv)}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="2,4 14,4"/><path d="M5 4V2h6v2"/><path d="M6 7v5M10 7v5"/><rect x="3" y="4" width="10" height="10" rx="1"/></svg></button>
-        </div>
-      </td>
+      <td><div class="td-flat">${esc(blockDisp(b))}</div></td>
+      <td><div class="td-flat">${esc(f)}</div></td>
+      <td>${occBadge(row)}</td>
+      ${cells}
+      <td><div class="action-btns">
+        <button class="btn-action view-btn" data-action="view" data-block="${esc(b)}" data-flat="${esc(f)}" title="View">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/></svg>
+        </button>
+        <button class="btn-action edit" data-action="edit" data-block="${esc(b)}" data-flat="${esc(f)}" title="Edit">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg>
+        </button>
+        <button class="btn-action del" data-action="del" data-block="${esc(b)}" data-flat="${esc(f)}" title="Delete">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 14,4"/><path d="M5 4V2h6v2M6 7v5M10 7v5"/><path d="M3 4l1 10h8l1-10"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join("");
 
-  /* Mobile cards */
-  document.getElementById("cardList").innerHTML=data.map((r,ri)=>{
-    const bv=blockDisp(r[bI]||""),fv=r[fI]||"";
-    const ov=oI>=0?String(r[oI]||"").trim():"";
-    const tv=tI>=0?String(r[tI]||"").trim():"";
-    const blockShort=bv.replace("Block-","B");
-    const subLine=tv?`Tenant: ${tv}`:ov?`Owner: ${ov}`:"No resident data";
-    const details=headers.map((h,i)=>`<div class="detail-row"><span class="detail-key">${esc(h)}</span><span class="detail-val">${isPhoneHdr(h)?phoneLink(r[i]):esc(r[i]||"")}</span></div>`).join("");
-    return`<div class="mob-res-card" style="animation-delay:${ri*22}ms">
+  setTxt("filterCount",`${data.length} of ${rows.length} residents`);
+}
+
+/* ── Render mobile cards ── */
+function renderCards(data){
+  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const ownerI=personIdx(["owner name","owner"],["resident name","name"]);
+  const tenantI=personIdx(["tenant name","tenant"],["occupant"]);
+  const ownerPhI=hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]);
+  const tenPhI=hiIdx(["tenant contact","tenant mobile","tenant phone","tenant whatsapp"]);
+  const vI=vehIdx(),oI=occIdx();
+
+  document.getElementById("cardList").innerHTML=data.map(row=>{
+    const b=bI>=0?row[bI]:"",f=fI>=0?row[fI]:"";
+    const ownerName=ownerI>=0?row[ownerI]:"";
+    const tenantName=tenantI>=0?row[tenantI]:"";
+    const displayName=tenantName||ownerName||"—";
+    const occ=oI>=0?String(row[oI]||"").trim().toUpperCase():"";
+    const avatarClass=occ==="TENANT"?"mob-res-avatar tenant":occ==="UNOCCUPIED"?"mob-res-avatar unoccupied":"mob-res-avatar";
+    const initials=(displayName!=="—"?displayName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase():"?");
+
+    const fields=[];
+    if(ownerI>=0)fields.push({k:"Owner",v:ownerName||"—"});
+    if(ownerPhI>=0)fields.push({k:"Owner Contact",v:row[ownerPhI]||"—",phone:true});
+    if(tenantI>=0)fields.push({k:"Tenant",v:tenantName||"—"});
+    if(tenPhI>=0)fields.push({k:"Tenant Contact",v:row[tenPhI]||"—",phone:true});
+    if(vI>=0)fields.push({k:"Vehicle",v:row[vI]||"—"});
+
+    return`<div class="mob-res-card">
       <div class="mob-res-head">
-        <div class="res-avatar">${blockShort}</div>
-        <div class="res-card-info">
-          <div class="res-card-title">${esc(bv)} / Flat ${esc(fv)}</div>
-          <div class="res-card-sub">${esc(subLine)}</div>
+        <div class="${avatarClass}">${initials}</div>
+        <div class="mob-res-info">
+          <div class="mob-res-flat">${esc(blockDisp(b))} · Flat ${esc(f)}</div>
+          <div class="mob-res-name">${esc(displayName)}</div>
         </div>
-        <div class="res-card-right">
-          ${statusChip(ov,tv)}
-          <button class="res-icon-btn edit-icon-btn" data-action="edit" data-block="${esc(bv)}" data-flat="${esc(fv)}" title="Edit"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 2l3 3-9 9H2v-3L11 2z"/></svg></button>
-          <button class="res-icon-btn del-icon-btn" data-action="del" data-block="${esc(bv)}" data-flat="${esc(fv)}" title="Delete"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,4 14,4"/><path d="M5 4V2h6v2"/><rect x="3" y="4" width="10" height="10" rx="1"/></svg></button>
-          <span class="res-chevron"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></span>
-        </div>
+        <div class="mob-res-badge">${occBadge(row)}</div>
+        <svg class="mob-res-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,6 8,10 12,6"/></svg>
       </div>
       <div class="mob-res-body">
-        <div class="detail-grid">${details}</div>
+        <div class="mob-res-fields">
+          ${fields.map(fld=>`<div class="mob-res-field">
+            <div class="mob-res-field-key">${esc(fld.k)}</div>
+            <div class="mob-res-field-val">${fld.phone?phoneLink(fld.v):esc(fld.v)}</div>
+          </div>`).join("")}
+        </div>
+        <div class="mob-res-actions">
+          <button class="mob-btn" data-action="view" data-block="${esc(b)}" data-flat="${esc(f)}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/></svg>
+            View
+          </button>
+          <button class="mob-btn edit" data-action="edit" data-block="${esc(b)}" data-flat="${esc(f)}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3z"/></svg>
+            Edit
+          </button>
+          <button class="mob-btn del" data-action="del" data-block="${esc(b)}" data-flat="${esc(f)}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 14,4"/><path d="M5 4V2h6v2M6 7v5M10 7v5"/><path d="M3 4l1 10h8l1-10"/></svg>
+            Del
+          </button>
+        </div>
       </div>
     </div>`;
   }).join("");
-
-  /* filter count */
-  const fc=document.getElementById("filterCount");
-  if(fc)fc.textContent=filteredRows.length<rows.length?`${filteredRows.length} of ${rows.length}`:"";
 }
 
 /* ── Filters ── */
 function applyFilters(){
   const q=norm(document.getElementById("searchInput").value);
   const type=document.getElementById("searchType").value;
-  const bSel=document.getElementById("blockFilter").value;
+  const blockVal=norm(document.getElementById("blockFilter").value);
   const bI=hiIdx(["block"]);
-  filteredRows=rows.filter(r=>{
-    const bv=blockDisp(r[bI]||"");
-    if(bSel&&bv!==bSel)return false;
-    if(!q)return true;
-    if(type==="name")return searchIdx.name.some(i=>norm(r[i]).includes(q));
-    if(type==="mobile")return searchIdx.mobile.some(i=>norm(r[i]).includes(q));
-    if(type==="vehicle")return searchIdx.vehicle.some(i=>norm(r[i]).includes(q));
-    return r.some(c=>norm(c).includes(q));
-  });
-  renderTable(filteredRows);
-}
 
-/* ── Find row ── */
-function findRow(block,flat){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
-  return rows.find(r=>blockDisp(r[bI]||"")===block&&String(r[fI]||"").trim()===String(flat||"").trim())||null;
+  filteredRows=rows.filter(row=>{
+    if(blockVal&&bI>=0&&norm(row[bI])!==blockVal)return false;
+    if(!q)return true;
+    const idxs=type==="name"?searchIdx.name:type==="mobile"?searchIdx.mobile:type==="vehicle"?searchIdx.vehicle:[...searchIdx.name,...searchIdx.mobile,...searchIdx.vehicle,...Array.from({length:headers.length},(_,i)=>i)];
+    const pool=[...new Set(idxs)];
+    return pool.some(i=>norm(row[i]||"").includes(q));
+  });
+
+  renderTable(filteredRows);
+  renderCards(filteredRows);
 }
 
 /* ── Scroll lock ── */
-function lockScroll(){ if(document.body.classList.contains("modal-open"))return; const y=window.scrollY||0; document.body.dataset.sy=y; document.body.style.top=`-${y}px`; document.body.classList.add("modal-open"); }
-function unlockScroll(){ if(!document.body.classList.contains("modal-open"))return; const y=Number(document.body.dataset.sy||0); document.body.classList.remove("modal-open"); document.body.style.top=""; delete document.body.dataset.sy; window.scrollTo(0,y); }
+function lockScroll(){document.body.classList.add("modal-open")}
+function unlockScroll(){document.body.classList.remove("modal-open")}
 
 /* ── Vehicle picker ── */
-function buildVehPicker(colIndex,currentVal){
-  const selected=new Set(String(currentVal||"").split(/[,;|/]+/).map(v=>String(v||"").trim().toUpperCase()).filter(Boolean));
-  const opts=VEHICLE_TYPE_OPTIONS.map(o=>`<label class="veh-option${selected.has(o)?" selected":""}"><input type="checkbox" value="${o}"${selected.has(o)?" checked":""}><span>${o}</span></label>`).join("");
-  return`<div class="veh-picker-wrap" id="vehPicker"><button class="veh-picker-trigger" id="vehTrigger" type="button">${selected.size?Array.from(selected).join(", "):"Select type"}</button><div class="veh-picker-dropdown"><div class="veh-options" data-col-index="${colIndex}">${opts}</div></div></div>`;
+function setVehOpen(open){
+  const w=document.getElementById("vehPicker");
+  if(w)w.classList.toggle("open",open);
 }
-function selectedVehTypes(){ return Array.from(document.querySelectorAll("#formFields .veh-options input:checked")).map(i=>i.value); }
-function updateVehTrigger(){ const t=document.getElementById("vehTrigger"); if(t){ const s=selectedVehTypes(); t.textContent=s.length?s.join(", "):"Select type"; } }
-function setVehOpen(o){ const w=document.getElementById("vehPicker"); if(w)w.classList.toggle("open",o); }
+function selectedVehTypes(){
+  return Array.from(document.querySelectorAll(`#formFields .veh-option.selected input`)).map(i=>i.value);
+}
+function updateVehTrigger(){
+  const t=document.querySelector("#formFields .veh-picker-trigger");
+  if(!t)return;
+  const sel=selectedVehTypes();
+  t.textContent=sel.length?sel.join(", "):"Select vehicle types…";
+}
 
 /* ── Open edit modal ── */
 function openEditModal(block,flat){
   const row=findRow(block,flat); if(!row)return;
-  editCtx={block,flat,row:row.slice()};
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
-  const oI=occIdx(),vI=vehIdx();
-  let html="";
-  headers.forEach((h,i)=>{
-    const ro=i===bI||i===fI;
-    const v=String(row[i]||"");
-    if(i===oI){
-      const opts=RESIDENT_OCCUPIED_OPTIONS.map(o=>`<option value="${o}"${v.trim().toUpperCase()===o?" selected":""}>${o}</option>`).join("");
-      html+=`<div class="form-field"><label>${esc(h)}</label><select data-ci="${i}"${ro?" disabled":""}>${opts}</select></div>`;
-    } else if(i===vI){
-      html+=`<div class="form-field"><label>${esc(h)}</label>${buildVehPicker(i,v)}</div>`;
-    } else {
-      const type=isPhoneHdr(h)?"tel":"text";
-      html+=`<div class="form-field"><label>${esc(h)}</label><input data-ci="${i}" type="${type}" value="${esc(v)}"${ro?" readonly":""}></div>`;
+  editCtx={block,flat,row:[...row]};
+  setTxt("resModalTitle",`${block} / Flat ${flat}`);
+  setTxt("resModalSubtitle","Edit owner / tenant profile details");
+  const ff=document.getElementById("formFields");
+  const vI=vehIdx();
+  ff.innerHTML=headers.map((h,i)=>{
+    const val=esc(row[i]||"");
+    const lb=norm(h);
+    const isReadonly=lb.includes("block")||lb.includes("flat")||lb.includes("house")||lb.includes("apartment");
+    const isOcc=lb.includes("occupied");
+    const isVeh=i===vI;
+    if(isVeh){
+      const selVals=(row[i]||"").split(/[,;|/]+/).map(v=>v.trim().toUpperCase()).filter(Boolean);
+      return`<div class="form-field"><label>${esc(h)}</label>
+        <div class="veh-picker-wrap" id="vehPicker">
+          <button type="button" class="veh-picker-trigger">${selVals.length?selVals.join(", "):"Select vehicle types…"}</button>
+          <div class="veh-picker-dropdown">
+            <div class="veh-options" data-col-index="${i}">
+              ${VEHICLE_TYPE_OPTIONS.map(opt=>`<label class="veh-option${selVals.includes(opt)?" selected":""}"><input type="checkbox" value="${opt}"${selVals.includes(opt)?" checked":""}>${opt}</label>`).join("")}
+            </div>
+          </div>
+        </div></div>`;
     }
-  });
-  html+=`<div class="form-field full"><div class="form-msg" id="formMsg"></div></div>`;
-  document.getElementById("formFields").innerHTML=html;
-  /* occupied-by change → clear tenant if UNOCCUPIED */
-  const occEl=document.querySelector(`#formFields [data-ci="${oI}"]`);
-  if(occEl){
-    occEl.addEventListener("change",()=>{
-      if(String(occEl.value||"").trim().toUpperCase()==="UNOCCUPIED"){
-        const tnI=tenNameIdx(),tcI=tenContIdx();
-        const tnEl=tnI>=0?document.querySelector(`#formFields [data-ci="${tnI}"]`):null;
-        const tcEl=tcI>=0?document.querySelector(`#formFields [data-ci="${tcI}"]`):null;
-        if(tnEl)tnEl.value=""; if(tcEl)tcEl.value="";
-      }
-    });
-  }
-  /* vehicle picker */
+    if(isOcc){
+      return`<div class="form-field"><label>${esc(h)}</label>
+        <select data-ci="${i}">
+          ${RESIDENT_OCCUPIED_OPTIONS.map(o=>`<option${o===String(row[i]||"").trim().toUpperCase()?" selected":""}>${o}</option>`).join("")}
+        </select></div>`;
+    }
+    return`<div class="form-field${lb.includes("address")||lb.includes("remark")?" full":""}"><label>${esc(h)}</label>
+      <input type="text" data-ci="${i}" value="${val}"${isReadonly?" readonly":""}></div>`;
+  }).join("")+`<div class="form-msg" id="formMsg"></div>`;
+
   const vehT=document.getElementById("vehTrigger");
   const vehW=document.getElementById("vehPicker");
   if(vehT&&vehW){
@@ -1235,10 +1486,15 @@ async function deleteResident(block,flat){
   }catch(ex){ alert(ex.message||"Unable to delete."); }
 }
 
+/* ── Find row ── */
+function findRow(block,flat){
+  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  return rows.find(r=>(bI<0||String(r[bI]||"").trim()===block)&&(fI<0||String(r[fI]||"").trim()===flat));
+}
+
 /* ── Load data ── */
 async function loadDirectoryData(){
   try{
-    // Try multiple URL formats in case gviz returns 404
     const urls=[
       `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
       `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
@@ -1260,7 +1516,7 @@ async function loadDirectoryData(){
     headers=ch; rows=cr;
     searchIdx.name=[]; searchIdx.mobile=[]; searchIdx.vehicle=[]; collectIdx();
     updateBlockFilter(); updateKPI();
-    filteredRows=rows; renderTable(filteredRows);
+    filteredRows=rows; renderTable(filteredRows); renderCards(filteredRows);
   }catch(ex){
     setTxt("filterCount","Error: "+ex.message);
   }
@@ -1271,26 +1527,35 @@ function handleAction(e){
   const btn=e.target.closest("[data-action]"); if(!btn)return;
   const{action,block,flat}=btn.dataset;
   if(action==="view"){openViewModal(block,flat);return;}
-  if(action==="edit"){openResidentModal(block,flat);return;}
+  if(action==="edit"){openEditModal(block,flat);return;}
   if(action==="del"){deleteResident(block,flat);return;}
-  /* mobile card expand */
+}
+function handleCardClick(e){
+  if(e.target.closest(".call-link"))return;
+  const btn=e.target.closest("[data-action]");
+  if(btn){handleAction(e);return;}
   const head=e.target.closest(".mob-res-head");
   if(head){ const card=head.closest(".mob-res-card"); if(card)card.classList.toggle("expanded"); }
 }
-/* alias for table and card */
-function openResidentModal(b,f){ openEditModal(b,f); }
 
 document.getElementById("tableBody").addEventListener("click",handleAction);
-document.getElementById("cardList").addEventListener("click",e=>{
-  if(e.target.closest(".call-link"))return;
-  handleAction(e);
-  const head=e.target.closest(".mob-res-head"); if(head){ const card=head.closest(".mob-res-card"); if(card)card.classList.toggle("expanded"); }
+document.getElementById("cardList").addEventListener("click",handleCardClick);
+
+/* ── Veh picker delegation ── */
+document.getElementById("formFields")?.addEventListener("click",e=>{
+  const trigger=e.target.closest(".veh-picker-trigger");
+  if(trigger){e.stopPropagation();const wrap=trigger.closest(".veh-picker-wrap");if(wrap)wrap.classList.toggle("open");return;}
+  const opt=e.target.closest(".veh-option");
+  if(opt){const inp=opt.querySelector("input");if(inp){inp.checked=!inp.checked;opt.classList.toggle("selected",inp.checked);updateVehTrigger();}}
 });
 
 /* ── Filters ── */
 document.getElementById("searchInput").addEventListener("input",applyFilters);
 document.getElementById("searchType").addEventListener("change",applyFilters);
 document.getElementById("blockFilter").addEventListener("change",applyFilters);
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".veh-picker-wrap")){document.querySelectorAll(".veh-picker-wrap").forEach(w=>w.classList.remove("open"));}
+});
 
 /* ── Modal bindings ── */
 document.getElementById("residentForm").addEventListener("submit",saveResident);
@@ -1299,15 +1564,62 @@ document.getElementById("closeResModal").addEventListener("click",closeEditModal
 document.getElementById("resModalOverlay").addEventListener("click",e=>{ if(e.target.id==="resModalOverlay")closeEditModal(); });
 document.getElementById("closeViewModal").addEventListener("click",closeViewModal);
 document.getElementById("viewModalOverlay").addEventListener("click",e=>{ if(e.target.id==="viewModalOverlay")closeViewModal(); });
-document.addEventListener("click",e=>{ if(!e.target.closest("#vehPicker"))setVehOpen(false); });
 
-/* ── Dropdown setup ── */
-function setupDD(tId,dId){ const t=document.getElementById(tId),d=document.getElementById(dId); if(!t||!d)return; t.addEventListener("click",e=>{e.stopPropagation();const o=d.classList.toggle("open");t.setAttribute("aria-expanded",o?"true":"false");}); }
-setupDD("profileTogDesk","pdDesk"); setupDD("profileTogMob","pdMob");
-document.addEventListener("click",()=>{ document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open")); document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false")); });
+/* ── Dropdown ── */
+const tog=document.getElementById("profileTogDesk"),dd=document.getElementById("pdDesk");
+tog?.addEventListener("click",e=>{e.stopPropagation();const open=dd.classList.toggle("open");tog.setAttribute("aria-expanded",open?"true":"false");});
+document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));});
 
 /* ── Logout ── */
-["logoutDesk","logoutMob"].forEach(id=>{ const btn=document.getElementById(id); if(btn)btn.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_KEY); window.location.href="index.html"; }); });
+function doLogout(){sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";}
+document.getElementById("logoutDesk")?.addEventListener("click",doLogout);
+document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
+document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+
+/* ── Sidebar collapse ── */
+(function(){
+  const sb=document.getElementById("sidebar"),mc=document.getElementById("mainContent"),btn=document.getElementById("sidebarToggle");
+  if(!sb||!mc||!btn)return;
+  const COLLAPSED_KEY="society_sidebar_collapsed";
+  if(localStorage.getItem(COLLAPSED_KEY)==="1"){sb.classList.add("collapsed");mc.classList.add("sidebar-collapsed");}
+  btn.addEventListener("click",()=>{
+    const c=sb.classList.toggle("collapsed");
+    mc.classList.toggle("sidebar-collapsed",c);
+    localStorage.setItem(COLLAPSED_KEY,c?"1":"0");
+  });
+})();
+
+/* ── Mobile drawer ── */
+(function(){
+  const overlay=document.getElementById("mobOverlay");
+  const drawer=document.getElementById("mobDrawer");
+  const menuBtn=document.getElementById("mobMenuBtn");
+  if(!overlay||!drawer||!menuBtn)return;
+  function openDrawer(){drawer.classList.add("open");overlay.classList.add("open");document.body.classList.add("modal-open");}
+  function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove("open");if(!document.getElementById("resModalOverlay").classList.contains("open")&&!document.getElementById("viewModalOverlay").classList.contains("open"))document.body.classList.remove("modal-open");}
+  menuBtn.addEventListener("click",openDrawer);
+  overlay.addEventListener("click",closeDrawer);
+})();
+
+/* ── Theme Toggle ── */
+(function(){
+  const DARK_KEY="society_dark_mode";
+  const moonSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>`;
+  const sunSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18"/><line x1="2" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18" y2="10"/><line x1="4.22" y1="4.22" x2="5.28" y2="5.28"/><line x1="14.72" y1="14.72" x2="15.78" y2="15.78"/><line x1="14.72" y1="5.28" x2="15.78" y2="4.22"/><line x1="4.22" y1="15.78" x2="5.28" y2="14.72"/></svg>`;
+  function applyTheme(dark){
+    document.body.classList.toggle("dark-mode",dark);
+    const btn=document.getElementById("mobThemeBtn");
+    if(btn)btn.innerHTML=dark?sunSVG:moonSVG;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content",dark?"#0f172a":"#2563eb");
+  }
+  const saved=localStorage.getItem(DARK_KEY)==="1";
+  applyTheme(saved);
+  document.getElementById("mobThemeBtn")?.addEventListener("click",()=>{
+    const dark=!document.body.classList.contains("dark-mode");
+    localStorage.setItem(DARK_KEY,dark?"1":"0");
+    applyTheme(dark);
+  });
+})();
 
 /* ── Init ── */
 loadDirectoryData();
