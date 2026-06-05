@@ -565,11 +565,19 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 .pay-row-editable:hover td{background:var(--blue-50)!important}
 .pay-row-edit-btn{
   width:28px;height:28px;border-radius:var(--r-sm);
-  background:var(--surface-2);border:1px solid var(--line-md);
-  color:var(--ink-3);display:flex;align-items:center;justify-content:center;
+  background:var(--blue-50);border:1px solid var(--blue-200);
+  color:var(--blue-600);display:flex;align-items:center;justify-content:center;
   transition:all 0.12s;
 }
-.pay-row-edit-btn:hover{background:var(--blue-50);border-color:var(--blue-400);color:var(--blue-600)}
+.pay-row-edit-btn:hover{background:var(--blue-100);border-color:var(--blue-400);color:var(--blue-700)}
+.pay-row-del-btn{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  background:var(--red-50);border:1px solid var(--red-100);
+  color:var(--red-500);display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;
+}
+.pay-row-del-btn:hover{background:var(--red-100);border-color:var(--red-400);color:var(--red-700)}
+.pay-row-actions{display:flex;align-items:center;gap:5px}
 
 /* Payment table */
 .pay-table-wrap{overflow-x:auto;margin-top:4px}
@@ -598,16 +606,45 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 /* Mobile payment cards */
 .pay-card-list{display:none}
 .pay-card{
-  border:1px solid var(--line);border-radius:var(--r-md);
-  padding:13px 15px;margin-bottom:8px;
   background:var(--surface);
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  margin-bottom:10px;
+  overflow:hidden;
+  box-shadow:var(--s-xs);
+  transition:box-shadow 0.15s;
 }
-.pay-card-month{font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:2px}
-.pay-card-date{font-size:0.72rem;color:var(--ink-3)}
-.pay-card-paid-month{font-size:0.72rem;color:var(--blue-600);font-weight:600;margin-top:2px}
-.pay-card-right{text-align:right}
-.pay-card-amount{font-size:1rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--ink);margin-bottom:4px}
+.pay-card:active{box-shadow:var(--s-sm)}
+.pay-card[data-status="PAID"]{border-top:3px solid var(--green-500)}
+.pay-card[data-status="PENDING"]{border-top:3px solid var(--red-500)}
+.pay-card[data-status="PARTIAL"]{border-top:3px solid var(--amber-500)}
+.pay-card[data-status="OVERDUE"]{border-top:3px solid #ec4899}
+.pay-card-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px 10px;gap:10px;
+}
+.pay-card-month-wrap{}
+.pay-card-month{font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:-0.01em;line-height:1.2}
+.pay-card-year{font-size:0.72rem;font-weight:500;color:var(--ink-3);margin-top:1px}
+.pay-card-amount{font-size:1.15rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--ink);letter-spacing:-0.02em;flex-shrink:0}
+.pay-card-meta{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:0 14px 11px;
+}
+.pay-card-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:0.68rem;font-weight:600;color:var(--ink-3);
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:99px;padding:3px 9px;
+}
+.pay-card-chip svg{opacity:0.55;flex-shrink:0}
+.pay-card-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;
+  border-top:1px solid var(--line);
+  background:var(--surface-2);gap:10px;
+}
+.pay-card-actions{display:flex;align-items:center;gap:6px}
 
 /* Status badges */
 .status-badge{
@@ -1082,6 +1119,9 @@ body.dark-mode .topbar,body.dark-mode .mob-header{background:rgba(15,23,42,.97);
 body.dark-mode .sidebar,body.dark-mode .mob-drawer{background:var(--surface)}
 body.dark-mode .mob-hamburger,body.dark-mode .mob-theme-btn{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .search-hero{background:var(--surface);border-color:var(--line)}
+body.dark-mode .pay-card{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .pay-card-footer{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-3)}
 /* Responsive */
 @media(max-width:700px){
   .sidebar,.sb-toggle,.topbar{display:none}
@@ -1234,8 +1274,8 @@ body.dark-mode .search-hero{background:var(--surface);border-color:var(--line)}
 
   <!-- Search Hero -->
   <div class="search-hero">
-    <div class="hero-label">360° Flat Profile</div>
-    <div class="hero-title">Flat Search & Details</div>
+    
+    <div class="hero-title">Flat Search and Details</div>
     <div class="hero-sub">Search by flat number, owner name, tenant name, or mobile number</div>
     <div class="search-box-wrap">
       <div class="search-box">
@@ -1440,7 +1480,7 @@ body.dark-mode .search-hero{background:var(--surface);border-color:var(--line)}
               <th>Months Covered</th>
               <th>Remarks</th>
               <th>Status</th>
-              <th style="width:48px"></th>
+              <th style="width:72px"></th>
             </tr>
           </thead>
           <tbody id="payTableBody"></tbody>
@@ -1643,7 +1683,6 @@ body.dark-mode .search-hero{background:var(--surface);border-color:var(--line)}
         <div class="pay-form-field full">
           <div class="pay-form-actions">
             <button class="btn-cancel" id="paymentModalCancel" type="button">Cancel</button>
-            <button class="btn-delete" id="paymentDeleteBtn" type="button">Delete Payment</button>
             <button class="btn-save" id="paymentModalSave" type="button">Update Payment</button>
           </div>
         </div>
@@ -2147,12 +2186,12 @@ function renderProfile(block,flat,row){
   document.getElementById("tenantInfoRows").innerHTML=tenantRows.map(r=>cardRow(r.k,r.v,r.html)).join("");
   document.getElementById("tenantSub").textContent=tName?`Occupied by ${tName}`:"Vacant";
 
-  // Vehicle details — now a standalone card (4th in 2×2 grid)
+  // Vehicle details — always shown as 4th card in 2×2 grid
   const hasVehicle=vehNo||vehType;
   const vehicleCard=document.getElementById("vehicleCard");
   const vehicleSub=document.getElementById("vehicleSub");
-  if(hasVehicle&&tName){
-    vehicleCard.style.display="flex";
+  vehicleCard.style.display="flex";
+  if(hasVehicle){
     const vehicleRows=[
       vehNo&&{k:"Vehicle No.",v:vehNo},
       vehType&&{k:"Vehicle Type",v:vehType},
@@ -2160,7 +2199,8 @@ function renderProfile(block,flat,row){
     document.getElementById("vehicleInfoRows").innerHTML=vehicleRows.map(r=>cardRow(r.k,r.v)).join("");
     if(vehicleSub)vehicleSub.textContent=vehNo||vehType;
   } else {
-    vehicleCard.style.display="none";
+    document.getElementById("vehicleInfoRows").innerHTML=`<div class="empty-state" style="padding:24px 16px"><div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="7" width="18" height="9" rx="2"/><path d="M5 7l2-4h6l2 4"/><circle cx="5.5" cy="16" r="1.5"/><circle cx="14.5" cy="16" r="1.5"/></svg></div><div class="empty-title">No Vehicle Details</div><div class="empty-sub">No vehicle registered for this flat</div></div>`;
+    if(vehicleSub)vehicleSub.textContent="Not registered";
   }
 
   // Payment history for this flat — FIXED matching logic
@@ -2357,35 +2397,78 @@ function renderPaymentTable(records){
       <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(p.paidMonths||"—")}</td>
       <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3)">${esc(p.remarks||"—")}</td>
       <td>${badge}</td>
-      <td><button class="pay-row-edit-btn" type="button" title="Edit">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
-      </button></td>
+      <td><div class="pay-row-actions">
+        <button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
+        </button>
+        <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="2,4 4,4 14,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M13 4l-1 9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L3 4"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join("");
 
-  // Make table rows clickable to edit
+  // Row click → edit; individual buttons handled separately
   tbody.querySelectorAll("tr[data-pay-idx]").forEach(tr=>{
-    tr.addEventListener("click",()=>openPaymentEditModal(Number(tr.dataset.payIdx)));
+    tr.addEventListener("click",e=>{
+      if(e.target.closest("[data-action]"))return;
+      openPaymentEditModal(Number(tr.dataset.payIdx));
+    });
+    tr.querySelector("[data-action='edit']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openPaymentEditModal(Number(tr.dataset.payIdx));
+    });
+    tr.querySelector("[data-action='delete']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openConfirmDeleteDirect(Number(tr.dataset.payIdx));
+    });
   });
 
   cardList.innerHTML=records.map((p,idx)=>{
     const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
     const realIdx=paymentFiltered.indexOf(p);
-    return`<div class="pay-card" data-pay-idx="${realIdx>=0?realIdx:idx}" style="cursor:pointer">
-      <div class="pay-card-left">
-        <div class="pay-card-month">${esc(p.month)} ${esc(p.year)}</div>
-        <div class="pay-card-date">${p.paymentDate?`Paid: ${esc(p.paymentDate)}`:p.paymentMode?esc(p.paymentMode):"—"}</div>
-        ${p.paidMonths?`<div class="pay-card-paid-month">For: ${esc(p.paidMonths)}</div>`:""}
-      </div>
-      <div class="pay-card-right">
+    const dateChip=p.paymentDate
+      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="2" y1="7" x2="14" y2="7"/></svg>${esc(p.paymentDate)}</span>`:"";
+    const modeChip=p.paymentMode
+      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/></svg>${esc(p.paymentMode)}</span>`:"";
+    const monthsChip=p.paidMonths
+      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(p.paidMonths)}</span>`:"";
+    return`<div class="pay-card" data-pay-idx="${realIdx>=0?realIdx:idx}" data-status="${esc(p.status||'PENDING')}" style="cursor:pointer">
+      <div class="pay-card-top">
+        <div class="pay-card-month-wrap">
+          <div class="pay-card-month">${esc(p.month)}</div>
+          <div class="pay-card-year">${esc(p.year)}</div>
+        </div>
         <div class="pay-card-amount">${esc(amt)}</div>
+      </div>
+      ${(dateChip||modeChip||monthsChip)?`<div class="pay-card-meta">${dateChip}${modeChip}${monthsChip}</div>`:""}
+      <div class="pay-card-footer">
         ${statusBadge(p.status)}
+        <div class="pay-card-actions">
+          <button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
+          </button>
+          <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="2,4 4,4 14,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M13 4l-1 9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L3 4"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/></svg>
+          </button>
+        </div>
       </div>
     </div>`;
   }).join("");
 
   cardList.querySelectorAll(".pay-card[data-pay-idx]").forEach(card=>{
-    card.addEventListener("click",()=>openPaymentEditModal(Number(card.dataset.payIdx)));
+    card.addEventListener("click",e=>{
+      if(e.target.closest("[data-action]"))return;
+      openPaymentEditModal(Number(card.dataset.payIdx));
+    });
+    card.querySelector("[data-action='edit']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openPaymentEditModal(Number(card.dataset.payIdx));
+    });
+    card.querySelector("[data-action='delete']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openConfirmDeleteDirect(Number(card.dataset.payIdx));
+    });
   });
 }
 
@@ -2688,22 +2771,23 @@ async function deletePaymentRecord(){
   if(editingPaymentIdx>=records.length)return;
   const p=records[editingPaymentIdx];
 
-  const paidMonths=getSelectedPayMonths();
-  const payDate=document.getElementById("editPayDate").value;
+  // Build payload directly from the record object (no modal field dependency)
+  const payDate=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
+  const paidMonths=paidMonthsForRecord(p).length?paidMonthsForRecord(p):[p.month||""];
 
   const payload={
     secret:WRITE_SECRET,
     actionType:"delete",
     block:p.block,
     flatNo:p.flat,
-    amount:Number(document.getElementById("editPayAmount").value)||0,
-    paymentMode:document.getElementById("editPayMode").value,
+    amount:p.amount||0,
+    paymentMode:(p.paymentMode||"ONLINE").toUpperCase(),
     receivedBy:p.receivedBy||"",
     paymentDate:fmtSheetDate(payDate),
     paymentDateInput:payDate,
     paymentMonthSheet:paymentMonthCode(payDate),
     paidMonths,
-    notes:document.getElementById("editPayRemarks").value.trim(),
+    notes:p.remarks||"",
     paymentStatus:"DONE"
   };
 
@@ -2713,16 +2797,20 @@ async function deletePaymentRecord(){
     if(!result.ok)throw new Error(result.error||"Delete failed.");
     await loadPayments();
     closeConfirmDelete();
-    closeModal("paymentModal");
     if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);
     showToast("Payment deleted ✓");
     editingPaymentIdx=-1;
   }catch(ex){
-    setPayFormMsg(ex.message||"Unable to delete payment");
     closeConfirmDelete();
+    showToast(ex.message||"Unable to delete payment");
   }finally{
     setButtonBusy("confirmDeleteConfirm",false);
   }
+}
+
+function openConfirmDeleteDirect(idx){
+  editingPaymentIdx=idx;
+  openConfirmDelete();
 }
 
 function openConfirmDelete(){
@@ -2739,9 +2827,6 @@ function openConfirmDelete(){
 }
 function closeConfirmDelete(){
   document.getElementById("confirmDeleteOverlay").classList.remove("open");
-  // return focus to delete button in payment modal
-  const delBtn=document.getElementById("paymentDeleteBtn");
-  if(delBtn)delBtn.focus();
 }
 
 document.getElementById("editPaymentBtn").addEventListener("click",()=>{
@@ -2749,7 +2834,6 @@ document.getElementById("editPaymentBtn").addEventListener("click",()=>{
   else showToast("No payment records to edit");
 });
 document.getElementById("paymentModalSave").addEventListener("click",savePaymentEdit);
-document.getElementById("paymentDeleteBtn").addEventListener("click",openConfirmDelete);
 document.getElementById("paymentModalClose").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("paymentModalCancel").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("confirmDeleteConfirm").addEventListener("click",deletePaymentRecord);
