@@ -1588,9 +1588,9 @@ let _blockMonth=-1;
 async function loadPayments(year){
   const sid=SHEET_IDS[year],tabs=TABS_BY_YR[year]||MONTHS;
   const payments=[],allFlats=new Set(),allBlocks=new Set();
-  const monthTotals=new Array(12).fill(0),blockTotals=new Map(),blockMonthTotals=new Map();
+  const monthTotals=new Array(12).fill(0),monthCounts=new Array(12).fill(0),blockTotals=new Map(),blockMonthTotals=new Map();
   const modeTotals=new Map();
-  if(!sid)return{payments,allFlats,allBlocks,monthTotals,blockTotals,blockMonthTotals,modeTotals};
+  if(!sid)return{payments,allFlats,allBlocks,monthTotals,monthCounts,blockTotals,blockMonthTotals,modeTotals};
   await Promise.all(tabs.map(async(tab,mi)=>{
     if(!tab)return;
     const csv=await fetchCsv(sid,tab);if(!csv)return;
@@ -1604,6 +1604,7 @@ async function loadPayments(year){
       allBlocks.add(block);allFlats.add(`${block}-${flat}`);
       if(status!=="DONE"||amount<=0)return;
       monthTotals[mi]+=amount;
+      monthCounts[mi]++;
       blockTotals.set(block,(blockTotals.get(block)||0)+amount);
       const key=`${block}:${mi}`;
       blockMonthTotals.set(key,(blockMonthTotals.get(key)||0)+amount);
@@ -1611,7 +1612,7 @@ async function loadPayments(year){
       payments.push({block,flat,amount,mode,date,status,receivedBy,notes,paidMonths,monthIndex:mi,year});
     });
   }));
-  return{payments,allFlats,allBlocks,monthTotals,blockTotals,blockMonthTotals,modeTotals};
+  return{payments,allFlats,allBlocks,monthTotals,monthCounts,blockTotals,blockMonthTotals,modeTotals};
 }
 
 /* ── Load residents ── */
@@ -1676,7 +1677,8 @@ const _tt={
   hide(){this.init();this.el.classList.remove("visible");this._hideTimer=setTimeout(()=>{if(this.el)this.el.style.display="none";},220);}
 };
 
-function renderTrend(totals){
+function renderTrend(totals,counts){
+  counts=counts||new Array(12).fill(0);
   const canvas=document.getElementById("trendChart");if(!canvas)return;
   const dpr=window.devicePixelRatio||1;
   const rect=canvas.parentElement.getBoundingClientRect();
@@ -1684,7 +1686,7 @@ function renderTrend(totals){
   canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
   canvas.style.width=W+"px";canvas.style.height=H+"px";
   const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);
-  const pad={t:10,r:12,b:30,l:56};
+  const pad={t:24,r:12,b:30,l:56};
   const chartW=W-pad.l-pad.r,chartH=H-pad.t-pad.b;
   const max=Math.max(...totals,1);
   const barW=Math.max(8,(chartW/12)*0.58);
@@ -1735,12 +1737,31 @@ function renderTrend(totals){
           capGrd.addColorStop(1,"rgba(96,165,250,0.7)");
           ctx.fillStyle=capGrd;
           ctx.beginPath();ctx.roundRect(x,y,barW,4,[5,5,0,0]);ctx.fill();
-          // Value label above bar
+          // Amount label above bar
           ctx.fillStyle=accent;
           ctx.font=`700 9px 'DM Sans',sans-serif`;
           ctx.textAlign="center";
           const label=v>=1000?`₹${(v/1000).toFixed(0)}k`:`₹${v}`;
-          ctx.fillText(label,x+barW/2,y-5);
+          ctx.fillText(label,x+barW/2,y-14);
+          // Flat count in brackets below amount
+          const cnt=counts[i]||0;
+          ctx.fillStyle="rgba(99,102,241,0.85)";
+          ctx.font=`600 8px 'DM Sans',sans-serif`;
+          ctx.fillText(`(${cnt})`,x+barW/2,y-4);
+        } else if(v>0&&activeIdx<0){
+          // Resting state — show amount
+          ctx.fillStyle="rgba(148,163,184,0.8)";
+          ctx.font=`500 8px 'DM Sans',sans-serif`;
+          ctx.textAlign="center";
+          const lbl=v>=1000?`₹${(v/1000).toFixed(0)}k`:`₹${v}`;
+          ctx.fillText(lbl,x+barW/2,y-14);
+          // Count in brackets below
+          const cnt=counts[i]||0;
+          if(cnt>0){
+            ctx.fillStyle="rgba(148,163,184,0.6)";
+            ctx.font=`500 7.5px 'DM Sans',sans-serif`;
+            ctx.fillText(`(${cnt})`,x+barW/2,y-4);
+          }
         }
       }
       // Month labels
@@ -1756,13 +1777,19 @@ function renderTrend(totals){
   function addHandler(type,fn){canvas.addEventListener(type,fn,{passive:true});canvas._trendHandlers.push({type,fn});}
   function getHit(clientX){const r2=canvas.getBoundingClientRect();const mx=clientX-r2.left;let hit=-1;totals.forEach((_,i)=>{const x=pad.l+step*i+(step-barW)/2;if(mx>=x-4&&mx<=x+barW+4)hit=i;});return hit;}
   let _activeIdx=-1;
-  addHandler("mousemove",e=>{const hit=getHit(e.clientX);if(hit!==_activeIdx){_activeIdx=hit;drawAll(hit);}if(hit>=0)_tt.show(e.clientX,e.clientY,MONTHS_FULL[hit],totals[hit],accent);else _tt.hide();});
+  function showTip(clientX,clientY,i){
+    const cnt=counts[i]||0;
+    const label=`${MONTHS_FULL[i]} · ${cnt} payment${cnt===1?"":"s"}`;
+    _tt.show(clientX,clientY,label,totals[i],accent);
+  }
+  addHandler("mousemove",e=>{const hit=getHit(e.clientX);if(hit!==_activeIdx){_activeIdx=hit;drawAll(hit);}if(hit>=0)showTip(e.clientX,e.clientY,hit);else _tt.hide();});
   addHandler("mouseleave",()=>{_activeIdx=-1;drawAll(-1);_tt.hide();});
-  addHandler("touchstart",e=>{const t=e.touches[0];const hit=getHit(t.clientX);_activeIdx=hit;drawAll(hit);if(hit>=0)_tt.show(t.clientX,t.clientY,MONTHS_FULL[hit],totals[hit],accent);});
-  addHandler("touchmove",e=>{const t=e.touches[0];const hit=getHit(t.clientX);if(hit!==_activeIdx){_activeIdx=hit;drawAll(hit);}if(hit>=0)_tt.show(t.clientX,t.clientY,MONTHS_FULL[hit],totals[hit],accent);});
+  addHandler("touchstart",e=>{const t=e.touches[0];const hit=getHit(t.clientX);_activeIdx=hit;drawAll(hit);if(hit>=0)showTip(t.clientX,t.clientY,hit);});
+  addHandler("touchmove",e=>{const t=e.touches[0];const hit=getHit(t.clientX);if(hit!==_activeIdx){_activeIdx=hit;drawAll(hit);}if(hit>=0)showTip(t.clientX,t.clientY,hit);});
   addHandler("touchend",()=>{setTimeout(()=>{_activeIdx=-1;drawAll(-1);_tt.hide();},600);});
   const total=totals.reduce((s,v)=>s+v,0);
-  setTxt("trendMeta",`${fmt$(total)} collected across 12 months`);
+  const totalCount=counts.reduce((s,v)=>s+v,0);
+  setTxt("trendMeta",`${fmt$(total)} · ${totalCount} payments across 12 months`);
 }
 
 function renderExpenseChart(entries){
@@ -2167,7 +2194,7 @@ function renderDash({pd,rd,ec,year,expData}){
   setTxt("resComplete",`${compl}% complete`);setTxt("resCars",`${fmtN(rd.stats.vehicles)} vehicles`);
   rmSkEl(document.getElementById("resGrid"));
 
-  renderTrend(pd.monthTotals);
+  renderTrend(pd.monthTotals, pd.monthCounts);
   _cachedPayments=pd.payments;_cachedAllBlocks=pd.allBlocks;
   _cachedBlockTotals=pd.blockTotals;_cachedBlockMonthTotals=pd.blockMonthTotals;
   renderBlocksFiltered(_blockMonth);
@@ -2263,9 +2290,9 @@ window.addEventListener("resize",()=>{
   clearTimeout(_resizeTimer);
   _resizeTimer=setTimeout(()=>{
     if(_cachedPayments!==null){
-      const mt=Array(12).fill(0);
-      (_cachedPayments||[]).forEach(p=>{if(p.monthIndex>=0)mt[p.monthIndex]+=p.amount;});
-      renderTrend(mt);
+      const mt=Array(12).fill(0),mc=Array(12).fill(0);
+      (_cachedPayments||[]).forEach(p=>{if(p.monthIndex>=0){mt[p.monthIndex]+=p.amount;mc[p.monthIndex]++;}});
+      renderTrend(mt,mc);
     }
     if(_cachedAllBlocks&&_cachedBlockMonthTotals){
       renderBlockCmpChart(_cachedAllBlocks, _cachedBlockMonthTotals);
