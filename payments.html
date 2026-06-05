@@ -554,9 +554,13 @@ td:nth-child(1),td:nth-child(2){
 tr:hover td:nth-child(1),tr:hover td:nth-child(2){background:var(--blue-50)}
 
 td.paid{background:var(--green-50);color:var(--green-700);cursor:pointer}
+/* ── Paid cell — GREEN ── */
+td.paid{background:var(--green-50);color:var(--green-700);cursor:pointer;border-left:2px solid var(--green-200)}
 td.paid:hover{background:#d1fae5;transform:scale(1.02)}
-td.empty{background:var(--red-50);color:var(--ink-4);font-size:0.7rem}
+/* ── Unpaid / empty cell — RED ── */
+td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-left:2px solid var(--red-100)}
 tr:hover td.empty{background:#ffe4e6}
+td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid var(--red-200)}
 
 .total-row td{
   background:var(--amber-50)!important;color:var(--amber-700);
@@ -643,8 +647,15 @@ td.empty.has-tx:hover{background:#ffe4e6}
   padding:10px 12px;transition:background 0.14s,transform 0.18s var(--ease-spring);
 }
 .month-tile:hover{transform:translateY(-1px);box-shadow:var(--s-sm)}
-.month-tile.has-payment{background:var(--green-50);border-color:var(--green-100);cursor:pointer}
+/* Green — paid months */
+.month-tile.has-payment{background:var(--green-50);border-color:var(--green-200);cursor:pointer;border-left:3px solid var(--green-400)}
 .month-tile.has-payment:hover{background:#d1fae5}
+/* Red — unpaid months (transaction exists but not in paid-months list) */
+.month-tile.not-paid{background:var(--red-50);border-color:var(--red-100);cursor:pointer;border-left:3px solid var(--red-300)}
+.month-tile.not-paid:hover{background:#ffe4e6}
+/* Red — empty months (no transaction at all) */
+.month-tile.no-data{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100)}
+.month-tile.no-data .mt-empty{color:var(--red-400)}
 .mt-name{font-size:0.72rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.06em}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--green-700);font-family:'DM Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
@@ -1570,14 +1581,9 @@ function renderAll(){
         if(_yd?.months?.[i]){txEntry=_yd.months[i];break;}
       }
       const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
-      if(isPaid&&txEntry){
+      if(txEntry){
         const pmPill=txEntry.paidMonths?`<span class="paid-months-compact" style="margin-top:2px">${txEntry.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span>`:"";
         html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
-      }else if(isPaid&&!txEntry){
-        html+=`<td class="paid month-cell"${ea}></td>`;
-      }else if(!isPaid&&txEntry){
-        const pmPill=txEntry.paidMonths?`<span class="paid-months-compact" style="margin-top:2px">${txEntry.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span>`:"";
-        html+=`<td class="empty month-cell has-tx"${ea}><div class="month-cell-content"><span class="cell-amount" style="color:var(--red-600)">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
       }else{
         html+=`<td class="empty month-cell">—</td>`;
       }
@@ -1630,16 +1636,12 @@ function renderAll(){
           const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent;
-          if(isPaidTile&&txMd){
+          if(txMd){
             tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonths?`<div class="mt-paid-months"><span class="paid-months-compact">${txMd.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span></div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
-          }else if(isPaidTile&&!txMd){
-            tileContent=``;
-          }else if(!isPaidTile&&txMd){
-            tileContent=`<div class="mt-amount mt-amount-red">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonths?`<div class="mt-paid-months"><span class="paid-months-compact">${txMd.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean).map(fmtPaidMonth).join(", ")}</span></div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
           }else{
             tileContent=`<div class="mt-empty">—</div>`;
           }
-          chtml+=`<div class="month-tile${isPaidTile?" has-payment":""}"${ea}>
+          chtml+=`<div class="month-tile${txMd?" has-payment":" no-data"}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
             ${tileContent}
           </div>`;
