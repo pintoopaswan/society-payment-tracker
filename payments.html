@@ -540,6 +540,7 @@ th{
 th:nth-child(1),th:nth-child(2){z-index:11}
 .month-head{display:flex;flex-direction:column;align-items:center;gap:3px}
 .month-head-name{color:rgba(255,255,255,0.75);font-size:0.64rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase}
+.month-flats-val{font-size:0.58rem;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:0.03em;white-space:nowrap}
 .month-total-val{font-size:0.72rem;font-weight:800;letter-spacing:-0.02em;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;background:rgba(255,255,255,0.13);border-radius:4px;padding:1px 5px;transition:background 0.2s}
 .month-total-val{font-size:0.62rem;color:#bfdbfe;font-weight:600;font-family:'DM Mono',monospace}
 
@@ -1246,18 +1247,18 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
           <thead>
             <tr>
               <th>Block</th><th>Flat</th>
-              <th data-month-index="0"><div class="month-head"><span class="month-head-name">Jan</span><span class="month-total-val" id="mTot0">₹0</span></div></th>
-              <th data-month-index="1"><div class="month-head"><span class="month-head-name">Feb</span><span class="month-total-val" id="mTot1">₹0</span></div></th>
-              <th data-month-index="2"><div class="month-head"><span class="month-head-name">Mar</span><span class="month-total-val" id="mTot2">₹0</span></div></th>
-              <th data-month-index="3"><div class="month-head"><span class="month-head-name">Apr</span><span class="month-total-val" id="mTot3">₹0</span></div></th>
-              <th data-month-index="4"><div class="month-head"><span class="month-head-name">May</span><span class="month-total-val" id="mTot4">₹0</span></div></th>
-              <th data-month-index="5"><div class="month-head"><span class="month-head-name">Jun</span><span class="month-total-val" id="mTot5">₹0</span></div></th>
-              <th data-month-index="6"><div class="month-head"><span class="month-head-name">Jul</span><span class="month-total-val" id="mTot6">₹0</span></div></th>
-              <th data-month-index="7"><div class="month-head"><span class="month-head-name">Aug</span><span class="month-total-val" id="mTot7">₹0</span></div></th>
-              <th data-month-index="8"><div class="month-head"><span class="month-head-name">Sep</span><span class="month-total-val" id="mTot8">₹0</span></div></th>
-              <th data-month-index="9"><div class="month-head"><span class="month-head-name">Oct</span><span class="month-total-val" id="mTot9">₹0</span></div></th>
-              <th data-month-index="10"><div class="month-head"><span class="month-head-name">Nov</span><span class="month-total-val" id="mTot10">₹0</span></div></th>
-              <th data-month-index="11"><div class="month-head"><span class="month-head-name">Dec</span><span class="month-total-val" id="mTot11">₹0</span></div></th>
+              <th data-month-index="0"><div class="month-head"><span class="month-head-name">Jan</span><span class="month-total-val" id="mTot0">₹0</span><span class="month-flats-val" id="mFlats0">0 flats</span></div></th>
+              <th data-month-index="1"><div class="month-head"><span class="month-head-name">Feb</span><span class="month-total-val" id="mTot1">₹0</span><span class="month-flats-val" id="mFlats1">0 flats</span></div></th>
+              <th data-month-index="2"><div class="month-head"><span class="month-head-name">Mar</span><span class="month-total-val" id="mTot2">₹0</span><span class="month-flats-val" id="mFlats2">0 flats</span></div></th>
+              <th data-month-index="3"><div class="month-head"><span class="month-head-name">Apr</span><span class="month-total-val" id="mTot3">₹0</span><span class="month-flats-val" id="mFlats3">0 flats</span></div></th>
+              <th data-month-index="4"><div class="month-head"><span class="month-head-name">May</span><span class="month-total-val" id="mTot4">₹0</span><span class="month-flats-val" id="mFlats4">0 flats</span></div></th>
+              <th data-month-index="5"><div class="month-head"><span class="month-head-name">Jun</span><span class="month-total-val" id="mTot5">₹0</span><span class="month-flats-val" id="mFlats5">0 flats</span></div></th>
+              <th data-month-index="6"><div class="month-head"><span class="month-head-name">Jul</span><span class="month-total-val" id="mTot6">₹0</span><span class="month-flats-val" id="mFlats6">0 flats</span></div></th>
+              <th data-month-index="7"><div class="month-head"><span class="month-head-name">Aug</span><span class="month-total-val" id="mTot7">₹0</span><span class="month-flats-val" id="mFlats7">0 flats</span></div></th>
+              <th data-month-index="8"><div class="month-head"><span class="month-head-name">Sep</span><span class="month-total-val" id="mTot8">₹0</span><span class="month-flats-val" id="mFlats8">0 flats</span></div></th>
+              <th data-month-index="9"><div class="month-head"><span class="month-head-name">Oct</span><span class="month-total-val" id="mTot9">₹0</span><span class="month-flats-val" id="mFlats9">0 flats</span></div></th>
+              <th data-month-index="10"><div class="month-head"><span class="month-head-name">Nov</span><span class="month-total-val" id="mTot10">₹0</span><span class="month-flats-val" id="mFlats10">0 flats</span></div></th>
+              <th data-month-index="11"><div class="month-head"><span class="month-head-name">Dec</span><span class="month-total-val" id="mTot11">₹0</span><span class="month-flats-val" id="mFlats11">0 flats</span></div></th>
               <th>Total</th>
             </tr>
           </thead>
@@ -1595,7 +1596,16 @@ function renderAll(){
   document.getElementById("tableBody").innerHTML=html;
 
   /* Month header totals (initial render — full dataset) */
-  monthlyTotals.forEach((t,i)=>setTxt(`mTot${i}`,fmt$(t)));
+  const monthlyFlatCounts = new Array(12).fill(0);
+  sorted.forEach(row=>{
+    const _searchYrs=year==="all"?Object.keys(row.years||{}):[year];
+    months.forEach((_,i)=>{
+      for(const _yr of _searchYrs){
+        if(row.years?.[_yr]?.months?.[i]){ monthlyFlatCounts[i]++; break; }
+      }
+    });
+  });
+  monthlyTotals.forEach((t,i)=>{ setTxt(`mTot${i}`,fmt$(t)); setTxt(`mFlats${i}`, monthlyFlatCounts[i]+(monthlyFlatCounts[i]===1?' flat':' flats')); });
 
   /* Block filter dropdown */
   const bf=document.getElementById("blockFilter");
