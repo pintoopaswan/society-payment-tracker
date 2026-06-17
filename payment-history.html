@@ -693,10 +693,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
     </button>
     <div class="mob-header-title">Payment History</div>
     <div class="mob-header-actions">
-      <select id="yearMob" class="mob-year-sel" aria-label="Year">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-      </select>
+      <select id="yearMob" class="mob-year-sel" aria-label="Year"></select>
       <button class="mob-theme-btn" id="mobThemeBtn" type="button" aria-label="Toggle theme"></button>
     </div>
   </div>
@@ -777,10 +774,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
       <div class="topbar-sub">MIG Society, Sector-29 · Full transaction ledger</div>
     </div>
     <div class="topbar-right">
-      <select id="yearDesk" class="year-sel" aria-label="Dashboard year">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-      </select>
+      <select id="yearDesk" class="year-sel" aria-label="Dashboard year"></select>
       <button id="refreshBtn" class="refresh-btn" type="button">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
         Refresh
@@ -1060,7 +1054,22 @@ const SHEET_IDS_BY_YEAR = {
   "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
   "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
 };
-const DEFAULT_YEAR = "2026";
+const START_YEAR   = 2025;
+const DEFAULT_YEAR = String(new Date().getFullYear());
+
+/* ── Populate year dropdowns dynamically ── */
+(function populateYearSelectors(){
+  const currentYear = new Date().getFullYear();
+  const opts = ["all"];
+  for(let y = currentYear; y >= START_YEAR; y--) opts.push(String(y));
+  ["yearDesk","yearMob"].forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    sel.innerHTML = opts.map(v =>
+      `<option value="${v}"${v === DEFAULT_YEAR ? " selected" : ""}>${v === "all" ? "All Years" : v}</option>`
+    ).join("");
+  });
+})();
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
@@ -1096,6 +1105,12 @@ function activeYear(){
   const dv = document.getElementById("yearDesk");
   const mv = document.getElementById("yearMob");
   return (dv?.value || mv?.value || DEFAULT_YEAR);
+}
+
+function yearsToLoad(){
+  const y = activeYear();
+  if(y === "all") return Object.keys(SHEET_IDS_BY_YEAR).sort();
+  return [y];
 }
 
 function fmtPaidMonth(v){
@@ -1171,8 +1186,7 @@ async function loadData(){
   document.getElementById("mobCardList").innerHTML = "";
 
   allRecords = [];
-  const year  = activeYear();
-  const years = [year];   // single year at a time (like payments.html)
+  const years = yearsToLoad();
 
   await Promise.all(years.flatMap(yr => {
     const sid  = SHEET_IDS_BY_YEAR[yr]; if(!sid) return [];
@@ -1485,7 +1499,7 @@ function exportCsv(){
   const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `payment-history-${activeYear()}.csv`;
+  a.download = `payment-history-${activeYear() === "all" ? "all-years" : activeYear()}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
 }
 
