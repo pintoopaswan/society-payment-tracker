@@ -3,6 +3,7 @@ const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
 const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
+const VEHICLE_TAB_NAME = "vehicles";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 
@@ -13,6 +14,10 @@ function doGet(e) {
   // Fund Ledger expense operations
   if (isExpenseRequest(e)) {
     return handleExpenseRequest(e);
+  }
+  // Vehicle directory operations
+  if (isVehicleRequest(e)) {
+    return handleVehicleRequest(e);
   }
   if (isApiSaveRequest(e)) {
     return handleApiSaveRequest(e);
@@ -63,11 +68,21 @@ function doPost(e) {
     if (payload.secret !== PAYMENT_WRITE_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
     }
-    if (String(payload.action || "").toLowerCase() === "saveresident") {
+    const postAction = String(payload.action || "").toLowerCase();
+    if (postAction === "saveresident") {
       return jsonResponse(saveResidentPayload(payload));
     }
-    if (String(payload.action || "").toLowerCase() === "deleteresidentfields") {
+    if (postAction === "deleteresidentfields") {
       return jsonResponse(deleteResidentFieldsPayload(payload));
+    }
+    if (postAction === "savevehicle") {
+      return jsonResponse(saveVehiclePayload(payload));
+    }
+    if (postAction === "updatevehicle") {
+      return jsonResponse(updateVehiclePayload(payload));
+    }
+    if (postAction === "deletevehicle") {
+      return jsonResponse(deleteVehiclePayload(payload));
     }
     return jsonResponse(handlePaymentMutation(payload));
   } catch (error) {
@@ -745,3 +760,243 @@ function recomputeAllBalances(sheet) {
 //   if (isExpenseRequest(e)) return handleExpenseRequest(e);
 // Add this line BEFORE the existing isApiSaveRequest check.
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VEHICLE DIRECTORY — Write Handlers
+// Sheet ID  : 15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE (DIRECTORY_SPREADSHEET_ID)
+// Tab       : vehicles (VEHICLE_TAB_NAME)
+// Columns   : BLOCK | FLAT NO | VEHICLE TYPE | VEHICLE NO | BRAND | MODEL | COLOR
+//             (Brand/Model/Color are optional; header order is auto-detected,
+//             so this works even if columns are arranged differently.)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const VEHICLE_HEADERS = ["BLOCK", "FLAT NO", "VEHICLE TYPE", "VEHICLE NO", "BRAND", "MODEL", "COLOR"];
+
+// ── Routing predicate ────────────────────────────────────────────────────────
+function isVehicleRequest(e) {
+  const action = String((e && e.parameter && e.parameter.action) || "").toLowerCase();
+  return action === "savevehicle" || action === "updatevehicle" || action === "deletevehicle";
+}
+
+function handleVehicleRequest(e) {
+  const params   = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  const payload  = parseApiPayload(params.payload);
+  let result;
+  try {
+    if (payload.secret !== PAYMENT_WRITE_SECRET) {
+      result = { ok: false, error: "Unauthorized" };
+    } else {
+      const action = String(params.action || payload.actionType || "").toLowerCase();
+      if (action === "deletevehicle") {
+        result = deleteVehiclePayload(payload);
+      } else if (action === "updatevehicle") {
+        result = updateVehiclePayload(payload);
+      } else {
+        result = saveVehiclePayload(payload);
+      }
+    }
+  } catch (err) {
+    result = { ok: false, error: err.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+// ── Helper: open the vehicle directory tab ───────────────────────────────────
+function openVehicleSheet() {
+  const ss = SpreadsheetApp.openById(DIRECTORY_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(VEHICLE_TAB_NAME);
+  if (!sheet) {
+    throw new Error("Missing vehicle directory sheet tab: " + VEHICLE_TAB_NAME);
+  }
+  return sheet;
+}
+
+// ── Helper: read header row and resolve column indexes (1-based) ────────────
+// Tolerant of header variations, mirroring the PHP reader's matching logic.
+function getVehicleColumnMap(sheet) {
+  const lastCol = Math.max(sheet.getLastColumn(), VEHICLE_HEADERS.length);
+  const headerRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+    .map(function(h) { return String(h || "").trim().toUpperCase().replace(/\s+/g, " "); });
+
+  function find(patterns) {
+    for (let i = 0; i < headerRow.length; i++) {
+      for (let j = 0; j < patterns.length; j++) {
+        if (headerRow[i] === patterns[j]) return i + 1; // 1-based column
+      }
+    }
+    return 0;
+  }
+
+  return {
+    block:   find(["BLOCK"]),
+    flatNo:  find(["FLAT NO", "FLAT NO.", "FLAT_NO", "FLAT NUMBER"]),
+    type:    find(["VEHICLE TYPE", "VEHICLE_TYPE", "TYPE"]),
+    vehicle: find(["VEHICLE NO", "VEHICLE NO.", "VEHICLE_NO", "VEHICLE NUMBER"]),
+    brand:   find(["BRAND", "VEHICLE BRAND", "MAKE"]),
+    model:   find(["MODEL", "VEHICLE MODEL"]),
+    color:   find(["COLOR", "COLOUR", "VEHICLE COLOR", "VEHICLE COLOUR"]),
+    lastCol: lastCol,
+    headerRow: headerRow,
+  };
+}
+
+// ── Helper: ensure the directory sheet has a usable header row ──────────────
+// If completely empty, writes the default header. Otherwise leaves the
+// existing header untouched (columns are matched by name, not position).
+function ensureVehicleHeader(sheet) {
+  if (sheet.getLastRow() < 1) {
+    sheet.appendRow(VEHICLE_HEADERS);
+  }
+}
+
+// ── Helper: normalize a vehicle number for matching (case/space-insensitive) ─
+function normalizeVehicleNo(value) {
+  return String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+}
+
+// ── Helper: find the row number of an existing vehicle by its vehicle number ─
+function findVehicleRowByNumber(sheet, colMap, vehicleNo) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2 || !colMap.vehicle) return 0;
+  const values = sheet.getRange(2, colMap.vehicle, lastRow - 1, 1).getValues();
+  const target = normalizeVehicleNo(vehicleNo);
+  for (let i = 0; i < values.length; i++) {
+    if (normalizeVehicleNo(values[i][0]) === target) return i + 2;
+  }
+  return 0;
+}
+
+// ── Validate the mandatory fields shared by save/update ──────────────────────
+function validateVehiclePayload(payload) {
+  const block       = String(payload.block || "").trim();
+  const flatNo       = String(payload.flatNo || "").trim();
+  const vehicleType = String(payload.vehicleType || "").trim();
+  const vehicleNo    = String(payload.vehicleNo || "").trim();
+  if (!block || !flatNo || !vehicleType || !vehicleNo) {
+    return { error: "Block, Flat No, Vehicle Type, and Vehicle No are all required." };
+  }
+  return {
+    block: block,
+    flatNo: flatNo,
+    vehicleType: vehicleType,
+    vehicleNo: vehicleNo,
+    brand: String(payload.brand || "").trim(),
+    model: String(payload.model || "").trim(),
+    color: String(payload.color || "").trim(),
+  };
+}
+
+// ── Save (append new vehicle row) ────────────────────────────────────────────
+function saveVehiclePayload(payload) {
+  const data = validateVehiclePayload(payload);
+  if (data.error) return { ok: false, error: data.error };
+
+  const sheet = openVehicleSheet();
+  ensureVehicleHeader(sheet);
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let newRow;
+  try {
+    const colMap = getVehicleColumnMap(sheet);
+    if (!colMap.block || !colMap.flatNo || !colMap.type || !colMap.vehicle) {
+      return { ok: false, error: "Could not locate Block/Flat No/Vehicle Type/Vehicle No columns in the sheet header." };
+    }
+
+    // Prevent duplicate vehicle numbers
+    const existingRow = findVehicleRowByNumber(sheet, colMap, data.vehicleNo);
+    if (existingRow) {
+      return { ok: false, error: "A vehicle with number " + data.vehicleNo + " already exists (row " + existingRow + ")." };
+    }
+
+    const rowValues = new Array(colMap.lastCol).fill("");
+    rowValues[colMap.block - 1]   = data.block;
+    rowValues[colMap.flatNo - 1]  = data.flatNo;
+    rowValues[colMap.type - 1]    = data.vehicleType;
+    rowValues[colMap.vehicle - 1] = data.vehicleNo;
+    if (colMap.brand) rowValues[colMap.brand - 1] = data.brand;
+    if (colMap.model) rowValues[colMap.model - 1] = data.model;
+    if (colMap.color) rowValues[colMap.color - 1] = data.color;
+
+    sheet.appendRow(rowValues);
+    newRow = sheet.getLastRow();
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "saveVehicle", newRow: newRow };
+}
+
+// ── Update (overwrite an existing vehicle row, matched by original vehicle no) ─
+function updateVehiclePayload(payload) {
+  const originalVehicleNo = String(payload.originalVehicleNo || payload.vehicleNo || "").trim();
+  if (!originalVehicleNo) return { ok: false, error: "Original vehicle number is required to locate the row to update." };
+
+  const data = validateVehiclePayload(payload);
+  if (data.error) return { ok: false, error: data.error };
+
+  const sheet = openVehicleSheet();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    const colMap = getVehicleColumnMap(sheet);
+    if (!colMap.block || !colMap.flatNo || !colMap.type || !colMap.vehicle) {
+      return { ok: false, error: "Could not locate Block/Flat No/Vehicle Type/Vehicle No columns in the sheet header." };
+    }
+
+    targetRow = findVehicleRowByNumber(sheet, colMap, originalVehicleNo);
+    if (!targetRow) {
+      return { ok: false, error: "No existing vehicle found with number " + originalVehicleNo + "." };
+    }
+
+    // If the vehicle number is being changed, make sure the new number isn't already taken by a different row
+    if (normalizeVehicleNo(data.vehicleNo) !== normalizeVehicleNo(originalVehicleNo)) {
+      const clashRow = findVehicleRowByNumber(sheet, colMap, data.vehicleNo);
+      if (clashRow && clashRow !== targetRow) {
+        return { ok: false, error: "Another vehicle already uses number " + data.vehicleNo + "." };
+      }
+    }
+
+    const existing = sheet.getRange(targetRow, 1, 1, colMap.lastCol).getValues()[0];
+    existing[colMap.block - 1]   = data.block;
+    existing[colMap.flatNo - 1]  = data.flatNo;
+    existing[colMap.type - 1]    = data.vehicleType;
+    existing[colMap.vehicle - 1] = data.vehicleNo;
+    if (colMap.brand) existing[colMap.brand - 1] = data.brand;
+    if (colMap.model) existing[colMap.model - 1] = data.model;
+    if (colMap.color) existing[colMap.color - 1] = data.color;
+
+    sheet.getRange(targetRow, 1, 1, colMap.lastCol).setValues([existing]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "updateVehicle", updatedRow: targetRow };
+}
+
+// ── Delete (remove the row entirely, matched by vehicle no) ─────────────────
+function deleteVehiclePayload(payload) {
+  const vehicleNo = String(payload.vehicleNo || "").trim();
+  if (!vehicleNo) return { ok: false, error: "Vehicle number is required to delete a row." };
+
+  const sheet = openVehicleSheet();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  try {
+    const colMap = getVehicleColumnMap(sheet);
+    targetRow = findVehicleRowByNumber(sheet, colMap, vehicleNo);
+    if (!targetRow) {
+      return { ok: false, error: "No existing vehicle found with number " + vehicleNo + "." };
+    }
+    sheet.deleteRow(targetRow);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, action: "deleteVehicle", deletedRow: targetRow };
+}
