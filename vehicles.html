@@ -1009,6 +1009,10 @@ body.dark-mode{
   --s-lg:0 12px 32px rgba(0,0,0,0.4),0 4px 8px rgba(0,0,0,0.2);
 }
 body.dark-mode .mob-header{background:rgba(15,23,42,0.97);border-color:var(--line)}
+body.dark-mode .mob-veh-filters{background:var(--surface);border-color:var(--line)}
+body.dark-mode .mob-veh-search{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-veh-chip-sel{background:var(--surface-2);border-color:var(--line-md);color:var(--ink-2)}
+body.dark-mode .mob-veh-chip-sel.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
 body.dark-mode .mob-hamburger{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .mob-theme-btn{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .mob-filter-sel{background:var(--surface-2);border-color:var(--line-md);color:var(--ink-2)}
@@ -1062,19 +1066,97 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 /* Toolbar above the table */
 .veh-toolbar{flex-wrap:wrap;gap:12px}
 .veh-toolbar-left{min-width:0}
-.veh-filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+/* ── Filter bar ── */
+.veh-filter-row{
+  display:flex;gap:8px;align-items:center;flex-wrap:nowrap;
+  padding:14px 20px 12px;
+}
+.veh-filter-row .f-sel{flex-shrink:0}
+.veh-clear-btn{
+  flex-shrink:0;height:36px;padding:0 12px;border-radius:var(--r-sm);
+  border:1px solid var(--line-md);background:var(--surface-2);
+  color:var(--ink-3);font-size:0.78rem;font-weight:600;font-family:'DM Sans',sans-serif;
+  display:none;align-items:center;gap:5px;cursor:pointer;
+  transition:all 0.15s var(--ease-out);white-space:nowrap;
+}
+.veh-clear-btn.visible{display:flex}
+.veh-clear-btn:hover{background:var(--red-50);border-color:var(--red-300);color:var(--red-600)}
 .veh-search-box{
-  flex:1;min-width:220px;display:flex;align-items:center;gap:8px;
-  height:36px;padding:0 12px;border:1px solid var(--line-md);border-radius:var(--r-sm);
-  background:var(--surface-2);color:var(--ink-3);transition:border-color 0.15s,background 0.15s;
+  flex:1;min-width:0;display:flex;align-items:center;gap:8px;
+  height:36px;padding:0 12px;
+  border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);transition:border-color 0.15s,background 0.15s;
 }
 .veh-search-box:focus-within{border-color:var(--blue-400);background:var(--surface)}
-.veh-search-box svg{flex-shrink:0}
+.veh-search-box svg{flex-shrink:0;color:var(--ink-3)}
 .veh-search-box input{
-  flex:1;border:none;background:transparent;outline:none;
+  flex:1;min-width:0;border:none;background:transparent;outline:none;
   font-size:0.82rem;color:var(--ink);font-family:'DM Sans',sans-serif;
 }
 .veh-search-box input::placeholder{color:var(--ink-4)}
+
+/* ── Mobile filter section (below sticky header) ── */
+.mob-veh-filters{
+  display:none;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  padding:12px 16px;
+  gap:8px;
+  flex-direction:column;
+  border-radius:0;
+}
+.mob-veh-search{
+  display:flex;align-items:center;gap:10px;
+  height:42px;padding:0 14px;
+  border:1.5px solid var(--line-md);border-radius:12px;
+  background:var(--surface-2);
+  transition:border-color 0.15s,background 0.15s;
+}
+.mob-veh-search:focus-within{border-color:var(--blue-400);background:var(--surface)}
+.mob-veh-search svg{flex-shrink:0;color:var(--ink-3)}
+.mob-veh-search input{
+  flex:1;min-width:0;border:none;background:transparent;outline:none;
+  font-size:0.88rem;color:var(--ink);font-family:'DM Sans',sans-serif;
+}
+.mob-veh-search input::placeholder{color:var(--ink-4)}
+.mob-veh-chips{
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+}
+.mob-veh-chips::-webkit-scrollbar{display:none}
+.mob-veh-chip-sel{
+  flex-shrink:0;
+  height:34px;padding:0 12px 0 10px;
+  border:1.5px solid var(--line-md);border-radius:20px;
+  background:var(--surface-2);color:var(--ink-2);
+  font-size:0.78rem;font-weight:600;font-family:'DM Sans',sans-serif;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  padding-right:26px;
+  cursor:pointer;
+  transition:border-color 0.15s,background 0.15s,color 0.15s;
+}
+.mob-veh-chip-sel:focus{outline:none;border-color:var(--blue-400)}
+.mob-veh-chip-sel.active{
+  background:var(--blue-600);color:#fff;border-color:var(--blue-600);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+.mob-veh-clear{
+  flex-shrink:0;height:34px;padding:0 12px;
+  border:1.5px solid var(--red-200);border-radius:20px;
+  background:var(--red-50);color:var(--red-600);
+  font-size:0.78rem;font-weight:600;font-family:'DM Sans',sans-serif;
+  display:none;align-items:center;gap:5px;cursor:pointer;
+  white-space:nowrap;
+}
+.mob-veh-clear.visible{display:flex}
+.mob-filter-count{
+  font-size:0.7rem;font-weight:700;color:var(--ink-4);
+  letter-spacing:0.05em;text-transform:uppercase;
+  padding-top:2px;
+}
+.mob-filter-count span{color:var(--blue-600)}
 
 /* Desktop table */
 .veh-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md)}
@@ -1142,8 +1224,10 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 @media(max-width:760px){
   .veh-table-wrap{display:none}
   .veh-mobile-list{display:flex}
-  .veh-filter-row{flex-direction:column}
-  .veh-search-box{min-width:0}
+  /* Hide desktop filter row on mobile */
+  .veh-filter-row{display:none}
+  /* Show mobile filter section */
+  .mob-veh-filters{display:flex}
 }
 
 /* Modals */
@@ -1308,6 +1392,8 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
     </div>
   </div>
 </header>
+
+
 
 <!-- APP SHELL -->
 <div class="app-shell">
@@ -1494,6 +1580,56 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
     <div class="kpi-scroll-dot"></div>
   </div>
 
+  <!-- MOBILE FILTER SECTION -->
+<div class="mob-veh-filters" id="mobVehFilters">
+  <div class="mob-veh-search">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg>
+    <input type="text" id="mobVehSearch" placeholder="Search vehicle, brand, model…" autocomplete="off">
+  </div>
+  <div class="mob-veh-chips">
+    <select class="mob-veh-chip-sel" id="mobVehTypeFilter" aria-label="Filter by type">
+      <option value="">All Types</option>
+      <option value="CAR">Car</option>
+      <option value="BIKE">Bike</option>
+      <option value="SCOOTY">Scooty</option>
+    </select>
+    <select class="mob-veh-chip-sel" id="mobVehBlockFilter" aria-label="Filter by block">
+      <option value="">All Blocks</option>
+      <option value="1">Block-1</option>
+      <option value="2">Block-2</option>
+      <option value="3">Block-3</option>
+      <option value="4">Block-4</option>
+      <option value="5">Block-5</option>
+      <option value="6">Block-6</option>
+      <option value="7">Block-7</option>
+      <option value="8">Block-8</option>
+      <option value="9">Block-9</option>
+    </select>
+    <select class="mob-veh-chip-sel" id="mobVehFlatFilter" aria-label="Filter by flat">
+      <option value="">All Flats</option>
+      <option value="101">101</option><option value="102">102</option><option value="103">103</option><option value="104">104</option>
+      <option value="105">105</option><option value="106">106</option><option value="107">107</option><option value="108">108</option>
+      <option value="201">201</option><option value="202">202</option><option value="203">203</option><option value="204">204</option>
+      <option value="205">205</option><option value="206">206</option><option value="207">207</option><option value="208">208</option>
+      <option value="301">301</option><option value="302">302</option><option value="303">303</option><option value="304">304</option>
+      <option value="305">305</option><option value="306">306</option><option value="307">307</option><option value="308">308</option>
+      <option value="401">401</option><option value="402">402</option><option value="403">403</option><option value="404">404</option>
+      <option value="405">405</option><option value="406">406</option><option value="407">407</option><option value="408">408</option>
+      <option value="501">501</option><option value="502">502</option><option value="503">503</option><option value="504">504</option>
+      <option value="505">505</option><option value="506">506</option><option value="507">507</option><option value="508">508</option>
+      <option value="601">601</option><option value="602">602</option><option value="603">603</option><option value="604">604</option>
+      <option value="605">605</option><option value="606">606</option><option value="607">607</option><option value="608">608</option>
+    </select>
+    <button type="button" class="mob-veh-clear" id="mobVehClear" aria-label="Clear filters">
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+      Clear
+    </button>
+  </div>
+  <div class="mob-filter-count" id="mobFilterCount" style="display:none">
+    Showing <span id="mobFilterCountNum">0</span> vehicles
+  </div>
+</div>
+
   <!-- PAGE BODY -->
   <div class="page">
 
@@ -1509,10 +1645,10 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
         </button>
       </div>
       <div class="card-body card-body--flush">
-        <div class="veh-filter-row" style="padding:14px 20px 0;">
+        <div class="veh-filter-row">
           <div class="veh-search-box">
             <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg>
-            <input type="text" id="vehSearchInput" placeholder="Search by vehicle number, block, flat, brand…" autocomplete="off">
+            <input type="text" id="vehSearchInput" placeholder="Search vehicle number, brand, model…" autocomplete="off">
           </div>
           <select class="f-sel" id="vehTypeFilter" aria-label="Filter by vehicle type">
             <option value="">All Types</option>
@@ -1520,6 +1656,73 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
             <option value="BIKE">Bike</option>
             <option value="SCOOTY">Scooty</option>
           </select>
+          <select class="f-sel" id="vehBlockFilter" aria-label="Filter by block">
+            <option value="">All Blocks</option>
+            <option value="1">Block-1</option>
+            <option value="2">Block-2</option>
+            <option value="3">Block-3</option>
+            <option value="4">Block-4</option>
+            <option value="5">Block-5</option>
+            <option value="6">Block-6</option>
+            <option value="7">Block-7</option>
+            <option value="8">Block-8</option>
+            <option value="9">Block-9</option>
+            </select>
+            <select class="f-sel" id="vehFlatFilter" aria-label="Filter by flat">
+              <option value="">All Flats</option>
+              <option value="101">101</option>
+              <option value="102">102</option>
+              <option value="103">103</option>
+              <option value="104">104</option>
+              <option value="105">105</option>
+              <option value="106">106</option>
+              <option value="107">107</option>
+              <option value="108">108</option>
+              <option value="201">201</option>
+              <option value="202">202</option>
+              <option value="203">203</option>
+              <option value="204">204</option>
+              <option value="205">205</option>
+              <option value="206">206</option>
+              <option value="207">207</option>
+              <option value="208">208</option>
+              <option value="301">301</option>
+              <option value="302">302</option>
+              <option value="303">303</option>
+              <option value="304">304</option>
+              <option value="305">305</option>
+              <option value="306">306</option>
+              <option value="307">307</option>
+              <option value="308">308</option>
+              <option value="401">401</option>
+              <option value="402">402</option>
+              <option value="403">403</option>
+              <option value="404">404</option>
+              <option value="405">405</option>
+              <option value="406">406</option>
+              <option value="407">407</option>
+              <option value="408">408</option>
+              <option value="501">501</option>
+              <option value="502">502</option>
+              <option value="503">503</option>
+              <option value="504">504</option>
+              <option value="505">505</option>
+              <option value="506">506</option>
+              <option value="507">507</option>
+              <option value="508">508</option>
+              <option value="601">601</option>
+              <option value="602">602</option>
+              <option value="603">603</option>
+              <option value="604">604</option>
+              <option value="605">605</option>
+              <option value="606">606</option>
+              <option value="607">607</option>
+              <option value="608">608</option>
+            </select>
+            <button type="button" class="veh-clear-btn" id="vehClearFilters" aria-label="Clear all filters">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+              Clear filters
+            </button>
         </div>
 
         <!-- Desktop table -->
@@ -1571,11 +1774,72 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       <div class="veh-form-grid">
         <div class="veh-field">
           <label for="vehFieldBlock">Block <span class="req">*</span></label>
-          <input type="text" id="vehFieldBlock" placeholder="e.g. 1 or Block-1" required>
+          <select id="vehFieldBlock" required>
+            <option value="">Select block</option>
+            <option value="Block-1">Block-1</option>
+            <option value="Block-2">Block-2</option>
+            <option value="Block-3">Block-3</option>
+            <option value="Block-4">Block-4</option>
+            <option value="Block-5">Block-5</option>
+            <option value="Block-6">Block-6</option>
+            <option value="Block-7">Block-7</option>
+            <option value="Block-8">Block-8</option>
+            <option value="Block-9">Block-9</option>
+          </select>
         </div>
         <div class="veh-field">
           <label for="vehFieldFlat">Flat No <span class="req">*</span></label>
-          <input type="text" id="vehFieldFlat" placeholder="e.g. 304" required>
+          <select id="vehFieldFlat" required>
+            <option value="">Select flat</option>
+            <option value="101">101</option>
+            <option value="102">102</option>
+            <option value="103">103</option>
+            <option value="104">104</option>
+            <option value="105">105</option>
+            <option value="106">106</option>
+            <option value="107">107</option>
+            <option value="108">108</option>
+            <option value="201">201</option>
+            <option value="202">202</option>
+            <option value="203">203</option>
+            <option value="204">204</option>
+            <option value="205">205</option>
+            <option value="206">206</option>
+            <option value="207">207</option>
+            <option value="208">208</option>
+            <option value="301">301</option>
+            <option value="302">302</option>
+            <option value="303">303</option>
+            <option value="304">304</option>
+            <option value="305">305</option>
+            <option value="306">306</option>
+            <option value="307">307</option>
+            <option value="308">308</option>
+            <option value="401">401</option>
+            <option value="402">402</option>
+            <option value="403">403</option>
+            <option value="404">404</option>
+            <option value="405">405</option>
+            <option value="406">406</option>
+            <option value="407">407</option>
+            <option value="408">408</option>
+            <option value="501">501</option>
+            <option value="502">502</option>
+            <option value="503">503</option>
+            <option value="504">504</option>
+            <option value="505">505</option>
+            <option value="506">506</option>
+            <option value="507">507</option>
+            <option value="508">508</option>
+            <option value="601">601</option>
+            <option value="602">602</option>
+            <option value="603">603</option>
+            <option value="604">604</option>
+            <option value="605">605</option>
+            <option value="606">606</option>
+            <option value="607">607</option>
+            <option value="608">608</option>
+          </select>
         </div>
         <div class="veh-field">
           <label for="vehFieldType">Vehicle Type <span class="req">*</span></label>
@@ -1917,17 +2181,49 @@ function renderVehKpis() {
 }
 
 /* ── Filtering ── */
+function isMobile() { return window.innerWidth <= 760; }
+
 function applyVehFilters() {
-  const q = norm(document.getElementById("vehSearchInput")?.value || "");
-  const typeFilter = document.getElementById("vehTypeFilter")?.value || "";
+  // Read from whichever filter set is visible
+  const mob = isMobile();
+  const q          = norm((document.getElementById(mob ? "mobVehSearch"      : "vehSearchInput")?.value  || ""));
+  const typeFilter =       document.getElementById(mob ? "mobVehTypeFilter"  : "vehTypeFilter")?.value   || "";
+  const blockFilter=      (document.getElementById(mob ? "mobVehBlockFilter" : "vehBlockFilter")?.value  || "").trim();
+  const flatFilter = norm((document.getElementById(mob ? "mobVehFlatFilter"  : "vehFlatFilter")?.value   || ""));
+
   _filteredVehicles = _allVehicles.filter(v => {
     if (typeFilter && normVehType(v.vehicleType) !== typeFilter) return false;
+    if (blockFilter) {
+      const vBlock = String(v.block || "").replace(/[^0-9]/g, "");
+      if (vBlock !== blockFilter) return false;
+    }
+    if (flatFilter && norm(String(v.flatNo || "")) !== flatFilter) return false;
     if (q) {
       const haystack = [v.block, v.flatNo, v.vehicleType, v.vehicleNo, v.brand, v.model, v.color].join(" ").toLowerCase();
       if (!haystack.includes(q)) return false;
     }
     return true;
   });
+
+  const hasActive = q || typeFilter || blockFilter || flatFilter;
+
+  // Desktop clear button
+  document.getElementById("vehClearFilters")?.classList.toggle("visible", !!hasActive);
+
+  // Mobile: active chip highlights + clear button + result count
+  ["mobVehTypeFilter","mobVehBlockFilter","mobVehFlatFilter"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("active", !!el.value);
+  });
+  const mobClear = document.getElementById("mobVehClear");
+  if (mobClear) mobClear.classList.toggle("visible", !!hasActive);
+  const countEl   = document.getElementById("mobFilterCount");
+  const countNum  = document.getElementById("mobFilterCountNum");
+  if (countEl && countNum) {
+    countEl.style.display = hasActive ? "block" : "none";
+    countNum.textContent  = _filteredVehicles.length;
+  }
+
   renderVehTable();
 }
 
@@ -2018,8 +2314,33 @@ function renderVehTable() {
   setTxt("drawerNavVehicles", fmtN(_allVehicles.length));
 }
 
+// Desktop listeners
 document.getElementById("vehSearchInput")?.addEventListener("input", applyVehFilters);
 document.getElementById("vehTypeFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("vehBlockFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("vehFlatFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("vehClearFilters")?.addEventListener("click", () => {
+  document.getElementById("vehSearchInput").value = "";
+  document.getElementById("vehTypeFilter").value  = "";
+  document.getElementById("vehBlockFilter").value = "";
+  document.getElementById("vehFlatFilter").value  = "";
+  applyVehFilters();
+});
+
+// Mobile listeners
+document.getElementById("mobVehSearch")?.addEventListener("input", applyVehFilters);
+document.getElementById("mobVehTypeFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("mobVehBlockFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("mobVehFlatFilter")?.addEventListener("change", applyVehFilters);
+document.getElementById("mobVehClear")?.addEventListener("click", () => {
+  document.getElementById("mobVehSearch").value       = "";
+  document.getElementById("mobVehTypeFilter").value   = "";
+  document.getElementById("mobVehBlockFilter").value  = "";
+  document.getElementById("mobVehFlatFilter").value   = "";
+  ["mobVehTypeFilter","mobVehBlockFilter","mobVehFlatFilter"].forEach(id =>
+    document.getElementById(id)?.classList.remove("active"));
+  applyVehFilters();
+});
 
 /* ── Toasts ── */
 function showToast(message, type = "success") {
@@ -2065,9 +2386,20 @@ function openEditVehicleModal(vehicleNo) {
   document.getElementById("vehModalSub").textContent = "Update vehicle details";
   document.getElementById("vehFormSubmitText").textContent = "Update Vehicle";
   document.getElementById("vehFormOriginalNo").value = v.vehicleNo;
-  document.getElementById("vehFieldBlock").value = v.block;
-  document.getElementById("vehFieldFlat").value = v.flatNo;
-  document.getElementById("vehFieldType").value = ["Car","Bike","Scooty"].includes(v.vehicleType) ? v.vehicleType : (normVehType(v.vehicleType) === "OTHER" ? "Other" : v.vehicleType);
+
+  // Block: normalise to "Block-N" format to match dropdown option values
+  const blockVal = blockN(v.block);
+  document.getElementById("vehFieldBlock").value = blockVal;
+
+  // Flat: strip non-numeric chars so e.g. "304" matches the option value
+  const flatVal = String(v.flatNo || "").replace(/[^0-9]/g, "");
+  document.getElementById("vehFieldFlat").value = flatVal;
+
+  // Vehicle Type: map to exact option values (Car / Bike / Scooty / Other)
+  const _typeMap = { CAR: "Car", BIKE: "Bike", SCOOTY: "Scooty", OTHER: "Other" };
+  const _normType = String(v.vehicleType || "").trim().toUpperCase();
+  const typeVal = _typeMap[_normType] || (["Car","Bike","Scooty","Other"].includes(v.vehicleType) ? v.vehicleType : "Other");
+  document.getElementById("vehFieldType").value = typeVal;
   document.getElementById("vehFieldNo").value = v.vehicleNo;
   document.getElementById("vehFieldBrand").value = v.brand;
   document.getElementById("vehFieldModel").value = v.model;
@@ -2092,7 +2424,8 @@ vehForm?.addEventListener("submit", async (e) => {
   const errorEl = document.getElementById("vehFormError");
   errorEl.textContent = "";
 
-  const block = document.getElementById("vehFieldBlock").value.trim();
+  // Dropdown value is "Block-N"; send only the numeric part (e.g. "1") to the API
+  const block = document.getElementById("vehFieldBlock").value.trim().replace(/^Block-/i, "");
   const flatNo = document.getElementById("vehFieldFlat").value.trim();
   const vehicleType = document.getElementById("vehFieldType").value.trim();
   const vehicleNo = document.getElementById("vehFieldNo").value.trim().toUpperCase();
