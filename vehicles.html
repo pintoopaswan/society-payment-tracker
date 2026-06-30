@@ -1204,6 +1204,38 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 /* Mobile cards (hidden on desktop) */
 .veh-mobile-list{display:none;flex-direction:column;gap:10px}
+
+/* ── Pagination ── */
+.veh-pagination{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line);
+}
+.veh-pg-info{font-size:0.78rem;color:var(--ink-3);font-family:'DM Sans',sans-serif;white-space:nowrap}
+.veh-pg-controls{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.veh-pg-btn{
+  min-width:32px;height:32px;padding:0 8px;border-radius:var(--r-sm);
+  border:1px solid var(--line-md);background:var(--surface);color:var(--ink-2);
+  font-size:0.8rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  transition:all 0.15s var(--ease-out);
+}
+.veh-pg-btn:hover:not(:disabled){background:var(--blue-50);border-color:var(--blue-500);color:var(--blue-600)}
+.veh-pg-btn:disabled{opacity:0.4;cursor:not-allowed}
+.veh-pg-btn.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+.veh-pg-ellipsis{
+  min-width:24px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--ink-4);font-size:0.8rem;
+}
+.veh-pg-size{
+  height:32px;padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-md);
+  background:var(--surface);color:var(--ink-2);font-size:0.78rem;font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+}
+@media(max-width:760px){
+  .veh-pagination{padding:12px 16px;flex-direction:column;align-items:stretch}
+  .veh-pg-controls{justify-content:center}
+  .veh-pg-info{text-align:center}
+}
 .veh-card{
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:13px 14px;border-left:3px solid var(--line-lg);
@@ -1749,6 +1781,18 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
         <div class="veh-mobile-list" id="vehMobileList" style="padding:14px 16px;">
           <div class="empty-state">Loading vehicles…</div>
         </div>
+
+        <!-- Pagination -->
+        <div class="veh-pagination" id="vehPagination" style="display:none;">
+          <div class="veh-pg-info" id="vehPgInfo">Showing 0–0 of 0</div>
+          <div class="veh-pg-controls" id="vehPgControls"></div>
+          <select class="veh-pg-size" id="vehPgSize" aria-label="Rows per page">
+            <option value="10">10 / page</option>
+            <option value="25" selected>25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -2041,6 +2085,8 @@ let _allVehicles = [];   // raw rows from sheet, in sheet order
 let _vehHeaders  = [];
 let _vehColIdx   = {};   // header name (lowercased) -> column index
 let _filteredVehicles = [];
+let _vehPage = 1;
+let _vehPageSize = 25;
 
 /* ── Column detection (mirrors PHP/Apps Script tolerant matching) ── */
 function detectVehicleColumns(headers) {
@@ -2205,6 +2251,8 @@ function applyVehFilters() {
     return true;
   });
 
+  _vehPage = 1; // reset to first page whenever filters change
+
   const hasActive = q || typeFilter || blockFilter || flatFilter;
 
   // Desktop clear button
@@ -2254,15 +2302,24 @@ function renderVehTable() {
 
   const tbody = document.getElementById("vehTableBody");
   const mobile = document.getElementById("vehMobileList");
+  const pagWrap = document.getElementById("vehPagination");
 
   if (!rows.length) {
     const msg = _allVehicles.length ? "No vehicles match your search." : "No vehicles registered yet.";
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">${msg}</div></td></tr>`;
     mobile.innerHTML = `<div class="empty-state">${msg}</div>`;
+    if (pagWrap) pagWrap.style.display = "none";
     return;
   }
 
-  tbody.innerHTML = rows.map(v => `
+  // ── Pagination: clamp page, slice rows ──
+  const totalPages = Math.max(1, Math.ceil(rows.length / _vehPageSize));
+  if (_vehPage > totalPages) _vehPage = totalPages;
+  if (_vehPage < 1) _vehPage = 1;
+  const startIdx = (_vehPage - 1) * _vehPageSize;
+  const pageRows = rows.slice(startIdx, startIdx + _vehPageSize);
+
+  tbody.innerHTML = pageRows.map(v => `
     <tr>
       <td>${escapeHtml(formatBlockLabel(v.block))}</td>
       <td>${escapeHtml(v.flatNo) || "—"}</td>
@@ -2282,7 +2339,7 @@ function renderVehTable() {
     </tr>
   `).join("");
 
-  mobile.innerHTML = rows.map(v => {
+  mobile.innerHTML = pageRows.map(v => {
     const t = normVehType(v.vehicleType);
     const bm = [v.brand, v.model].filter(Boolean).join(" ");
     return `
@@ -2309,10 +2366,67 @@ function renderVehTable() {
     </div>`;
   }).join("");
 
+  renderVehPagination(rows.length, totalPages, startIdx);
+
   // Update sidebar/drawer badge with total count
   setTxt("navVehicles", fmtN(_allVehicles.length));
   setTxt("drawerNavVehicles", fmtN(_allVehicles.length));
 }
+
+/* ── Pagination controls ── */
+function renderVehPagination(totalRows, totalPages, startIdx) {
+  const pagWrap = document.getElementById("vehPagination");
+  const info = document.getElementById("vehPgInfo");
+  const controls = document.getElementById("vehPgControls");
+  if (!pagWrap || !info || !controls) return;
+
+  pagWrap.style.display = "flex";
+  const endIdx = Math.min(startIdx + _vehPageSize, totalRows);
+  info.textContent = `Showing ${fmtN(startIdx + 1)}–${fmtN(endIdx)} of ${fmtN(totalRows)}`;
+
+  if (totalPages <= 1) {
+    controls.innerHTML = "";
+    return;
+  }
+
+  const btn = (label, page, opts = {}) => {
+    const { disabled = false, active = false, ariaLabel = "" } = opts;
+    return `<button type="button" class="veh-pg-btn${active ? " active" : ""}" data-page="${page}"
+      ${disabled ? "disabled" : ""} ${ariaLabel ? `aria-label="${ariaLabel}"` : ""}>${label}</button>`;
+  };
+  const ellipsis = `<span class="veh-pg-ellipsis">…</span>`;
+
+  let html = "";
+  html += btn("‹", _vehPage - 1, { disabled: _vehPage === 1, ariaLabel: "Previous page" });
+
+  // Page number window: first, last, current ±1
+  const pages = new Set([1, totalPages, _vehPage, _vehPage - 1, _vehPage + 1]);
+  const sorted = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+
+  let prev = 0;
+  for (const p of sorted) {
+    if (prev && p - prev > 1) html += ellipsis;
+    html += btn(String(p), p, { active: p === _vehPage });
+    prev = p;
+  }
+
+  html += btn("›", _vehPage + 1, { disabled: _vehPage === totalPages, ariaLabel: "Next page" });
+  controls.innerHTML = html;
+
+  controls.querySelectorAll(".veh-pg-btn:not([disabled])").forEach(b => {
+    b.addEventListener("click", () => {
+      _vehPage = parseInt(b.dataset.page, 10);
+      renderVehTable();
+    });
+  });
+}
+
+// Pagination listeners
+document.getElementById("vehPgSize")?.addEventListener("change", (e) => {
+  _vehPageSize = parseInt(e.target.value, 10) || 25;
+  _vehPage = 1;
+  renderVehTable();
+});
 
 // Desktop listeners
 document.getElementById("vehSearchInput")?.addEventListener("input", applyVehFilters);
