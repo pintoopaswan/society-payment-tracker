@@ -1,0 +1,157 @@
+/**
+ * MIG Society - Futuristic 3D Theme
+ * A high-end, neon-blue futuristic design with glassmorphism and depth.
+ */
+
+:root {
+    /* Core Futuristic Colors */
+    --bg-dark: #0f172a;
+    --accent: #00f2ff;
+    --accent-glow: rgba(0, 242, 255, 0.3);
+    --accent-dim: rgba(0, 242, 255, 0.1);
+    --violet: #7c3aed;
+    --violet-glow: rgba(124, 58, 237, 0.4);
+
+    /* Glassmorphism Tokens */
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+
+    /* Typography */
+    --ink-light: #f1f5f9;
+    --ink-dim: #94a3b8;
+}
+
+/* ── Base Reset ── */
+body {
+    background: var(--bg-dark) !important;
+    color: var(--ink-light) !important;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* Three.js Background Canvas */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* ── Global Glassmorphic Overrides ── */
+/* Targets legacy cards, KPI cells, and search bars across all 8 pages */
+.card,
+.kpi-cell,
+.qt,
+.section-card,
+.table-card,
+.mob-card,
+.filter-bar,
+.search-box-wrap,
+.pay-section,
+.search-hero,
+.search-prompt {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    color: var(--ink-light) !important;
+    border-radius: 16px !important;
+}
+
+/* Text color fixes for legibility on dark glass */
+.card-title, .kpi-label, .qt-title, .sb-name, .topbar-page, .modal-title, .mk-label {
+    color: var(--ink-light) !important;
+}
+
+.card-meta, .kpi-sub, .qt-copy, .sb-tag, .topbar-sub, .mk-sub {
+    color: var(--ink-dim) !important;
+}
+
+/* Table styling for futuristic look */
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 4px !important;
+}
+
+th {
+    background: rgba(15, 23, 42, 0.9) !important;
+    color: var(--accent) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid var(--accent-dim) !important;
+}
+
+td {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: var(--ink-light) !important;
+    border: none !important;
+}
+
+tr:hover td {
+    background: rgba(0, 242, 255, 0.08) !important;
+}
+
+/* ── Sidebar & Topbar ── */
+.sidebar, .topbar, .mob-header, .mob-drawer {
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-color: var(--glass-border) !important;
+}
+
+.sb-item.active {
+    background: var(--accent-dim) !important;
+    color: var(--accent) !important;
+}
+
+/* ── Interactive Elements ── */
+button, .add-btn, .refresh-btn, .search-btn {
+    transition: all 0.3s ease !important;
+}
+
+.add-btn, .btn-save, .search-btn-main {
+    background: linear-gradient(135deg, var(--accent), var(--violet)) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 15px var(--accent-glow) !important;
+}
+
+.add-btn:hover {
+    box-shadow: 0 0 25px var(--accent-glow) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ── Inputs ── */
+input, select, textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: white !important;
+    border-radius: 8px !important;
+}
+
+input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 10px var(--accent-dim) !important;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-dim);
+}
