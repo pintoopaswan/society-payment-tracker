@@ -1,462 +1,497 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Society Guard Payment Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Society Guard Payment Dashboard | Futuristic</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-cyan: #00f3ff;
+            --primary-purple: #bc13fe;
+            --bg-dark: #0a0a12;
+            --glass-bg: rgba(15, 15, 25, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #e0e0e0;
+            --neon-glow: 0 0 15px rgba(0, 243, 255, 0.5);
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  min-height: 100vh;
-}
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
 
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
 
-h2 {
-  text-align: center;
-  color: white;
-  font-size: 2.5rem;
-  margin-bottom: 30px;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-  font-weight: 700;
-  letter-spacing: 1px;
-}
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
 
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-cyan), var(--primary-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.3));
+        }
 
-input {
-  padding: 12px 16px;
-  width: 280px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  outline: none;
-}
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--primary-cyan);
+            letter-spacing: 4px;
+            opacity: 0.8;
+        }
 
-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
+        .dashboard-wrapper {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-button {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 500px;
+        }
 
-button:active {
-  transform: translateY(0);
-}
+        input {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
 
-.table-container {
-  overflow-x: auto;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  padding: 2px;
-}
+        input:focus {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
+        button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-th {
-  background: linear-gradient(135deg, #2f3640 0%, #1a1e27 100%);
-  color: white;
-  padding: 16px 8px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 3px solid #667eea;
-  position: sticky;
-  top: 0;
-}
+        button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
+        }
 
-td {
-  border: 1px solid #f0f0f0;
-  padding: 12px 8px;
-  text-align: center;
-  font-size: 13px;
-  transition: all 0.2s ease;
-}
+        button:active {
+            transform: translateY(0);
+        }
 
-tbody tr {
-  transition: all 0.2s ease;
-}
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.2);
+        }
 
-tbody tr:hover {
-  background-color: #f8f9ff;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
 
-.paid {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  font-weight: 500;
-  color: #155724;
-}
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary-cyan);
+            padding: 20px 12px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-.paid:hover {
-  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
-}
+        td {
+            padding: 16px 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
 
-.empty {
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-  color: #721c24;
-  font-weight: 500;
-}
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
 
-.empty:hover {
-  background: linear-gradient(135deg, #f5c6cb 0%, #f1b0b7 100%);
-}
+        .paid {
+            color: #00ff88;
+            font-weight: 600;
+            background: rgba(0, 255, 136, 0.05);
+        }
 
-.total-row {
-  background: linear-gradient(135deg, #ffd89b 0%, #ffc666 100%);
-  font-weight: 700;
-  color: #333;
-  border-top: 3px solid #ff9800;
-  border-bottom: 3px solid #ff9800;
-}
+        .paid div:first-child {
+            font-size: 1.1rem;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
 
-.total-row td {
-  padding: 14px 8px;
-  font-size: 14px;
-}
+        .empty {
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 300;
+        }
 
-tbody tr:last-child td {
-  border-bottom: 3px solid #f0f0f0;
-}
+        .total-row {
+            background: rgba(0, 243, 255, 0.05) !important;
+            font-weight: 700;
+            color: var(--primary-cyan);
+        }
 
-@media (max-width: 768px) {
-  h2 {
-    font-size: 1.8rem;
-  }
+        .total-row td {
+            border-top: 2px solid var(--primary-cyan);
+            padding: 20px 12px;
+            font-family: 'Orbitron', sans-serif;
+        }
 
-  .top-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-purple);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-cyan);
+        }
 
-  input, button {
-    width: 100%;
-  }
-
-  th, td {
-    padding: 8px 4px;
-    font-size: 11px;
-  }
-
-  th {
-    padding: 12px 4px;
-  }
-}
-</style>
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .container { padding: 20px 10px; }
+            .dashboard-wrapper { padding: 15px; }
+            .top-bar { flex-direction: column; align-items: stretch; }
+            th, td { padding: 12px 6px; font-size: 12px; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-  <div style="text-align: center; color: white; margin-bottom: 20px;">
-    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">MIG-I Society, Sector-29</h1>
-    <h2 style="font-size: 1.3rem; font-weight: 500; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); margin-bottom: 0;">🏢 Guard Payment Dashboard</h2>
-  </div>
+    <canvas id="bg-canvas"></canvas>
 
-  <div class="top-bar">
-    <input type="text" id="search" placeholder="🔍 Search by Block or Flat number..." />
-    <button onclick="downloadReport()">📥 Download Report</button>
-  </div>
+    <div class="container">
+        <header>
+            <h1>MIG-I Society, Sector-29</h1>
+            <h2>🏢 GUARD PAYMENT DASHBOARD</h2>
+        </header>
 
-  <div class="table-container">
-  <table id="table">
-  <thead>
-  <tr>
-    <th>Block</th>
-    <th>Flat</th>
-    <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
-    <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
-    <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
-    <th>Total</th>
-  </tr>
-  </thead>
-  <tbody></tbody>
-  </table>
-  </div>
-</div>
+        <div class="dashboard-wrapper">
+            <div class="top-bar">
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="🔍 Search Block or Flat..." />
+                </div>
+                <button onclick="downloadReport()">
+                    <span>📥</span> DOWNLOAD REPORT
+                </button>
+            </div>
 
-<script>
-const SHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+            <div class="table-container">
+                <table id="table">
+                    <thead>
+                        <tr>
+                            <th>Block</th>
+                            <th>Flat</th>
+                            <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+                            <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
+                            <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-const months = ["January","February","March","April","May","June",
-"July","August","September","October","November","December"];
+    <script>
+        // --- THREE.JS BACKGROUND ---
+        const canvas = document.querySelector('#bg-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
 
-// Gid values for each month sheet
-const monthGids = [39522763, 1601250327, 1191138399, 692630406, 499220736, 253363626, 118278757, 1248178645, 884652075, 408912661, 651523142, 1790347420];
+        let particles;
+        const particleCount = 1500;
+        const positions = new Float32Array(particleCount * 3);
 
-let groupedData = {};
-let monthlyTotals = new Array(12).fill(0);
-let processedRecords = new Set(); // Track processed records to avoid duplicates
-let allBlocks = new Set(); // Track all unique blocks
-let allFlats = {}; // Track all flats per block
-
-// Fetch data from all month sheets using JSON API
-async function fetchAllMonthData() {
-  // Fetch all months in parallel for faster loading
-  const fetchPromises = monthGids.map((gid, i) => {
-    const SHEET_URL = `http://localhost:8001/proxy-json.php?sheet_id=${SHEET_ID}&gid=${gid}`;
-    return fetch(SHEET_URL)
-      .then(res => res.json())
-      .then(jsonData => {
-        if (jsonData && jsonData.table) {
-          processJsonData(jsonData, i);
+        for (let i = 0; i < particleCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 100;
         }
-      })
-      .catch(err => console.error(`Month ${i}:`, err));
-  });
-  
-  // Wait for all fetches to complete
-  await Promise.all(fetchPromises);
-  
-  renderTable();
-}
 
-function processJsonData(data, monthIndex) {
-  // Parse Google Visualization API JSON response
-  const rows = data.table.rows || [];
-  
-  // Find header row (contains "BLOCK")
-  let headerIdx = -1;
-  for (let i = 0; i < rows.length; i++) {
-    const cells = rows[i].c || [];
-    if (cells[0] && cells[0].v === 'BLOCK') {
-      headerIdx = i;
-      break;
-    }
-  }
-  
-  if (headerIdx === -1) {
-    return;
-  }
-  
-  // First pass: collect ALL blocks and flats (even those without payment data)
-  for (let idx = headerIdx + 1; idx < rows.length; idx++) {
-    const row = rows[idx];
-    const cells = row.c || [];
-    
-    const block = cells[0]?.v;
-    const flat = cells[1]?.v;
-    
-    // Track all blocks and flats we see
-    if (block && block !== 'BLOCK' && block !== 'TOTAL' && flat) {
-      allBlocks.add(block);
-      if (!allFlats[block]) {
-        allFlats[block] = new Set();
-      }
-      allFlats[block].add(flat);
-    }
-  }
-  
-  // Second pass: process only rows with payment data
-  for (let idx = headerIdx + 1; idx < rows.length; idx++) {
-    const row = rows[idx];
-    const cells = row.c || [];
-    
-    // Extract values from cells
-    const block = cells[0]?.v;
-    const flat = cells[1]?.v;
-    const amount = cells[2]?.v;
-    const date_formatted = cells[4]?.f;
-    const status = cells[5]?.v;
-    
-    // Skip rows that don't have required data
-    if (!block || block === 'BLOCK' || block === 'TOTAL' || !amount || amount === 0 || isNaN(amount) || !status || String(status).toUpperCase().trim() !== 'DONE' || !date_formatted) {
-      continue;
-    }
-    
-    processRow(String(block), String(flat), amount, date_formatted, monthIndex);
-  }
-}
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const material = new THREE.PointsMaterial({
+            size: 0.5,
+            color: 0x00f3ff,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
 
-// Start fetching data from all sheets
-fetchAllMonthData();
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
 
-// Start fetching data from all sheets
-fetchAllMonthData();
-function processRow(block, flat, amount, date, monthIndex) {
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.001;
+            particles.rotation.x += 0.0005;
+            renderer.render(scene, camera);
+        }
 
-  // Validate inputs
-  if (!block || block === 'TOTAL' || !flat || !amount) {
-    return;
-  }
-  
-  // Create unique record identifier to prevent duplicates
-  const recordId = `${monthIndex}-${block}-${flat}`;
-  
-  if (processedRecords.has(recordId)) {
-    return;
-  }
-  processedRecords.add(recordId);
-  
-  // Parse date in MM/DD/YYYY format
-  let parts = String(date).trim().split("/");
-  if (parts.length !== 3) {
-    return;
-  }
-  
-  let month = parseInt(parts[0]);
-  let day = parseInt(parts[1]);
-  let year = parseInt(parts[2]);
-  
-  if (isNaN(day) || isNaN(month) || isNaN(year)) {
-    return;
-  }
-  
-  if (monthIndex < 0 || monthIndex > 11) return;
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
 
-  let key = block + "-" + flat;
-  let flatNum = parseInt(flat);
+        window.addEventListener('resize', onWindowResize);
+        onWindowResize();
+        animate();
 
-  if(!groupedData[key]) {
-    groupedData[key] = {
-      Block: block,
-      Flat: flatNum,
-      months: {},
-      total: 0
-    };
-  }
+        // Mouse interaction
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) / 100;
+            mouseY = (e.clientY - window.innerHeight / 2) / 100;
 
-  let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
-  let amountNum = Number(amount || 0);
+            gsap.to(camera.position, {
+                x: mouseX,
+                y: -mouseY,
+                duration: 2
+            });
+        });
+    </script>
 
-  groupedData[key].months[monthIndex] =
-    `<div style="font-weight:600;color:#2d3436;">₹${amountNum}</div><div style="font-size:0.8em;color:#636e72;margin-top:4px;">${formattedDate}</div>`;
+    <!-- Load GSAP for smooth camera movement -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-  groupedData[key].total += amountNum;
-  monthlyTotals[monthIndex] += amountNum;
-}
+    <script>
+        // --- DASHBOARD LOGIC ---
+        const SHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+        const months = ["January","February","March","April","May","June",
+                        "July","August","September","October","November","December"];
+        const monthGids = [39522763, 1601250327, 1191138399, 692630406, 499220736, 253363626,
+                          118278757, 1248178645, 884652075, 408912661, 651523142, 1790347420];
 
-function renderTable() {
-  let tbody = document.querySelector("#table tbody");
-  
-  // Create entries for all blocks and flats, even those without data
-  const sortedBlocks = Array.from(allBlocks).sort();
-  
-  sortedBlocks.forEach(block => {
-    const flats = Array.from(allFlats[block] || [])
-      .map(f => ({
-        flat: parseInt(f),
-        display: f
-      }))
-      .sort((a, b) => a.flat - b.flat);
-    
-    flats.forEach(flatObj => {
-      const key = block + "-" + flatObj.display;
-      
-      // Create entry if it doesn't exist
-      if (!groupedData[key]) {
-        groupedData[key] = {
-          Block: block,
-          Flat: flatObj.flat,
-          months: {},
-          total: 0
-        };
-      }
-    });
-  });
+        let groupedData = {};
+        let monthlyTotals = new Array(12).fill(0);
+        let processedRecords = new Set();
+        let allBlocks = new Set();
+        let allFlats = {};
 
-  // Sort data by block and flat number for consistent ordering
-  const sortedData = Object.values(groupedData).sort((a, b) => {
-    const blockCompare = a.Block.localeCompare(b.Block);
-    if (blockCompare !== 0) return blockCompare;
-    return a.Flat - b.Flat;
-  });
+        async function fetchAllMonthData() {
+            const fetchPromises = monthGids.map((gid, i) => {
+                const SHEET_URL = `http://localhost:8001/proxy-json.php?sheet_id=${SHEET_ID}&gid=${gid}`;
+                return fetch(SHEET_URL)
+                    .then(res => res.json())
+                    .then(jsonData => {
+                        if (jsonData && jsonData.table) {
+                            processJsonData(jsonData, i);
+                        }
+                    })
+                    .catch(err => console.error(`Month ${i}:`, err));
+            });
 
-  // Build HTML string in memory instead of appending repeatedly
-  let html = '';
+            await Promise.all(fetchPromises);
+            renderTable();
+        }
 
-  sortedData.forEach(row => {
-    html += `<tr>
-      <td>${row.Block}</td>
-      <td>${row.Flat}</td>`;
+        function processJsonData(data, monthIndex) {
+            const rows = data.table.rows || [];
+            let headerIdx = -1;
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].c || [];
+                if (cells[0] && cells[0].v === 'BLOCK') {
+                    headerIdx = i;
+                    break;
+                }
+            }
+            if (headerIdx === -1) return;
 
-    months.forEach((m, i) => {
-      let val = row.months[i];
-      html += val ? `<td class="paid" style="padding:10px 6px;vertical-align:middle;">${val}</td>`
-                : `<td class="empty">-</td>`;
-    });
+            for (let idx = headerIdx + 1; idx < rows.length; idx++) {
+                const row = rows[idx];
+                const cells = row.c || [];
+                const block = cells[0]?.v;
+                const flat = cells[1]?.v;
+                if (block && block !== 'BLOCK' && block !== 'TOTAL' && flat) {
+                    allBlocks.add(block);
+                    if (!allFlats[block]) allFlats[block] = new Set();
+                    allFlats[block].add(flat);
+                }
+            }
 
-    html += `<td><b>₹${row.total}</b></td></tr>`;
-  });
+            for (let idx = headerIdx + 1; idx < rows.length; idx++) {
+                const row = rows[idx];
+                const cells = row.c || [];
+                const block = cells[0]?.v;
+                const flat = cells[1]?.v;
+                const amount = cells[2]?.v;
+                const date_formatted = cells[4]?.f;
+                const status = cells[5]?.v;
 
-  // Add monthly totals row
-  html += `<tr class="total-row">
-    <td colspan="2">TOTAL</td>`;
+                if (!block || block === 'BLOCK' || block === 'TOTAL' || !amount || amount === 0 ||
+                    isNaN(amount) || !status || String(status).toUpperCase().trim() !== 'DONE' || !date_formatted) {
+                    continue;
+                }
+                processRow(String(block), String(flat), amount, date_formatted, monthIndex);
+            }
+        }
 
-  monthlyTotals.forEach(t => {
-    html += `<td>₹${t}</td>`;
-  });
+        function processRow(block, flat, amount, date, monthIndex) {
+            if (!block || block === 'TOTAL' || !flat || !amount) return;
+            const recordId = `${monthIndex}-${block}-${flat}`;
+            if (processedRecords.has(recordId)) return;
+            processedRecords.add(recordId);
 
-  html += `<td>-</td></tr>`;
-  
-  // Set all HTML at once
-  tbody.innerHTML = html;
-}
+            let parts = String(date).trim().split("/");
+            if (parts.length !== 3) return;
+            let month = parseInt(parts[0]);
+            let day = parseInt(parts[1]);
+            let year = parseInt(parts[2]);
+            if (isNaN(day) || isNaN(month) || isNaN(year)) return;
 
-// 🔍 SEARCH
-document.getElementById("search").addEventListener("keyup", function() {
-  let val = this.value.toLowerCase();
+            let key = block + "-" + flat;
+            let flatNum = parseInt(flat);
+            if(!groupedData[key]) {
+                groupedData[key] = { Block: block, Flat: flatNum, months: {}, total: 0 };
+            }
 
-  document.querySelectorAll("#table tbody tr").forEach(tr => {
-    let text = tr.innerText.toLowerCase();
-    tr.style.display = text.includes(val) ? "" : "none";
-  });
-});
+            let formattedDate = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+            let amountNum = Number(amount || 0);
+            groupedData[key].months[monthIndex] = `<div>₹${amountNum}</div><div style="font-size:0.7em;opacity:0.6;margin-top:4px;">${formattedDate}</div>`;
+            groupedData[key].total += amountNum;
+            monthlyTotals[monthIndex] += amountNum;
+        }
 
-function downloadReport() {
-  let table = document.getElementById("table");
-  let wb = XLSX.utils.table_to_book(table);
-  XLSX.writeFile(wb, "Society_Report.xlsx");
-}
-</script>
+        function renderTable() {
+            let tbody = document.querySelector("#table tbody");
+            const sortedBlocks = Array.from(allBlocks).sort();
+            sortedBlocks.forEach(block => {
+                const flats = Array.from(allFlats[block] || [])
+                    .map(f => ({ flat: parseInt(f), display: f }))
+                    .sort((a, b) => a.flat - b.flat);
+                flats.forEach(flatObj => {
+                    const key = block + "-" + flatObj.display;
+                    if (!groupedData[key]) {
+                        groupedData[key] = { Block: block, Flat: flatObj.flat, months: {}, total: 0 };
+                    }
+                });
+            });
+
+            const sortedData = Object.values(groupedData).sort((a, b) => {
+                const blockCompare = a.Block.localeCompare(b.Block);
+                if (blockCompare !== 0) return blockCompare;
+                return a.Flat - b.Flat;
+            });
+
+            let html = '';
+            sortedData.forEach(row => {
+                html += `<tr><td>${row.Block}</td><td>${row.Flat}</td>`;
+                months.forEach((m, i) => {
+                    let val = row.months[i];
+                    html += val ? `<td class="paid">${val}</td>` : `<td class="empty">-</td>`;
+                });
+                html += `<td style="color:var(--primary-cyan);font-weight:700;">₹${row.total}</td></tr>`;
+            });
+
+            html += `<tr class="total-row"><td colspan="2">TOTAL</td>`;
+            monthlyTotals.forEach(t => { html += `<td>₹${t}</td>`; });
+            html += `<td>-</td></tr>`;
+            tbody.innerHTML = html;
+        }
+
+        document.getElementById("search").addEventListener("keyup", function() {
+            let val = this.value.toLowerCase();
+            document.querySelectorAll("#table tbody tr").forEach(tr => {
+                if (tr.classList.contains('total-row')) return;
+                let text = tr.innerText.toLowerCase();
+                tr.style.display = text.includes(val) ? "" : "none";
+            });
+        });
+
+        function downloadReport() {
+            let table = document.getElementById("table");
+            let wb = XLSX.utils.table_to_book(table);
+            XLSX.writeFile(wb, "Society_Report_Futuristic.xlsx");
+        }
+
+        // Initialize
+        fetchAllMonthData();
+    </script>
 </body>
 </html>
