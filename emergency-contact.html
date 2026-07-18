@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2563eb">
+<title>MIG Society · Emergency Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:15px;scroll-behavior:smooth;height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100%;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,select,input{font:inherit;cursor:pointer;border:none;outline:none;background:none}
+img{display:block}
+body.modal-open{overflow:hidden}
+
+:root{
+  /* === PRIMARY — Electric Blue === */
+  --blue-950:#0a1628;
+  --blue-900:#0f2042;
+  --blue-800:#1a3a6b;
+  --blue-700:#1d4ed8;
+  --blue-600:#2563eb;
+  --blue-500:#3b82f6;
+  --blue-400:#60a5fa;
+  --blue-300:#93c5fd;
+  --blue-200:#bfdbfe;
+  --blue-100:#dbeafe;
+  --blue-50:#eff6ff;
+
+  /* === ACCENT — Violet === */
+  --violet-600:#7c3aed;
+  --violet-500:#8b5cf6;
+  --violet-400:#a78bfa;
+  --violet-100:#ede9fe;
+  --violet-50:#f5f3ff;
+
+  /* === SUCCESS — Emerald === */
+  --green-700:#047857;
+  --green-600:#059669;
+  --green-500:#10b981;
+  --green-400:#34d399;
+  --green-100:#d1fae5;
+  --green-50:#ecfdf5;
+
+  /* === WARNING — Amber === */
+  --amber-700:#b45309;
+  --amber-600:#d97706;
+  --amber-500:#f59e0b;
+  --amber-400:#fbbf24;
+  --amber-100:#fef3c7;
+  --amber-50:#fffbeb;
+
+  /* === DANGER — Rose === */
+  --red-700:#be123c;
+  --red-600:#e11d48;
+  --red-500:#f43f5e;
+  --red-400:#fb7185;
+  --red-100:#ffe4e6;
+  --red-50:#fff1f2;
+
+  /* === TEAL === */
+  --teal-600:#0891b2;
+  --teal-500:#06b6d4;
+  --teal-100:#cffafe;
+  --teal-50:#f0fdff;
+
+  /* === SURFACES === */
+  --bg:          #f0f4f8;
+  --surface:     #ffffff;
+  --surface-2:   #f8fafc;
+  --surface-3:   #f1f5f9;
+  --surface-4:   #e2e8f0;
+
+  /* === TYPOGRAPHY === */
+  --ink:         #0f172a;
+  --ink-2:       #1e293b;
+  --ink-3:       #64748b;
+  --ink-4:       #94a3b8;
+
+  /* === BORDERS === */
+  --line:        #e2e8f0;
+  --line-md:     #cbd5e1;
+  --line-lg:     #94a3b8;
+
+  /* === SHADOWS — crisp and clean === */
+  --s-xs:  0 1px 2px rgba(15,23,42,0.04);
+  --s-sm:  0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --s-md:  0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+  --s-lg:  0 12px 32px rgba(15,23,42,0.10), 0 4px 8px rgba(15,23,42,0.04);
+  --s-xl:  0 24px 64px rgba(15,23,42,0.12), 0 8px 16px rgba(15,23,42,0.06);
+  --s-blue:0 4px 20px rgba(37,99,235,0.20), 0 1px 4px rgba(37,99,235,0.12);
+  --s-green:0 4px 16px rgba(5,150,105,0.18);
+
+  /* === RADII === */
+  --r-xs:  4px;
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+
+  /* === EASING === */
+  --ease-out:    cubic-bezier(0.16,1,0.3,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+
+  /* === LAYOUT === */
+  --sidebar-w:     256px;
+  --sidebar-w-col: 68px;
+  --topbar-h:      60px;
+  --mobnav-h:      68px;
+  --safe-bot:      env(safe-area-inset-bottom,0px);
+  --safe-top:      env(safe-area-inset-top,0px);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp   {from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeDown {from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn   {from{opacity:0}to{opacity:1}}
+@keyframes scaleIn  {from{opacity:0;transform:scale(0.94) translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes shimmer  {from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes spin     {to{transform:rotate(360deg)}}
+@keyframes cardIn   {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pulse    {0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0.25)}60%{box-shadow:0 0 0 8px rgba(37,99,235,0)}}
+@keyframes slideIn  {from{transform:translateX(-100%)}to{transform:translateX(0)}}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+.app-shell{display:flex;min-height:100vh}
+
+/* ══════════════════════════════════════
+   SIDEBAR — Exact Dashboard style
+══════════════════════════════════════ */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:#ffffff;
+  border-right:1px solid var(--line);
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  display:flex;flex-direction:column;
+  transition:width 0.26s var(--ease-smooth),transform 0.3s var(--ease-out);
+  overflow:hidden;
+  box-shadow:2px 0 12px rgba(15,23,42,0.04);
+}
+.sidebar.collapsed{width:var(--sidebar-w-col)}
+
+.sb-brand{
+  display:flex;align-items:center;gap:12px;
+  padding:20px 16px 18px;
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;min-height:72px;
+}
+.sb-logo{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-blue);
+  position:relative;overflow:hidden;
+}
+.sb-logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent)}
+.sb-logo svg{color:#fff;position:relative;z-index:1}
+.sb-copy{min-width:0;transition:opacity 0.2s,width 0.26s;overflow:hidden;white-space:nowrap}
+.sb-name{font-size:0.88rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;font-family:'Fraunces',serif}
+.sb-tag{font-size:0.66rem;color:var(--ink-3);margin-top:1px;letter-spacing:0.01em}
+.sidebar.collapsed .sb-copy{opacity:0;width:0;pointer-events:none}
+
+/* Collapse toggle */
+.sb-toggle{
+  position:absolute;right:-13px;top:22px;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--line-md);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--s-md);cursor:pointer;
+  transition:transform 0.26s var(--ease-smooth),box-shadow 0.18s,background 0.15s;
+  z-index:10;color:var(--blue-600);
+}
+.sb-toggle:hover{box-shadow:var(--s-lg);transform:scale(1.08);background:var(--blue-50)}
+.sb-toggle svg{transition:transform 0.26s var(--ease-smooth)}
+.sidebar.collapsed .sb-toggle svg{transform:rotate(180deg)}
+
+/* Nav */
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+
+.sb-section-label{
+  font-size:0.6rem;font-weight:700;
+  color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em;
+  padding:5px 8px;margin-bottom:3px;margin-top:14px;
+  white-space:nowrap;overflow:hidden;transition:opacity 0.2s;
+}
+.sidebar.collapsed .sb-section-label{opacity:0}
+
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r-md);
+  color:var(--ink-3);font-size:0.84rem;font-weight:500;
+  text-decoration:none;white-space:nowrap;
+  transition:all 0.15s var(--ease-smooth);
+  position:relative;overflow:hidden;
+  letter-spacing:-0.005em;margin-bottom:2px;
+}
+.sb-item:hover{background:var(--blue-50);color:var(--blue-700)}
+.sb-item.active{background:var(--blue-50);color:var(--blue-700);font-weight:600}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;
+  width:3px;border-radius:0 3px 3px 0;
+  background:var(--blue-600);
+}
+.sb-icon{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s,color 0.15s;
+}
+.sb-item:hover .sb-icon,.sb-item.active .sb-icon{background:rgba(37,99,235,0.1);color:var(--blue-600)}
+.sb-label{flex:1;min-width:0;overflow:hidden;transition:opacity 0.2s,width 0.26s}
+.sb-badge{
+  min-width:20px;height:20px;border-radius:999px;
+  padding:0 6px;font-size:0.64rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--blue-100);color:var(--blue-700);
+  transition:opacity 0.2s;flex-shrink:0;
+}
+.sb-badge-red{background:var(--red-100);color:var(--red-700)}
+.sidebar.collapsed .sb-label,.sidebar.collapsed .sb-badge{opacity:0;width:0;overflow:hidden}
+
+/* Sidebar footer — user block matching Dashboard */
+.sb-footer{padding:12px 10px;border-top:1px solid var(--line);flex-shrink:0}
+.sb-user{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r-md);
+  cursor:pointer;transition:background 0.15s;
+}
+.sb-user:hover{background:var(--surface-3)}
+.sb-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:0.76rem;font-weight:700;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+}
+.sb-user-info{min-width:0;flex:1;transition:opacity 0.2s}
+.sb-user-name{font-size:0.8rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:0.65rem;color:var(--ink-3);margin-top:1px}
+.sidebar.collapsed .sb-user-info{opacity:0;width:0;overflow:hidden}
+.sb-logout{
+  width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-4);transition:all 0.15s;
+}
+.sb-user:hover .sb-logout{background:var(--red-50);color:var(--red-500)}
+.sidebar.collapsed .sb-logout{opacity:0}
+
+/* Collapsed tooltips */
+.sb-item[data-tooltip]{position:relative}
+.sidebar.collapsed .sb-item::after{
+  content:attr(data-tooltip);
+  position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
+  background:var(--ink);color:#fff;font-size:0.77rem;font-weight:600;
+  padding:5px 10px;border-radius:7px;white-space:nowrap;
+  box-shadow:var(--s-lg);pointer-events:none;
+  opacity:0;transition:opacity 0.15s;z-index:400;
+}
+.sidebar.collapsed .sb-item:hover::after{opacity:1}
+
+/* ══════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════ */
+.main{
+  flex:1;margin-left:var(--sidebar-w);min-width:0;
+  display:flex;flex-direction:column;
+  transition:margin-left 0.26s var(--ease-smooth);
+}
+.main.sidebar-collapsed{margin-left:var(--sidebar-w-col)}
+
+/* ══════════════════════════════════════
+   TOPBAR — exact Dashboard match
+══════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  height:var(--topbar-h);
+  background:rgba(255,255,255,0.96);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 1px 8px rgba(15,23,42,0.04);
+  display:flex;align-items:center;
+  padding:0 20px;gap:10px;
+  animation:fadeDown 0.4s var(--ease-out) both;
+}
+.topbar-title{flex:1;min-width:0}
+.topbar-page{font-size:1rem;font-weight:700;color:var(--ink);letter-spacing:-0.025em;font-family:'Fraunces',serif}
+.topbar-sub{font-size:0.7rem;color:var(--ink-3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* Theme toggle — icon-only, matching Dashboard */
+.theme-btn{
+  width:34px;height:34px;border-radius:var(--r-sm);
+  border:1px solid var(--line-md);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);cursor:pointer;
+  transition:background 0.15s,border-color 0.15s,color 0.15s,box-shadow 0.15s;
+  box-shadow:var(--s-xs);
+}
+.theme-btn:hover{background:var(--blue-50);border-color:var(--blue-200);color:var(--blue-600);box-shadow:var(--s-sm)}
+
+/* Refresh btn — matches Dashboard (filled blue) */
+.refresh-btn{
+  height:34px;padding:0 14px;font-size:0.76rem;font-weight:600;
+  border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-2);
+  display:flex;align-items:center;gap:7px;letter-spacing:0.01em;
+  transition:all 0.18s var(--ease-out);
+}
+.refresh-btn:hover{background:var(--blue-50);border-color:var(--blue-300);color:var(--blue-700);box-shadow:var(--s-sm);transform:translateY(-1px)}
+.refresh-btn:active{transform:none;box-shadow:none}
+.refresh-btn.loading svg{animation:spin 0.75s linear infinite}
+
+/* Profile btn */
+.profile-wrap{position:relative}
+.profile-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
+  color:#fff;font-size:0.76rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+  transition:box-shadow 0.18s,transform 0.18s;
+}
+.profile-btn:hover{box-shadow:0 4px 14px rgba(37,99,235,0.4);transform:scale(1.06)}
+.profile-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);box-shadow:var(--s-lg);
+  padding:6px;min-width:140px;
+  display:none;animation:scaleIn 0.18s var(--ease-out) both;
+  transform-origin:top right;z-index:500;
+}
+.profile-dropdown.open{display:block}
+.profile-dropdown button{
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:8px 11px;border-radius:var(--r-sm);
+  font-size:0.8rem;font-weight:500;color:var(--ink-2);
+  transition:background 0.13s,color 0.13s;
+}
+.profile-dropdown button:hover{background:var(--red-50);color:var(--red-600)}
+
+/* ══════════════════════════════════════
+   MOBILE OVERLAY + DRAWER
+══════════════════════════════════════ */
+.mob-overlay{
+  display:none;position:fixed;inset:0;z-index:290;
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);
+  animation:fadeIn 0.22s ease both;
+}
+.mob-overlay.open{display:block}
+.mob-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  width:270px;background:#fff;
+  border-right:1px solid var(--line);
+  box-shadow:var(--s-xl);
+  transform:translateX(-100%);transition:transform 0.3s var(--ease-out);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.mob-drawer.open{transform:translateX(0)}
+.mob-drawer .sb-brand{padding:calc(18px + var(--safe-top)) 16px 16px}
+.mob-drawer .sb-nav{padding:8px 10px}
+.mob-drawer .sb-item{font-size:0.9rem;padding:11px 12px}
+.mob-drawer .sb-icon{width:34px;height:34px;border-radius:10px}
+.mob-drawer .sb-footer{padding:12px 10px}
+
+/* ══════════════════════════════════════
+   MOBILE HEADER — matches Dashboard exactly
+══════════════════════════════════════ */
+.mob-header{
+  display:none;
+  position:sticky;top:0;z-index:200;
+  flex-direction:column;
+  background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 1px 6px rgba(15,23,42,0.05);
+}
+.mob-header-top{
+  display:flex;align-items:center;
+  height:var(--topbar-h);padding:0 14px;gap:10px;
+  padding-top:var(--safe-top);
+}
+.mob-hamburger{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;flex-shrink:0;
+  transition:background 0.14s,border-color 0.14s;
+}
+.mob-hamburger:hover{background:var(--blue-50);border-color:var(--blue-200)}
+.mob-hamburger span{display:block;width:15px;height:1.6px;background:var(--ink-2);border-radius:2px}
+.mob-header-title{
+  flex:1;text-align:center;
+  font-size:0.97rem;font-weight:700;color:var(--ink);
+  letter-spacing:-0.02em;font-family:'Fraunces',serif;
+}
+.mob-header-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.mob-icon-btn{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);cursor:pointer;
+  transition:background 0.14s,color 0.14s;
+}
+.mob-icon-btn:hover{background:var(--blue-50);color:var(--blue-700)}
+.mob-theme-btn{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);cursor:pointer;
+  transition:background 0.14s,border-color 0.14s,color 0.14s;
+}
+.mob-theme-btn:hover{background:var(--blue-50);color:var(--blue-700)}
+.mob-refresh-btn{
+  height:36px;padding:0 14px;
+  background:var(--blue-600);color:#fff;
+  border-radius:10px;border:none;
+  font-size:0.78rem;font-weight:700;letter-spacing:0.01em;
+  display:flex;align-items:center;gap:6px;
+  cursor:pointer;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+  transition:all 0.18s var(--ease-out);
+}
+.mob-refresh-btn:hover{background:var(--blue-700);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35)}
+.mob-refresh-btn:active{transform:none;box-shadow:none}
+.mob-refresh-btn.loading svg{animation:spin 0.75s linear infinite}
+
+/* Mobile search row */
+.mob-search-row{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.25s var(--ease-smooth),padding 0.25s;
+  border-top:0 solid transparent;
+}
+.mob-search-row.open{max-height:64px;border-top-width:1px;border-color:var(--line)}
+.mob-search-row input{
+  width:100%;height:44px;padding:0 16px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);
+  margin:10px 14px;width:calc(100% - 28px);
+  font-size:0.84rem;color:var(--ink);
+}
+.mob-search-row input::placeholder{color:var(--ink-4)}
+.mob-search-row input:focus{outline:none;border-color:var(--blue-400)}
+
+/* Mobile category strip */
+.mob-cat-strip{
+  display:none;
+  overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:10px 14px;gap:8px;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.mob-cat-strip::-webkit-scrollbar{display:none}
+.mob-cat-btn{
+  flex-shrink:0;height:30px;padding:0 13px;
+  border:1.5px solid var(--line-md);border-radius:999px;
+  background:var(--surface-2);color:var(--ink-3);
+  font-size:0.73rem;font-weight:600;font-family:inherit;
+  transition:all 0.15s var(--ease-out);white-space:nowrap;
+  cursor:pointer;
+}
+.mob-cat-btn.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.25)}
+
+/* ══════════════════════════════════════
+   PAGE WRAPPER
+══════════════════════════════════════ */
+.page{padding:16px 20px 28px;flex:1}
+
+/* ══════════════════════════════════════
+   SEARCH BAR — premium card style
+══════════════════════════════════════ */
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:10px 16px;
+  box-shadow:var(--s-sm);margin-bottom:12px;
+  animation:fadeUp 0.35s var(--ease-out) both;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.search-bar:focus-within{border-color:var(--blue-300);box-shadow:var(--s-md),0 0 0 3px rgba(37,99,235,0.06)}
+.search-icon{color:var(--ink-4);flex-shrink:0;display:flex;align-items:center}
+.search-input{
+  flex:1;height:32px;border:none;background:transparent;
+  color:var(--ink);font-size:0.84rem;font-family:inherit;
+}
+.search-input:focus{outline:none}
+.search-input::placeholder{color:var(--ink-4)}
+.search-meta{font-size:0.72rem;font-weight:600;color:var(--ink-4);white-space:nowrap}
+
+/* ══════════════════════════════════════
+   FILTER TABS — pill style matching Dashboard
+══════════════════════════════════════ */
+.cat-tabs{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;
+  animation:fadeUp 0.35s 0.05s var(--ease-out) both;
+}
+.cat-tab{
+  height:34px;padding:0 14px;
+  border:1.5px solid var(--line-md);border-radius:999px;
+  background:var(--surface);color:var(--ink-3);
+  font-size:0.77rem;font-weight:600;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:all 0.17s var(--ease-out);letter-spacing:0.005em;
+  box-shadow:var(--s-xs);cursor:pointer;
+}
+.cat-tab:hover{background:var(--blue-50);border-color:var(--blue-200);color:var(--blue-700)}
+.cat-tab.active{
+  background:var(--blue-600);border-color:var(--blue-600);
+  color:#fff;box-shadow:var(--s-blue);
+}
+.cat-cnt{
+  font-size:0.68rem;font-weight:700;
+  min-width:18px;height:18px;border-radius:999px;
+  padding:0 5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.25);color:inherit;
+}
+.cat-tab:not(.active) .cat-cnt{background:var(--blue-100);color:var(--blue-700)}
+
+/* ══════════════════════════════════════
+   SECTION CARDS — Premium card matching Dashboard
+══════════════════════════════════════ */
+.sections-wrap{display:flex;flex-direction:column;gap:14px}
+
+.section-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-xl);overflow:hidden;
+  box-shadow:var(--s-sm);
+  animation:cardIn 0.4s var(--ease-out) both;
+  transition:box-shadow 0.2s,border-color 0.2s;
+}
+.section-card:hover{box-shadow:var(--s-md)}
+
+/* Section header row */
+.section-head{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 22px 14px 18px;
+  border-bottom:1px solid var(--line);
+  background:var(--surface);
+}
+.section-icon{
+  width:42px;height:42px;border-radius:var(--r-md);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;position:relative;overflow:hidden;
+  border:1px solid rgba(0,0,0,0.05);
+}
+.section-icon::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.3),transparent 65%)}
+.si-red  {background:linear-gradient(135deg,#fecaca,#fee2e2)}
+.si-blue {background:linear-gradient(135deg,#bfdbfe,#dbeafe)}
+.si-amber{background:linear-gradient(135deg,#fed7aa,#ffedd5)}
+.si-green{background:linear-gradient(135deg,#a7f3d0,#d1fae5)}
+.si-teal {background:linear-gradient(135deg,#99f6e4,#ccfbf1)}
+.si-violet{background:linear-gradient(135deg,#ddd6fe,#ede9fe)}
+
+.section-title{
+  font-size:0.93rem;font-weight:700;color:var(--ink);
+  letter-spacing:-0.015em;flex:1;font-family:'Fraunces',serif;
+}
+.section-count{
+  font-size:0.67rem;font-weight:700;
+  background:var(--surface-3);color:var(--ink-3);
+  border:1px solid var(--line);border-radius:999px;
+  padding:4px 12px;white-space:nowrap;letter-spacing:0.02em;
+}
+
+/* ── Table — 3 columns matching screenshot ── */
+.ctable{width:100%;border-collapse:collapse}
+.ctable thead tr{border-top:1px solid var(--line)}
+.ctable th{
+  background:var(--surface-2);
+  color:var(--ink-4);
+  padding:10px 22px;
+  text-align:left;
+  font-size:0.63rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.09em;
+  border-bottom:1px solid var(--line);
+}
+.ctable th:last-child{text-align:right}
+.ctable td{
+  padding:14px 22px;
+  border-bottom:1px solid var(--surface-3);
+  font-size:0.84rem;color:var(--ink-2);
+  vertical-align:middle;
+  transition:background 0.1s;
+}
+.ctable tbody tr:last-child td{border-bottom:none}
+.ctable tbody tr:hover td{background:var(--blue-50)}
+.ctable td:first-child{color:var(--ink-3);font-weight:500;font-size:0.82rem}
+.ctable td:nth-child(2){font-weight:600;color:var(--ink)}
+.ctable td:last-child{text-align:right}
+.phone-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--blue-600);font-weight:500;
+  font-family:'DM Mono',monospace;font-size:0.82rem;
+  text-decoration:none;
+  transition:color 0.14s;
+}
+.phone-link:hover{color:var(--blue-700)}
+.phone-link svg{color:var(--blue-400);flex-shrink:0}
+.no-number{color:var(--ink-4);font-size:0.8rem}
+
+/* ══════════════════════════════════════
+   MOBILE CONTACT LIST
+══════════════════════════════════════ */
+.mob-list{display:none;padding:0}
+.mob-sec-label{
+  font-size:0.62rem;font-weight:700;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:0.1em;
+  padding:14px 0 7px;display:flex;align-items:center;gap:8px;
+}
+.mob-sec-label::after{content:'';flex:1;height:1px;background:var(--line)}
+.mob-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:14px 16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:13px;
+  box-shadow:var(--s-sm);
+  animation:cardIn 0.36s var(--ease-out) both;
+  transition:transform 0.17s var(--ease-out),box-shadow 0.17s,border-color 0.14s;
+}
+.mob-card:hover{transform:translateY(-2px);box-shadow:var(--s-md);border-color:var(--line-md)}
+.mob-card:active{transform:none}
+.mob-ava{
+  width:44px;height:44px;border-radius:var(--r-md);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;border:1px solid rgba(0,0,0,0.05);
+  position:relative;overflow:hidden;
+}
+.mob-ava::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent 60%)}
+.mav-red   {background:linear-gradient(135deg,#fecaca,#fee2e2)}
+.mav-blue  {background:linear-gradient(135deg,#bfdbfe,#dbeafe)}
+.mav-amber {background:linear-gradient(135deg,#fed7aa,#ffedd5)}
+.mav-green {background:linear-gradient(135deg,#a7f3d0,#d1fae5)}
+.mav-teal  {background:linear-gradient(135deg,#99f6e4,#ccfbf1)}
+.mav-violet{background:linear-gradient(135deg,#ddd6fe,#ede9fe)}
+.mob-info{flex:1;min-width:0}
+.mob-role{font-size:0.85rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;line-height:1.3}
+.mob-name-txt{font-size:0.73rem;color:var(--ink-3);margin-top:2px;font-weight:500}
+.mob-num{font-size:0.74rem;font-weight:500;color:var(--blue-600);font-family:'DM Mono',monospace;margin-top:3px}
+.mob-call{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--green-600),var(--green-500));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:var(--s-green);
+  transition:transform 0.18s var(--ease-spring),box-shadow 0.18s;
+}
+.mob-call:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(5,150,105,0.32)}
+.mob-call:active{transform:scale(0.95)}
+.mob-call.disabled{background:var(--surface-3);color:var(--ink-4);box-shadow:none;pointer-events:none}
+
+/* ══════════════════════════════════════
+   EMPTY / ERROR / LOADING
+══════════════════════════════════════ */
+.empty-wrap{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-xl);padding:56px 24px;
+  text-align:center;box-shadow:var(--s-sm);
+  animation:fadeUp 0.4s var(--ease-out) both;
+}
+.empty-ico{
+  width:52px;height:52px;border-radius:var(--r-lg);
+  background:var(--blue-50);border:1px solid var(--blue-100);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;color:var(--blue-400);
+}
+.empty-ico.err{background:var(--red-50);border-color:var(--red-100);color:var(--red-500)}
+.empty-ttl{font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:6px;font-family:'Fraunces',serif}
+.empty-ttl.err{color:var(--red-600)}
+.empty-sub{font-size:0.79rem;color:var(--ink-3);line-height:1.6;max-width:340px;margin:0 auto}
+.retry-btn{
+  margin-top:18px;height:36px;padding:0 18px;
+  border-radius:var(--r-sm);background:var(--blue-600);color:#fff;
+  font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:all 0.18s var(--ease-out);display:inline-flex;align-items:center;gap:6px;
+  box-shadow:var(--s-blue);
+}
+.retry-btn:hover{background:var(--blue-700);transform:translateY(-1px)}
+
+/* Skeleton shimmer */
+.sk{position:relative;overflow:hidden;color:transparent!important;background:var(--surface-3);border-radius:var(--r-sm);min-height:1em;pointer-events:none}
+.sk::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.7) 50%,transparent 100%);animation:shimmer 1.5s infinite}
+.sk *{visibility:hidden}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width:768px){
+  .sidebar,.sb-toggle,.topbar{display:none}
+  .mob-header{display:flex}
+  .mob-cat-strip{display:flex}
+  .mob-list{display:block}
+  .main{margin-left:0!important}
+  .page{padding:12px 14px calc(20px + var(--safe-bot))}
+  .search-bar,.cat-tabs,.sections-wrap{display:none}
+}
+@media (max-width:400px){.mob-ava{width:38px;height:38px}.mob-call{width:38px;height:38px}}
+
+/* ══════════════════════════════════════
+   DARK THEME — exact Dashboard tokens
+══════════════════════════════════════ */
+body.dark-mode{
+  --bg:#0f172a;
+  --surface:#1e293b;
+  --surface-2:#1a2540;
+  --surface-3:#243050;
+  --surface-4:#2d3a56;
+  --ink:#f1f5f9;
+  --ink-2:#e2e8f0;
+  --ink-3:#94a3b8;
+  --ink-4:#64748b;
+  --line:#2d3a56;
+  --line-md:#3a4d6b;
+  --line-lg:#4a5f80;
+  --s-xs:0 1px 2px rgba(0,0,0,0.2);
+  --s-sm:0 1px 3px rgba(0,0,0,0.3),0 1px 2px rgba(0,0,0,0.2);
+  --s-md:0 4px 12px rgba(0,0,0,0.35),0 2px 4px rgba(0,0,0,0.2);
+  --s-lg:0 12px 32px rgba(0,0,0,0.4),0 4px 8px rgba(0,0,0,0.2);
+}
+body.dark-mode .sidebar{background:var(--surface)}
+body.dark-mode .mob-drawer{background:var(--surface)}
+body.dark-mode .topbar{background:rgba(15,23,42,0.97);border-color:var(--line)}
+body.dark-mode .mob-header{background:rgba(15,23,42,0.97);border-color:var(--line)}
+body.dark-mode .mob-hamburger{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-icon-btn{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-theme-btn{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-cat-strip{background:var(--surface)}
+body.dark-mode .mob-cat-btn{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .mob-search-row input{background:var(--surface-2);border-color:var(--line-md);color:var(--ink)}
+body.dark-mode .search-bar{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .theme-btn{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .refresh-btn{background:var(--surface-2);border-color:var(--line-md);color:var(--ink-2)}
+body.dark-mode .section-card{background:var(--surface)}
+body.dark-mode .section-head{background:var(--surface)}
+body.dark-mode .ctable th{background:var(--surface-2)}
+body.dark-mode .ctable tbody tr:hover td{background:rgba(37,99,235,0.08)}
+body.dark-mode .section-count{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .cat-tab{background:var(--surface);border-color:var(--line-md);color:var(--ink-3)}
+body.dark-mode .cat-tab:hover{background:rgba(37,99,235,0.1);color:var(--blue-400)}
+body.dark-mode .mob-card{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .empty-wrap{background:var(--surface)}
+body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--line-md)}
+</style>
+</head>
+<body>
+
+<!-- ══ MOBILE OVERLAY + DRAWER ══ -->
+<div class="mob-overlay" id="mobOverlay"></div>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
+      </svg>
+    </div>
+    <div class="sb-copy">
+      <div class="sb-name">MIG Society</div>
+      <div class="sb-tag">Sector-29 · Admin</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section-label">Main</div>
+    <a class="sb-item" href="index.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="sb-label">Dashboard</span>
+    </a>
+    <a class="sb-item" href="payments.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">Payments</span>
+    </a>
+    <a class="sb-item" href="payment-history.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">History</span>
+    </a>
+    <a class="sb-item" href="fund-ledger.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
+      <span class="sb-label">Expense Ledger</span>
+    </a>
+    <a class="sb-item" href="flat-search.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
+      <span class="sb-label">Flat Search</span>
+    </a>
+    <div class="sb-section-label">Directory</div>
+    <a class="sb-item" href="owner-tenant.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <span class="sb-label">Residents</span>
+    </a>
+    <a class="sb-item" href="vehicles.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
+      <span class="sb-label">Vehicles</span>
+      <span class="sb-badge" id="drawerNavVehicles">0</span>
+    </a>
+    <a class="sb-item active" href="emergency-contact.html">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <span class="sb-label">Emergency</span>
+      <span class="sb-badge sb-badge-red" id="drawerNavEmergency">0</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user" id="drawerLogoutBtn">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Admin</div>
+        <div class="sb-user-role">Society Manager</div>
+      </div>
+      <div class="sb-logout">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MOBILE HEADER ══ -->
+<header class="mob-header" id="mobHeader">
+  <div class="mob-header-top">
+    <button class="mob-hamburger" id="mobMenuBtn" type="button" aria-label="Open navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="mob-header-title">Emergency Contacts</div>
+    <div class="mob-header-actions">
+      <button class="mob-icon-btn" id="mobSearchToggle" type="button" aria-label="Search">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      </button>
+      <button class="mob-theme-btn" id="mobThemeBtn" type="button" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>
+      </button>
+      <button class="mob-refresh-btn" id="mobRefreshBtn" type="button">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+  <div class="mob-search-row" id="mobSearchRow">
+    <input id="searchMob" type="text" placeholder="Search by role, name, or number…" autocomplete="off">
+  </div>
+</header>
+
+<!-- ══ MOBILE CAT STRIP ══ -->
+<div class="mob-cat-strip" id="mobCatStrip"></div>
+
+<!-- ══ APP SHELL ══ -->
+<div class="app-shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
+      </svg>
+    </div>
+    <div class="sb-copy">
+      <div class="sb-name">MIG Society</div>
+      <div class="sb-tag">Sector-29 · Admin</div>
+    </div>
+  </div>
+  <button class="sb-toggle" id="sidebarToggle" type="button" aria-label="Collapse sidebar">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,2 4,6 8,10"/></svg>
+  </button>
+  <nav class="sb-nav">
+    <div class="sb-section-label">Main</div>
+    <a class="sb-item" href="index.html" data-tooltip="Dashboard">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+      <span class="sb-label">Dashboard</span>
+    </a>
+    <a class="sb-item" href="payments.html" data-tooltip="Payments">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">Payments</span>
+    </a>
+    <a class="sb-item" href="payment-history.html" data-tooltip="Payment History">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
+      <span class="sb-label">History</span>
+    </a>
+    <a class="sb-item" href="fund-ledger.html" data-tooltip="Expense Ledger">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
+      <span class="sb-label">Expense Ledger</span>
+    </a>
+    <a class="sb-item" href="flat-search.html" data-tooltip="Flat Search">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
+      <span class="sb-label">Flat Search</span>
+    </a>
+    <div class="sb-section-label">Directory</div>
+    <a class="sb-item" href="owner-tenant.html" data-tooltip="Residents">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
+      <span class="sb-label">Residents</span>
+    </a>
+    <a class="sb-item" href="vehicles.html" data-tooltip="Vehicles">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
+      <span class="sb-label">Vehicles</span>
+      <span class="sb-badge" id="navVehicles">0</span>
+    </a>
+    <a class="sb-item active" href="emergency-contact.html" data-tooltip="Emergency">
+      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+      <span class="sb-label">Emergency</span>
+      <span class="sb-badge sb-badge-red" id="navEmergency">0</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user" id="desktopLogoutBtn">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Admin</div>
+        <div class="sb-user-role">Society Manager</div>
+      </div>
+      <div class="sb-logout">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="mainContent">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <div class="topbar-page">Emergency Contacts</div>
+      <div class="topbar-sub">Emergency contact directory</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="theme-btn" id="deskThemeBtn" type="button" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>
+      </button>
+      <button class="refresh-btn" id="refreshBtn" type="button">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
+        Refresh
+      </button>
+      <div class="profile-wrap">
+        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+        <div class="profile-dropdown" id="pdDesk">
+          <button id="logoutDeskMenu" type="button">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE -->
+  <div class="page">
+
+    <!-- Search bar -->
+    <div class="search-bar">
+      <div class="search-icon">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      </div>
+      <input id="contactSearchInput" class="search-input" type="text" placeholder="Search by role, name, or number…" autocomplete="off">
+      <span class="search-meta" id="metaInfo"></span>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="cat-tabs" id="contactTabs"></div>
+
+    <!-- Section cards -->
+    <div class="sections-wrap" id="sections"></div>
+
+    <!-- Mobile list -->
+    <div class="mob-list" id="mobileContactList"></div>
+
+  </div>
+</div>
+</div><!-- app-shell -->
+
+<script>
+/* ── Auth ── */
+const AUTH_KEY = "society_dashboard_auth";
+if (!sessionStorage.getItem(AUTH_KEY)) sessionStorage.setItem(AUTH_KEY, "true");
+
+/* ── Constants ── */
+const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const CONTACT_TAB_NAME = "emergency-contacts";
+const SECTION_ORDER = ["SECURITY GUARD","HOUSING BOARD & NRDA","EMERGENCY HELPLINE","HOSPITALS","DAILY HELPS"];
+
+const SECTION_META = {
+  "SECURITY GUARD":       {cls:"si-red",    mcls:"mav-red",    emoji:"🛡️",  label:"Security Guards"},
+  "HOUSING BOARD & NRDA": {cls:"si-blue",   mcls:"mav-blue",   emoji:"🏛️",  label:"Housing Board & NRDA"},
+  "EMERGENCY HELPLINE":   {cls:"si-amber",  mcls:"mav-amber",  emoji:"🚨",  label:"Emergency Helpline"},
+  "HOSPITALS":            {cls:"si-green",  mcls:"mav-green",  emoji:"🏥",  label:"Hospitals"},
+  "DAILY HELPS":          {cls:"si-teal",   mcls:"mav-teal",   emoji:"🤝",  label:"Daily Helps"},
+};
+
+let contactSections = [];
+let activeSectionIndex = 0;
+let searchQuery = "";
+
+/* ── Helpers ── */
+function esc(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function parseCSVLine(line){
+  const cols=[];let cur="",inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i],n=line[i+1];
+    if(c==='"'&&inQ&&n==='"'){cur+='"';i++;}
+    else if(c==='"')inQ=!inQ;
+    else if(c===','&&!inQ){cols.push(cur);cur="";}
+    else cur+=c;
+  }
+  cols.push(cur);
+  return cols.map(s=>s.trim());
+}
+function normalizePhone(v){return String(v||"").replace(/[^\d+]/g,"");}
+function titleCase(v){
+  const n=String(v||"").trim().toUpperCase();
+  const a={"SECURITY GUARD":"Security Guards","HOUSING BOARD & NRDA":"Housing Board & NRDA","EMERGENCY HELPLINE":"Emergency Helpline","HOSPITALS":"Hospitals","DAILY HELPS":"Daily Helps"};
+  return a[n]||n.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+}
+function canonicalSection(v,fallback){
+  const h=String(v||"").trim().toUpperCase();
+  if(!h)return fallback||SECTION_ORDER[0];
+  if(h.includes("SECURITY"))return "SECURITY GUARD";
+  if(h.includes("HOUSING")||h.includes("NRDA")||h.includes("CGSPDCL"))return "HOUSING BOARD & NRDA";
+  if(h.includes("EMERGENCY")||h.includes("POLICE")||h.includes("FIRE"))return "EMERGENCY HELPLINE";
+  if(h.includes("HOSPITAL")||h.includes("AMBULANCE")||h.includes("BALCO"))return "HOSPITALS";
+  if(h.includes("DAILY"))return "DAILY HELPS";
+  return fallback||h;
+}
+function buildSections(rows){
+  const map=new Map(SECTION_ORDER.map(t=>[t,{title:t,contacts:[]}]));
+  let cur=SECTION_ORDER[0];
+  rows.forEach(cols=>{
+    while(cols.length<3)cols.push("");
+    const work=(cols[0]||"").trim(),number=(cols[1]||"").trim(),name=(cols[2]||"").trim();
+    if(!work&&!number&&!name)return;
+    if(work&&!number&&!name){cur=canonicalSection(work,cur);return;}
+    const sec=canonicalSection(cur,cur);
+    if(!map.has(sec))map.set(sec,{title:sec,contacts:[]});
+    map.get(sec).contacts.push({work,number,name});
+  });
+  return [...map.values()].filter(s=>s.contacts.length>0);
+}
+
+/* ── Filter by search ── */
+function filterSections(secs){
+  if(!searchQuery.trim())return secs;
+  const q=searchQuery.toLowerCase();
+  return secs.map(s=>({
+    ...s,
+    contacts:s.contacts.filter(c=>
+      c.work.toLowerCase().includes(q)||
+      c.name.toLowerCase().includes(q)||
+      c.number.includes(q)
+    )
+  })).filter(s=>s.contacts.length>0);
+}
+
+/* ── Render desktop tabs ── */
+function renderDesktopTabs(){
+  const total=contactSections.reduce((t,s)=>t+s.contacts.length,0);
+  const tabs=document.getElementById("contactTabs");
+  const allBtn=`<button class="cat-tab${activeSectionIndex===0?" active":""}" data-idx="0">All <span class="cat-cnt">${total}</span></button>`;
+  const secBtns=contactSections.map((s,i)=>{
+    const m=SECTION_META[s.title]||{label:titleCase(s.title)};
+    return `<button class="cat-tab${activeSectionIndex===i+1?" active":""}" data-idx="${i+1}">${esc(m.label)} <span class="cat-cnt">${s.contacts.length}</span></button>`;
+  }).join("");
+  tabs.innerHTML=allBtn+secBtns;
+}
+
+/* ── Render desktop sections ── */
+function renderDesktopSections(){
+  const wrap=document.getElementById("sections");
+  let secs=activeSectionIndex===0?contactSections:[contactSections[activeSectionIndex-1]].filter(Boolean);
+  secs=filterSections(secs);
+  const total=secs.reduce((t,s)=>t+s.contacts.length,0);
+  const meta=document.getElementById("metaInfo");
+  if(meta)meta.textContent=total?`${total} contact${total!==1?"s":""}`:""
+
+  if(!secs.length){wrap.innerHTML=emptyHTML(false);return;}
+
+  wrap.innerHTML=secs.map((s,si)=>{
+    const m=SECTION_META[s.title]||{cls:"si-blue",label:titleCase(s.title)};
+    const rows=s.contacts.map(c=>{
+      const ph=normalizePhone(c.number);
+      return `<tr>
+        <td>${esc(c.work)}</td>
+        <td>${esc(c.name)||'<span class="no-number">—</span>'}</td>
+        <td>${ph
+          ?`<a class="phone-link" href="tel:${ph}">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 14.5c0 .4-.08.77-.26 1.1a3.2 3.2 0 0 1-.77 1.02A4.85 4.85 0 0 1 14 17.5a13.7 13.7 0 0 1-5.63-1.54 13.5 13.5 0 0 1-3.96-3.96A13.7 13.7 0 0 1 2.88 6.4c0-.5.13-1 .41-1.46.27-.48.63-.92 1.1-1.22A3.13 3.13 0 0 1 6 3.17c.42 0 .84.1 1.2.28.39.2.74.48 1 .85l2.5 3.54c.26.35.4.72.4 1.06 0 .42-.13.82-.35 1.18-.21.36-.5.71-.85 1.06l-1 1c-.04.05-.06.12-.06.19 0 .1.04.2.08.28.44.72.95 1.4 1.5 2 .62.58 1.28 1.1 2 1.5.09.05.2.09.3.09.08 0 .15-.03.2-.08l1-.98c.28-.34.62-.63 1-.84.38-.2.76-.3 1.16-.3.34 0 .7.12 1.04.37l3.54 2.5c.37.26.65.6.83 1 .17.35.25.77.25 1.2z"/></svg>
+              ${esc(c.number)}
+            </a>`
+          :`<span class="no-number">—</span>`
+        }</td>
+      </tr>`;
+    }).join("");
+    return `<div class="section-card" style="animation-delay:${si*60}ms">
+      <div class="section-head">
+        <div class="section-icon ${m.cls}">${m.emoji}</div>
+        <div class="section-title">${esc(m.label||titleCase(s.title))}</div>
+        <div class="section-count">${s.contacts.length} contact${s.contacts.length!==1?"s":""}</div>
+      </div>
+      <table class="ctable">
+        <thead><tr><th>Role / Work</th><th>Name</th><th>Contact Number</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join("");
+}
+
+/* ── Render mobile cats ── */
+function renderMobileCats(){
+  const strip=document.getElementById("mobCatStrip");
+  const total=contactSections.reduce((t,s)=>t+s.contacts.length,0);
+  const allBtn=`<button class="mob-cat-btn${activeSectionIndex===0?" active":""}" data-idx="0">All (${total})</button>`;
+  const secBtns=contactSections.map((s,i)=>{
+    const m=SECTION_META[s.title]||{label:titleCase(s.title)};
+    return `<button class="mob-cat-btn${activeSectionIndex===i+1?" active":""}" data-idx="${i+1}">${esc(m.label)}</button>`;
+  }).join("");
+  strip.innerHTML=allBtn+secBtns;
+}
+
+/* ── Render mobile contacts ── */
+function renderMobileContacts(){
+  const wrap=document.getElementById("mobileContactList");
+  let secs=activeSectionIndex===0?contactSections:[contactSections[activeSectionIndex-1]].filter(Boolean);
+  secs=filterSections(secs);
+  if(!secs.length){wrap.innerHTML=emptyHTML(false);return;}
+  const isSingle=secs.length===1;
+  wrap.innerHTML=secs.map(s=>{
+    const m=SECTION_META[s.title]||{mcls:"mav-blue",emoji:"📋",label:titleCase(s.title)};
+    const lbl=isSingle?"":`<div class="mob-sec-label">${esc(m.label)}</div>`;
+    const cards=s.contacts.map((c,ci)=>{
+      const ph=normalizePhone(c.number);
+      return `<div class="mob-card" style="animation-delay:${ci*25}ms">
+        <div class="mob-ava ${m.mcls}">${m.emoji}</div>
+        <div class="mob-info">
+          <div class="mob-role">${esc(c.work)}</div>
+          ${c.name?`<div class="mob-name-txt">${esc(c.name)}</div>`:""}
+          ${ph?`<div class="mob-num">${esc(c.number)}</div>`:""}
+        </div>
+        <a class="mob-call${ph?"":" disabled"}" href="${ph?`tel:${ph}`:"#"}" aria-label="Call">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 14.5c0 .4-.08.77-.26 1.1a3.2 3.2 0 0 1-.77 1.02A4.85 4.85 0 0 1 14 17.5a13.7 13.7 0 0 1-5.63-1.54 13.5 13.5 0 0 1-3.96-3.96A13.7 13.7 0 0 1 2.88 6.4c0-.5.13-1 .41-1.46.27-.48.63-.92 1.1-1.22A3.13 3.13 0 0 1 6 3.17c.42 0 .84.1 1.2.28.39.2.74.48 1 .85l2.5 3.54c.26.35.4.72.4 1.06 0 .42-.13.82-.35 1.18-.21.36-.5.71-.85 1.06l-1 1c-.04.05-.06.12-.06.19 0 .1.04.2.08.28.44.72.95 1.4 1.5 2 .62.58 1.28 1.1 2 1.5.09.05.2.09.3.09.08 0 .15-.03.2-.08l1-.98c.28-.34.62-.63 1-.84.38-.2.76-.3 1.16-.3.34 0 .7.12 1.04.37l3.54 2.5c.37.26.65.6.83 1 .17.35.25.77.25 1.2z"/></svg>
+        </a>
+      </div>`;
+    }).join("");
+    return lbl+cards;
+  }).join("");
+}
+
+function emptyHTML(isErr){
+  return `<div class="empty-wrap">
+    <div class="empty-ico${isErr?" err":""}">
+      <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+    </div>
+    <div class="empty-ttl${isErr?" err":""}">No contacts found</div>
+    <div class="empty-sub">Try a different search or select another category.</div>
+  </div>`;
+}
+
+function updateBadges(){
+  const total=contactSections.reduce((t,s)=>t+s.contacts.length,0);
+  ["navEmergency","drawerNavEmergency"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=total;});
+}
+
+function renderAll(){
+  renderDesktopTabs();
+  renderDesktopSections();
+  renderMobileCats();
+  renderMobileContacts();
+  updateBadges();
+}
+
+/* ── Load ── */
+async function loadEmergencyContacts(){
+  const btns=[document.getElementById("refreshBtn"),document.getElementById("mobRefreshBtn")];
+  btns.forEach(b=>{if(b)b.classList.add("loading");});
+  const loadHTML=`<div class="empty-wrap">
+    <div class="empty-ico"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 2.5"/></svg></div>
+    <div class="empty-ttl">Loading contacts…</div>
+    <div class="empty-sub">Fetching from Google Sheets</div>
+  </div>`;
+  document.getElementById("sections").innerHTML=loadHTML;
+  document.getElementById("mobileContactList").innerHTML=loadHTML;
+  try{
+    const urls=[
+      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`,
+      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`,
+      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME.replace(/-/g," "))}`,
+    ];
+    let csv="";
+    for(const url of urls){
+      try{
+        const r=await fetch(url,{cache:"no-cache"});
+        const t=await r.text();
+        const p=t.trim().slice(0,200).toLowerCase();
+        if(!t.trim()||p.startsWith("<!doctype")||p.includes("<html")||p.includes("setresponse")||t.includes("File not found"))continue;
+        csv=t;break;
+      }catch(_){}
+    }
+    if(!csv)throw new Error("Unable to load sheet. Share the Google Sheet publicly (Anyone with link → Viewer).");
+    const allRows=csv.split(/\r?\n/).filter(l=>l.trim()).map(parseCSVLine);
+    if(allRows.length<2)throw new Error("Sheet appears empty.");
+    contactSections=buildSections(allRows.slice(1));
+    activeSectionIndex=0;
+    renderAll();
+  }catch(e){
+    const errHTML=`<div class="empty-wrap">
+      <div class="empty-ico err"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg></div>
+      <div class="empty-ttl err">Unable to load contacts</div>
+      <div class="empty-sub">${esc(e.message)}</div>
+      <div class="empty-sub" style="margin-top:8px;font-size:0.7rem;color:var(--ink-4)">Check: File → Share → Anyone with link → Viewer</div>
+      <button class="retry-btn" onclick="loadEmergencyContacts()">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
+        Retry
+      </button>
+    </div>`;
+    document.getElementById("sections").innerHTML=errHTML;
+    document.getElementById("mobileContactList").innerHTML=errHTML;
+  }finally{
+    btns.forEach(b=>{if(b)b.classList.remove("loading");});
+  }
+}
+
+/* ── Event: search ── */
+document.getElementById("contactSearchInput").addEventListener("input",e=>{searchQuery=e.target.value;renderDesktopSections();renderMobileContacts();});
+document.getElementById("searchMob").addEventListener("input",e=>{searchQuery=e.target.value;renderDesktopSections();renderMobileContacts();});
+
+/* ── Event: desktop tabs ── */
+document.getElementById("contactTabs").addEventListener("click",e=>{
+  const btn=e.target.closest(".cat-tab");
+  if(!btn)return;
+  activeSectionIndex=Number(btn.dataset.idx||0);
+  renderAll();
+});
+
+/* ── Event: mobile cat ── */
+document.getElementById("mobCatStrip").addEventListener("click",e=>{
+  const btn=e.target.closest(".mob-cat-btn");
+  if(!btn)return;
+  activeSectionIndex=Number(btn.dataset.idx||0);
+  renderAll();
+});
+
+/* ── Mobile search toggle ── */
+document.getElementById("mobSearchToggle").addEventListener("click",()=>{
+  const row=document.getElementById("mobSearchRow");
+  row.classList.toggle("open");
+  if(row.classList.contains("open"))document.getElementById("searchMob").focus();
+});
+
+/* ── Sidebar collapse ── */
+document.getElementById("sidebarToggle")?.addEventListener("click",()=>{
+  document.getElementById("sidebar").classList.toggle("collapsed");
+  document.getElementById("mainContent").classList.toggle("sidebar-collapsed");
+});
+
+/* ── Mobile drawer ── */
+const overlay=document.getElementById("mobOverlay"),drawer=document.getElementById("mobDrawer");
+function openDrawer(){drawer.classList.add("open");overlay.classList.add("open");document.body.style.overflow="hidden";}
+function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove("open");document.body.style.overflow="";}
+document.getElementById("mobMenuBtn")?.addEventListener("click",openDrawer);
+overlay?.addEventListener("click",closeDrawer);
+
+/* ── Desktop profile dropdown ── */
+const profBtn=document.getElementById("profileTogDesk"),profDD=document.getElementById("pdDesk");
+profBtn?.addEventListener("click",e=>{e.stopPropagation();const o=profDD.classList.toggle("open");profBtn.setAttribute("aria-expanded",o?"true":"false");});
+document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));});
+
+/* ── Logout ── */
+const doLogout=()=>{sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";};
+document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
+document.getElementById("desktopLogoutBtn")?.addEventListener("click",doLogout);
+document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+
+/* ── Refresh ── */
+document.getElementById("refreshBtn")?.addEventListener("click",loadEmergencyContacts);
+document.getElementById("mobRefreshBtn")?.addEventListener("click",loadEmergencyContacts);
+
+/* ── Theme toggle (shared key with dashboard) ── */
+(function(){
+  const KEY="society_dark_mode";
+  const moonSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>`;
+  const sunSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18"/><line x1="2" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18" y2="10"/><line x1="4.22" y1="4.22" x2="5.28" y2="5.28"/><line x1="14.72" y1="14.72" x2="15.78" y2="15.78"/><line x1="14.72" y1="5.28" x2="15.78" y2="4.22"/><line x1="4.22" y1="15.78" x2="5.28" y2="14.72"/></svg>`;
+  function apply(dark){
+    document.body.classList.toggle("dark-mode",dark);
+    [document.getElementById("deskThemeBtn"),document.getElementById("mobThemeBtn")].forEach(b=>{if(b)b.innerHTML=dark?sunSVG:moonSVG;});
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content",dark?"#0f172a":"#2563eb");
+  }
+  apply(localStorage.getItem(KEY)==="1");
+  [document.getElementById("deskThemeBtn"),document.getElementById("mobThemeBtn")].forEach(b=>{
+    b?.addEventListener("click",()=>{const dark=!document.body.classList.contains("dark-mode");localStorage.setItem(KEY,dark?"1":"0");apply(dark);});
+  });
+})();
+
+/* ── Init ── */
+loadEmergencyContacts();
+</script>
+</body>
+</html>
