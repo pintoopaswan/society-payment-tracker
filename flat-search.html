@@ -1037,9 +1037,24 @@ body.dark .form-input{background:var(--surface-3)}
 .pay-month-picker-dropdown{
   position:absolute;left:0;right:0;top:calc(100% + 6px);
   background:var(--surface);border:1px solid var(--line-md);
-  border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:600;display:none;overflow:hidden;
+  border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:600;display:none;
+  overflow-y:auto;overflow-x:hidden;max-height:320px;
 }
 .pay-month-picker-wrap.open .pay-month-picker-dropdown{display:block}
+.pay-month-year-row{
+  display:flex;align-items:center;gap:8px;padding:10px 12px 8px;
+  border-bottom:1px solid var(--line);
+}
+.pay-month-year-row label{
+  font-size:0.66rem;font-weight:700;color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;
+}
+.pay-month-year-select{
+  flex:1;padding:6px 8px;border-radius:var(--r-sm);border:1.5px solid var(--line-md);
+  background:var(--surface);color:var(--ink);font-size:0.8rem;font-weight:600;
+  font-family:inherit;cursor:pointer;
+}
+.pay-month-year-select:focus{outline:none;border-color:var(--blue-500)}
 .pay-month-options-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px}
 .pay-month-option{
   padding:8px 6px;border-radius:var(--r-sm);text-align:center;cursor:pointer;
@@ -1050,6 +1065,16 @@ body.dark .form-input{background:var(--surface-3)}
 .pay-month-option.selected{
   background:var(--blue-600);color:#fff;border-color:var(--blue-600);
   box-shadow:0 3px 8px rgba(37,99,235,0.25);
+}
+.pay-month-option.disabled{
+  background:var(--surface-3);color:var(--ink-4);cursor:not-allowed;
+  opacity:0.6;pointer-events:none;
+}
+.pay-month-option.disabled:hover{background:var(--surface-3);color:var(--ink-4)}
+.pay-month-option .pmo-tag{display:none}
+.pay-month-option.disabled .pmo-tag{
+  display:block;font-size:0.56rem;font-weight:700;letter-spacing:0.04em;
+  color:var(--ink-4);margin-top:1px;text-transform:uppercase;
 }
 .pay-month-option input{position:absolute;opacity:0;pointer-events:none}
 
@@ -1106,6 +1131,7 @@ body.dark .pay-form-field select,
 body.dark .pay-form-field textarea{background:var(--surface-3);border-color:var(--line-md);color:var(--ink)}
 body.dark .pay-month-picker-trigger{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-2)}
 body.dark .pay-month-picker-dropdown{background:var(--surface);border-color:var(--line-md)}
+body.dark .pay-month-year-select{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-2)}
 body.dark .pay-month-option{background:var(--surface-3);color:var(--ink-2)}
 body.dark .confirm-modal{background:var(--surface);border-color:var(--line-md)}
 
@@ -1115,7 +1141,7 @@ body.dark .confirm-modal{background:var(--surface);border-color:var(--line-md)}
   .pay-form-actions{flex-direction:column-reverse;gap:8px}
   .btn-save,.btn-cancel,.btn-delete{width:100%;height:44px;font-size:0.86rem}
   .pay-month-picker-dropdown{position:static;margin-top:6px;box-shadow:none;border:1px solid var(--line-md)}
-  .pay-month-options-grid{grid-template-columns:repeat(4,1fr)}
+  .pay-month-options-grid{grid-template-columns:repeat(3,1fr)}
 }
 
 /* Visually hidden — for screen reader accessible text */
@@ -1875,6 +1901,10 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
             <button class="pay-month-picker-trigger" id="payMonthPickerTrigger" type="button" aria-expanded="false">Select months</button>
             <div class="pay-month-picker-dropdown" id="payMonthPickerDropdown">
+              <div class="pay-month-year-row">
+                <label for="payMonthYearSelect">Year</label>
+                <select class="pay-month-year-select" id="payMonthYearSelect"></select>
+              </div>
               <div class="pay-month-options-grid" id="payMonthOptionsGrid"></div>
             </div>
           </div>
@@ -1919,6 +1949,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<script src="payment-months.js"></script>
 <script>
 /* ═══════════════════════════════════════════════
    CONFIG
@@ -1926,7 +1957,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbylhbxE5hejxyPr1iMnkEcBuhWKlEerHZRc2tYCH-99Cj3A6ayrKKDgzh5G1sFBKNAWUg/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbwu5LEqAVy1BKgQX5kNZJzsLdzgSdX53GPLMFm85ryefTi7jNEHy3-lLSLP6YQ7qea9Xg/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2560,12 +2591,21 @@ function paymentMonthCode(value){
   return idx>=0?MONTH_TABS[idx].slice(0,3):String(value||"").trim().toUpperCase();
 }
 
+/* Parse a record's raw "paidMonths" cell into canonical "YYYY-MM" keys.
+   The record's own tab (record.year / record.monthIndex) is used as the
+   inference anchor for legacy bare month names (see payment-months.js). */
 function paidMonthsForRecord(record){
-  const raw=String(record?.paidMonths||"").trim();
-  const parts=raw.split(/[,;|/]+|\s+/).map(v=>v.trim()).filter(Boolean);
-  if(parts.length)return parts.map(paymentMonthCode).filter(Boolean);
-  const fallback=paymentMonthCode(record?.month||"");
+  if(!record)return [];
+  const keys=PaymentMonths.parseField(record.paidMonths,Number(record.year),Number(record.monthIndex));
+  if(keys.length)return keys;
+  const fallback=PaymentMonths.toKey(Number(record.year),Number(record.monthIndex));
   return fallback?[fallback]:[];
+}
+
+/* "YYYY-MM" keys → "Nov 2025, Dec 2025, Jan 2026" for display. */
+function displayPaidMonths(record){
+  const keys=paidMonthsForRecord(record);
+  return keys.length?PaymentMonths.formatList(keys).join(", "):"";
 }
 
 function toPaymentInputDate(value,record={}){
@@ -2609,7 +2649,7 @@ function renderPaymentTable(records){
       <td class="amount-col">${esc(amt)}</td>
       <td class="mono">${esc(p.paymentDate)||"—"}</td>
       <td>${esc(p.paymentMode)||"—"}</td>
-      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(p.paidMonths||"—")}</td>
+      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(displayPaidMonths(p)||"—")}</td>
       <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3)">${esc(p.remarks||"—")}</td>
       <td>${badge}</td>
       <td><div class="pay-row-actions">
@@ -2646,8 +2686,9 @@ function renderPaymentTable(records){
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="2" y1="7" x2="14" y2="7"/></svg>${esc(p.paymentDate)}</span>`:"";
     const modeChip=p.paymentMode
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/></svg>${esc(p.paymentMode)}</span>`:"";
-    const monthsChip=p.paidMonths
-      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(p.paidMonths)}</span>`:"";
+    const paidMonthsDisplay=displayPaidMonths(p);
+    const monthsChip=paidMonthsDisplay
+      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(paidMonthsDisplay)}</span>`:"";
     return`<div class="pay-card" data-pay-idx="${realIdx>=0?realIdx:idx}" data-status="${esc(p.status||'PENDING')}" style="cursor:pointer">
       <div class="pay-card-top">
         <div class="pay-card-month-wrap">
@@ -2831,49 +2872,86 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
    EDIT MODALS — PAYMENT (ENHANCED)
 ═══════════════════════════════════════════════ */
 
-/* ── Month picker helpers ── */
-const PAY_MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
+/* ── Month picker helpers ──
+   Separate Year dropdown (2025 through next year, current year selected by
+   default) + a 12-month multi-select for whichever year is currently shown.
+   The overall selection (payMonthSelected) persists across year switches,
+   so a single payment can still cover e.g. Nov 2025 + Dec 2025 + Jan 2026 —
+   pick Year=2025, check Nov+Dec, switch to Year=2026, check Jan. */
+let payMonthSelected=new Set();   // accumulated selection, as "YYYY-MM" keys
+let payMonthDisabled=new Set();   // months already covered by OTHER records for this flat (all years)
 
-function buildPayMonthPicker(){
-  const grid=document.getElementById("payMonthOptionsGrid");
-  if(grid.children.length)return;
-  grid.innerHTML=PAY_MONTH_LBLS.map(m=>`<label class="pay-month-option"><input type="checkbox" value="${m}"><span>${m}</span></label>`).join("");
-  grid.addEventListener("change",updatePayMonthTrigger);
-}
 function updatePayMonthTrigger(){
   const sel=getSelectedPayMonths();
-  document.getElementById("payMonthPickerTrigger").textContent=sel.length?sel.join(", "):"Select months";
+  document.getElementById("payMonthPickerTrigger").textContent=sel.length?PaymentMonths.formatList(sel).join(", "):"Select months";
 }
 function getSelectedPayMonths(){
-  return Array.from(document.querySelectorAll("#payMonthOptionsGrid input:checked")).map(i=>i.value);
+  return Array.from(payMonthSelected);
 }
 function setPayMonthPickerOpen(o){
   const w=document.getElementById("payMonthPickerWrap"),t=document.getElementById("payMonthPickerTrigger");
   w.classList.toggle("open",o); t.setAttribute("aria-expanded",o?"true":"false");
 }
-function setPayMonthOptions(selected=[]){
-  buildPayMonthPicker();
-  const normPay=v=>{
-    const raw=String(v||"").trim().toUpperCase();
-    const i=MONTH_TABS.findIndex(m=>m===raw||m.substring(0,3)===raw.substring(0,3));
-    return i>=0?PAY_MONTH_LBLS[i]:raw;
-  };
-  const s=new Set(selected.map(normPay));
-  document.querySelectorAll("#payMonthOptionsGrid .pay-month-option").forEach(opt=>{
-    const inp=opt.querySelector("input"); if(!inp)return;
-    const active=s.has(inp.value);
-    inp.checked=active; opt.classList.toggle("selected",active);
+
+/* Exact Month-Year keys already covered by OTHER payment records for this
+   flat (across ALL years — not just the record's own year, which was the
+   root cause of the original bug). The record currently being edited is
+   excluded by its own covered keys, so its own already-selected months
+   stay fully editable (checkable/uncheckable) while every other flat
+   record's coverage still blocks a double-booking. */
+function alreadyPaidMonthsFor(record){
+  const disabled=new Set();
+  paymentFiltered.forEach(rec=>{
+    if(rec===record)return;
+    paidMonthsForRecord(rec).forEach(k=>disabled.add(k));
   });
+  return disabled;
+}
+
+function buildPayMonthYearOptions(preferredYear){
+  const sel=document.getElementById("payMonthYearSelect");
+  const years=PaymentMonths.yearOptions();
+  const target=years.includes(preferredYear)?preferredYear:new Date().getFullYear();
+  sel.innerHTML=years.map(y=>`<option value="${y}"${y===target?" selected":""}>${y}</option>`).join("");
+}
+
+/* Render the 12-month grid for whichever year the Year dropdown currently
+   shows, reflecting the accumulated cross-year selection + disabled set. */
+function renderPayMonthGrid(){
+  const year=Number(document.getElementById("payMonthYearSelect").value);
+  const grid=document.getElementById("payMonthOptionsGrid");
+  grid.innerHTML=PaymentMonths.yearMonthKeys(year).map((k,mi)=>{
+    const active=payMonthSelected.has(k);
+    const locked=payMonthDisabled.has(k)&&!active;
+    return`<label class="pay-month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${PaymentMonths.MONTH_DISPLAY[mi]}</span><span class="pmo-tag">Paid</span></label>`;
+  }).join("");
   updatePayMonthTrigger();
 }
 
-/* Sync checkbox → visual class */
+/* selected/disabledMonths seed the picker (e.g. an existing record's paid
+   months + what other records already cover); preferredYear is which
+   year's months to show first (the record's own year when editing). */
+function setPayMonthOptions(selected=[],disabledMonths=new Set(),preferredYear){
+  payMonthSelected=new Set(selected);
+  payMonthDisabled=disabledMonths;
+  buildPayMonthYearOptions(preferredYear);
+  renderPayMonthGrid();
+}
+
+/* Sync checkbox → accumulated selection + visual class + trigger label */
 document.addEventListener("change",e=>{
   if(e.target.closest("#payMonthOptionsGrid")){
+    const key=e.target.value;
+    if(e.target.checked)payMonthSelected.add(key); else payMonthSelected.delete(key);
     const opt=e.target.closest(".pay-month-option");
     if(opt)opt.classList.toggle("selected",e.target.checked);
+    updatePayMonthTrigger();
   }
 });
+
+/* Switching the Year dropdown only changes which year's checkboxes are
+   shown — the overall cross-year selection is untouched. */
+document.getElementById("payMonthYearSelect").addEventListener("change",renderPayMonthGrid);
 
 /* Month picker trigger */
 document.getElementById("payMonthPickerTrigger").addEventListener("click",e=>{
@@ -2897,7 +2975,6 @@ function openPaymentEditModal(idx){
   editingPaymentIdx=idx;
   const p=records[idx];
 
-  buildPayMonthPicker();
   setPayFormMsg("");
   setPayMonthPickerOpen(false);
 
@@ -2912,12 +2989,14 @@ function openPaymentEditModal(idx){
   document.getElementById("editPayDate").max=todayInputDate();
   document.getElementById("editPayRemarks").value=p.remarks||"";
 
-  /* Pre-fill month picker from existing record */
-  const pm=paidMonthsForRecord(p);
-  setPayMonthOptions(pm.length?pm:[p.month||""]);
+  /* Pre-fill month picker from existing record (anchored on its payment
+     date); grey out exact Month-Year combos already covered by this flat's
+     OTHER payment records, across all years. */
+  setPayMonthOptions(paidMonthsForRecord(p),alreadyPaidMonthsFor(p),Number(p.year));
 
   openModal("paymentModal");
 }
+
 
 async function savePaymentEdit(){
   if(editingPaymentIdx<0)return;
@@ -2943,6 +3022,9 @@ async function savePaymentEdit(){
   if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
   if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
   if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
+  const disabled=alreadyPaidMonthsFor(p);
+  const clash=paidMonths.find(k=>disabled.has(k));
+  if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
 
   const payload={
     secret:WRITE_SECRET,
@@ -2988,7 +3070,7 @@ async function deletePaymentRecord(){
 
   // Build payload directly from the record object (no modal field dependency)
   const payDate=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
-  const paidMonths=paidMonthsForRecord(p).length?paidMonthsForRecord(p):[p.month||""];
+  const paidMonths=paidMonthsForRecord(p);
 
   const payload={
     secret:WRITE_SECRET,

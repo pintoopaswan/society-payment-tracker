@@ -1056,6 +1056,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 <!-- ════════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════════ -->
+<script src="payment-months.js"></script>
 <script>
 /* ── Constants (exact match to payments.html) ── */
 const SHEET_IDS_BY_YEAR = {
@@ -1081,7 +1082,6 @@ const DEFAULT_YEAR = String(new Date().getFullYear());
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const monthSheetNamesByYear = {
   "2026": MONTHS,
@@ -1119,12 +1119,6 @@ function yearsToLoad(){
   const y = activeYear();
   if(y === "all") return Object.keys(SHEET_IDS_BY_YEAR).sort();
   return [y];
-}
-
-function fmtPaidMonth(v){
-  const raw = String(v||"").trim().toUpperCase();
-  const i   = MONTHS.findIndex(m=>m===raw||m.substring(0,3)===raw.substring(0,3));
-  return i>=0 ? MONTH_LBLS[i] : raw;
 }
 
 function getMonthIndex(dateStr){
@@ -1221,6 +1215,7 @@ async function loadData(){
         if(dateParts.length===3){
           sortableDate = `${dateParts[2]}-${String(dateParts[0]).padStart(2,"0")}-${String(dateParts[1]).padStart(2,"0")}`;
         }
+        const paidMonthKeys = PaymentMonths.parseField(paidMonths, Number(yr), mi);
         allRecords.push({
           block:      nb,
           flat:       String(flat).trim(),
@@ -1234,6 +1229,7 @@ async function loadData(){
           receivedBy: String(recv||"").trim(),
           notes:      String(notes||"").trim(),
           paidMonths: String(paidMonths||"").trim(),
+          paidMonthKeys: paidMonthKeys,
         });
       });
     });
@@ -1408,11 +1404,8 @@ function renderTable(){
     const modeLbl = r.mode==="ONLINE" ? "🌐 Online" : r.mode==="CASH" ? "💵 Cash" : (r.mode||"—");
     /* Paid months chips */
     let paidChips = "";
-    if(r.paidMonths){
-      const pts = r.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean);
-      if(pts.length){
-        paidChips = `<div class="months-pill">${pts.map(p=>`<span class="m-chip">${fmtPaidMonth(p)}</span>`).join("")}</div>`;
-      }
+    if(r.paidMonthKeys && r.paidMonthKeys.length){
+      paidChips = `<div class="months-pill">${r.paidMonthKeys.map(k=>`<span class="m-chip">${PaymentMonths.label(k)}</span>`).join("")}</div>`;
     }
     /* Sheet month label */
     const sheetMonthLbl = MONTH_SHORT[r.sheetMonth] || "";
@@ -1457,9 +1450,8 @@ function renderMobileCards(){
     const sheetMonthLbl = MONTH_SHORT[r.sheetMonth]||"";
 
     let paidChips = "";
-    if(r.paidMonths){
-      const pts = r.paidMonths.split(/[,;|\/]+|\s+/).map(s=>s.trim()).filter(Boolean);
-      if(pts.length) paidChips = pts.map(p=>`<span class="m-chip">${fmtPaidMonth(p)}</span>`).join("");
+    if(r.paidMonthKeys && r.paidMonthKeys.length){
+      paidChips = r.paidMonthKeys.map(k=>`<span class="m-chip">${PaymentMonths.label(k)}</span>`).join("");
     }
 
     html += `<div class="hist-card" style="animation-delay:${Math.min(idx,20)*28}ms">

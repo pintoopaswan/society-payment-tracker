@@ -1,4 +1,4 @@
-const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "amitm876@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com"];
+const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
 const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
@@ -6,6 +6,11 @@ const DIRECTORY_TAB_NAME = "Sheet1";
 const VEHICLE_TAB_NAME = "vehicles";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
+// This spreadsheet (SPREADSHEET_ID) only ever contains tabs for ONE calendar
+// year. Legacy "Paid Months" cells only ever stored a bare month name with
+// no year (e.g. "NOV"), so when a bare token needs a year inferred, this is
+// the anchor year — see inferYearForBareMonth() below.
+const PAYMENT_SHEET_YEAR = 2026;
 
 function doGet(e) {
   if (isPingRequest(e)) {
@@ -170,13 +175,14 @@ function savePaymentPayload(payload) {
   if (!sheetName) {
     return { ok: false, error: "Invalid payment date." };
   }
+  const contextMonthIndex = MONTHS.indexOf(sheetName);
 
   const amount = Number(payload.amount || 0);
   if (!payload.block || !payload.flatNo || !amount || amount % 1 !== 0) {
     return { ok: false, error: "Block, flat number, and whole-number amount are required." };
   }
 
-  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || []);
+  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
   }
@@ -202,8 +208,8 @@ function savePaymentPayload(payload) {
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
     const existingRemarks = String(existingValues[5] || "").trim();
-    const existingPaidMonths = normalizePaidMonths(existingValues[6] || "");
-    const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(" ");
+    const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
+    const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
     const paymentNote = buildPaymentRemark(payload.paymentDateInput, amount);
     const submittedNotes = String(payload.notes || "").trim();
@@ -225,8 +231,7 @@ function savePaymentPayload(payload) {
     lock.releaseLock();
   }
 
-  const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, submittedPaidMonths, true);
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow, guardSync: guardSync };
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow };
 }
 
 function updatePaymentPayload(payload) {
@@ -234,13 +239,14 @@ function updatePaymentPayload(payload) {
   if (!sheetName) {
     return { ok: false, error: "Invalid payment date." };
   }
+  const contextMonthIndex = MONTHS.indexOf(sheetName);
 
   const amount = Number(payload.amount || 0);
   if (!payload.block || !payload.flatNo || !amount || amount % 1 !== 0) {
     return { ok: false, error: "Block, flat number, and whole-number amount are required." };
   }
 
-  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || []);
+  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
   }
@@ -254,7 +260,6 @@ function updatePaymentPayload(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   let targetRow = 0;
-  let previousPaidMonths = [];
   try {
     targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
     if (!targetRow) {
@@ -264,9 +269,6 @@ function updatePaymentPayload(payload) {
       };
     }
 
-    const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
-    previousPaidMonths = normalizePaidMonths(previousValues[6] || "");
-
     const updatedRemarks = String(payload.notes || "").trim();
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
       amount,
@@ -275,17 +277,13 @@ function updatePaymentPayload(payload) {
       "DONE",
       payload.receivedBy || "",
       updatedRemarks,
-      submittedPaidMonths.join(" "),
+      submittedPaidMonths.join(","),
     ]]);
   } finally {
     lock.releaseLock();
   }
 
-  // Clear guard-fee marks for months that were removed by this edit, then
-  // (re)mark the months this update now covers.
-  const guardCleared = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, previousPaidMonths, false);
-  const guardSet = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, submittedPaidMonths, true);
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "update", guardSync: { cleared: guardCleared, set: guardSet } };
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "update" };
 }
 
 function deletePaymentPayload(payload) {
@@ -306,7 +304,6 @@ function deletePaymentPayload(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   let targetRow = 0;
-  let removedPaidMonths = [];
   try {
     targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
     if (!targetRow) {
@@ -315,15 +312,12 @@ function deletePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
-    const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
-    removedPaidMonths = normalizePaidMonths(existingValues[6] || "");
     sheet.getRange(targetRow, 3, 1, 7).clearContent();
   } finally {
     lock.releaseLock();
   }
 
-  const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, removedPaidMonths, false);
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete", guardSync: guardSync };
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete" };
 }
 
 function saveResidentPayload(payload) {
@@ -437,62 +431,134 @@ function buildPaymentRemark(inputDate, amount) {
   return "Payment added on " + dateText + " for amount " + amount;
 }
 
-function normalizePaidMonths(value) {
-  const rawMonths = Array.isArray(value) ? value : String(value || "").split(/[,;|\/]+|\s+/);
-  const expanded = [];
-  rawMonths.forEach(function(month) {
-    splitCombinedMonthLabels(month).forEach(function(label) { expanded.push(label); });
+/* ═══════════════════════════════════════════════════════════════════════
+   Month-Year ("YYYY-MM") paid-months helpers.
+
+   Mirrors the logic in the client-side payment-months.js (flat-search.html
+   / payments.html) so the sheet always stores an exact calendar month for
+   each covered period, never just a bare month name. Bare legacy tokens
+   ("NOV") are still readable — their year is inferred from context — but
+   every new write goes out as an explicit "YYYY-MM" key so no inference is
+   ever needed again once a row has been touched by the app.
+═══════════════════════════════════════════════════════════════════════ */
+
+function pad2(n) { n = Number(n); return (n < 10 ? "0" : "") + n; }
+
+function monthYearKey(year, monthIndex) {
+  const y = Number(year), mi = Number(monthIndex);
+  if (mi < 0 || mi > 11 || !y) return "";
+  return y + "-" + pad2(mi + 1);
+}
+
+function parseMonthYearKey(value) {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(value || "").trim());
+  if (!m) return null;
+  const monthIndex = Number(m[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return null;
+  return { year: Number(m[1]), monthIndex: monthIndex };
+}
+
+function monthNameIndex(token) {
+  const raw = String(token || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
+  if (!raw) return -1;
+  for (let i = 0; i < MONTHS.length; i++) {
+    const full = MONTHS[i], short = PAID_MONTH_LABELS[i];
+    if (raw === full || raw === short || full.indexOf(raw) === 0 || short.indexOf(raw) === 0) return i;
+  }
+  return -1;
+}
+
+// Distance-minimizing year inference for a bare (year-less) legacy month
+// token, anchored on a context year/month. Picks whichever of {year-1,
+// year, year+1} lands the token closest to the anchor — so a January
+// anchor infers "Nov"/"Dec" as the PREVIOUS year (a catch-up payment)
+// rather than blindly assuming the same year as the transaction.
+function inferYearForBareMonth(monthIndex, contextYear, contextMonthIndex) {
+  let bestYear = contextYear, bestDist = Infinity;
+  [-1, 0, 1].forEach(function (k) {
+    const dist = Math.abs((k * 12 + monthIndex) - contextMonthIndex);
+    if (dist < bestDist) { bestDist = dist; bestYear = contextYear + k; }
   });
-  const unique = {};
-  expanded.forEach(function(month) { unique[month] = true; });
-  return PAID_MONTH_LABELS.filter(function(month) { return !!unique[month]; });
+  return bestYear;
 }
 
-function splitCombinedMonthLabels(value) {
-  const direct = normalizePaidMonthLabel(value);
-  if (direct) return [direct];
-
-  const raw = String(value || "").trim().toUpperCase();
-  if (!raw) return [];
-  const compact = raw.replace(/[^A-Z]/g, "");
-  if (!compact) return [];
-
-  const found = [];
-  if (compact.length % 3 === 0) {
-    for (var i = 0; i < compact.length; i += 3) {
-      const label = normalizePaidMonthLabel(compact.substring(i, i + 3));
-      if (label) found.push(label);
-    }
-    if (found.length && found.length * 3 === compact.length) {
-      return found;
-    }
-  }
-
-  for (var index = 0; index < PAID_MONTH_LABELS.length; index++) {
-    var shortLabel = PAID_MONTH_LABELS[index];
-    var fullLabel = MONTHS[index];
-    if (compact.indexOf(fullLabel) >= 0 || compact.indexOf(shortLabel) >= 0) {
-      found.push(shortLabel);
-    }
-  }
-  return found;
-}
-
-function normalizePaidMonthLabel(value) {
-  const raw = String(value || "").trim().toUpperCase();
+// Parse one raw token into a canonical "YYYY-MM" key. Accepts the
+// Month-Year formats the client sends ("2025-11", "Nov 2025", …) and falls
+// back to year-inference for legacy bare month names ("NOV").
+function parseMonthToken(token, contextYear, contextMonthIndex) {
+  const raw = String(token || "").trim();
   if (!raw) return "";
-  for (let index = 0; index < MONTHS.length; index++) {
-    if (raw === MONTHS[index] || raw === PAID_MONTH_LABELS[index] || raw.substring(0, 3) === MONTHS[index].substring(0, 3)) {
-      return PAID_MONTH_LABELS[index];
-    }
-  }
+
+  let m = /^(\d{4})-(\d{1,2})$/.exec(raw);
+  if (m) { const mi = Number(m[2]) - 1; if (mi >= 0 && mi <= 11) return monthYearKey(m[1], mi); }
+
+  m = /^(\d{1,2})[\/\-](\d{4})$/.exec(raw);
+  if (m) { const mi = Number(m[1]) - 1; if (mi >= 0 && mi <= 11) return monthYearKey(m[2], mi); }
+
+  m = /^([A-Za-z]+)[\s,\-\/]+(\d{4})$/.exec(raw);
+  if (m) { const mi = monthNameIndex(m[1]); if (mi >= 0) return monthYearKey(m[2], mi); }
+
+  m = /^(\d{4})[\s,\-\/]+([A-Za-z]+)$/.exec(raw);
+  if (m) { const mi = monthNameIndex(m[2]); if (mi >= 0) return monthYearKey(m[1], mi); }
+
+  const bareIdx = monthNameIndex(raw);
+  if (bareIdx >= 0) return monthYearKey(inferYearForBareMonth(bareIdx, contextYear, contextMonthIndex), bareIdx);
+
   return "";
 }
 
-function mergePaidMonths(existingMonths, newMonths) {
-  const selected = {};
-  existingMonths.concat(newMonths).forEach(function(month) { selected[month] = true; });
-  return PAID_MONTH_LABELS.filter(function(month) { return selected[month]; });
+// A legacy edge case: some old rows glued month labels together with no
+// separator at all (e.g. "NOVDECJAN"). Numeric/Month-Year tokens are never
+// chunked this way — only pure-letter tokens that aren't already a single
+// recognizable month name.
+function splitCombinedMonthTokens(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return [];
+  if (/\d/.test(raw)) return [raw];
+  if (monthNameIndex(raw) >= 0) return [raw];
+
+  const compact = raw.toUpperCase().replace(/[^A-Z]/g, "");
+  if (!compact) return [];
+
+  if (compact.length % 3 === 0) {
+    const found = [];
+    for (let i = 0; i < compact.length; i += 3) {
+      const chunk = compact.substring(i, i + 3);
+      if (monthNameIndex(chunk) >= 0) found.push(chunk);
+    }
+    if (found.length && found.length * 3 === compact.length) return found;
+  }
+
+  const scan = [];
+  for (let index = 0; index < PAID_MONTH_LABELS.length; index++) {
+    const shortLabel = PAID_MONTH_LABELS[index], fullLabel = MONTHS[index];
+    if (compact.indexOf(fullLabel) >= 0 || compact.indexOf(shortLabel) >= 0) scan.push(shortLabel);
+  }
+  return scan;
+}
+
+// Parse a raw "Paid Months" cell/payload value into a sorted, de-duplicated
+// array of canonical "YYYY-MM" keys. contextYear/contextMonthIndex anchor
+// the year-inference for any legacy bare-month tokens found.
+function normalizePaidMonths(value, contextYear, contextMonthIndex) {
+  const cy = contextYear || PAYMENT_SHEET_YEAR;
+  const cm = (contextMonthIndex === undefined || contextMonthIndex === null) ? 0 : contextMonthIndex;
+  const rawTokens = Array.isArray(value) ? value : String(value || "").split(/[,;|]+|\s+/);
+  const keys = {};
+  rawTokens.forEach(function (token) {
+    splitCombinedMonthTokens(token).forEach(function (t) {
+      const key = parseMonthToken(t, cy, cm);
+      if (key) keys[key] = true;
+    });
+  });
+  return Object.keys(keys).sort();
+}
+
+// Union of two already-normalized "YYYY-MM" key arrays, sorted.
+function mergePaidMonths(existingKeys, newKeys) {
+  const seen = {};
+  existingKeys.concat(newKeys).forEach(function (k) { if (k) seen[k] = true; });
+  return Object.keys(seen).sort();
 }
 
 function findPaymentRow(sheet, block, flatNo) {
@@ -616,7 +682,9 @@ function handleExpenseRequest(e) {
 
 // ── Helper: open the expense sheet tab ─────────────────────────────────────
 function openExpenseSheet() {
-  const ss = SpreadsheetApp.openById(EXPENSE_SPREADSHEET_ID);
+  const ss = SpreadsheetApp.openById(EXPENSE_SPREADSHEET_ID
+  
+  );
   for (var i = 0; i < EXPENSE_TAB_CANDIDATES.length; i++) {
     var sheet = ss.getSheetByName(EXPENSE_TAB_CANDIDATES[i]);
     if (sheet) return sheet;
@@ -773,117 +841,6 @@ function recomputeAllBalances(sheet) {
 //   if (isExpenseRequest(e)) return handleExpenseRequest(e);
 // Add this line BEFORE the existing isApiSaveRequest check.
 // ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
-// GUARD PAYMENT MATRIX — Flat-wise Security Guard Collection Sync
-// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8 (same file as the
-//             Fund Ledger / EXPENSE_SPREADSHEET_ID above — just different tabs)
-// Tabs      : one per year, e.g. "2025", "2026" — chosen from the payment's
-//             year, taken from payload.paymentDateInput (format YYYY-MM-DD)
-// Layout    : Row 1 = title, Row 2 = "Guard Amount Per Month" + total, Row 3
-//             blank, Row 4 = headers (A=Flat No, B=Tenant Name, C..N=Jan..Dec,
-//             O=Total, P=Flat Status, Q=Paid By). Data starts Row 5.
-//             Flat No column holds "<block>-<flatNo>", e.g. "1-101".
-// Behaviour : Whatever month(s) a maintenance payment covers, this writes (or
-//             clears) the FIXED per-month guard fee (GUARD_MONTHLY_AMOUNT) in
-//             that month's column for the matching flat row — it does NOT
-//             write the actual maintenance amount, only the flat 200/month
-//             guard-fee marker. Every guard sync is wrapped so it can never
-//             throw and break the main maintenance-payment save/update/delete.
-// ═══════════════════════════════════════════════════════════════════════════
-
-const GUARD_SPREADSHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
-const GUARD_MONTHLY_AMOUNT = 200;
-const GUARD_HEADER_ROW = 4; // header labels live on row 4; data starts row 5
-const GUARD_FLAT_COL = 1;   // column A holds "<block>-<flatNo>"
-// Column order on the guard sheet, starting at column C (index 3)
-const GUARD_MONTH_COLUMNS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-
-// ── Open the year tab (throws if that year's tab doesn't exist yet) ─────────
-function openGuardSheetForYear(year) {
-  const ss = SpreadsheetApp.openById(GUARD_SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(String(year));
-  if (!sheet) {
-    throw new Error("Missing guard payment sheet tab for year: " + year);
-  }
-  return sheet;
-}
-
-// ── Build the "<block>-<flatNo>" key used in the guard sheet's Flat No column ─
-function guardFlatKey(block, flatNo) {
-  const blockDigits = String(block || "").replace(/[^0-9]/g, "");
-  return blockDigits + "-" + normalizeFlat(flatNo);
-}
-
-// ── Find the data row for a given block/flat (returns 0 if not found) ──────
-function findGuardRow(sheet, block, flatNo) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow <= GUARD_HEADER_ROW) return 0;
-  const targetKey = guardFlatKey(block, flatNo).toUpperCase();
-  const values = sheet.getRange(GUARD_HEADER_ROW + 1, GUARD_FLAT_COL, lastRow - GUARD_HEADER_ROW, 1).getValues();
-  for (let i = 0; i < values.length; i++) {
-    if (String(values[i][0] || "").trim().toUpperCase() === targetKey) {
-      return GUARD_HEADER_ROW + 1 + i;
-    }
-  }
-  return 0;
-}
-
-// ── Map a PAID_MONTH_LABELS-style label (JAN, ..., JUNE, JULY, ..., DEC) to the
-//    guard sheet's plain 3-letter column label (JUN, JUL) ───────────────────
-function toGuardMonthLabel(label) {
-  const value = String(label || "").trim().toUpperCase();
-  if (value === "JUNE") return "JUN";
-  if (value === "JULY") return "JUL";
-  return value.substring(0, 3);
-}
-
-function guardMonthColumn(monthLabel3) {
-  const idx = GUARD_MONTH_COLUMNS.indexOf(monthLabel3);
-  return idx >= 0 ? 3 + idx : 0; // column C = 3
-}
-
-// ── Pull a YYYY year out of a payload date string (YYYY-MM-DD) ─────────────
-function extractGuardYear(paymentDateInput) {
-  const parts = String(paymentDateInput || "").split("-");
-  return /^\d{4}$/.test(parts[0]) ? parts[0] : "";
-}
-
-// ── Write (markPaid=true) or clear (markPaid=false) the fixed guard fee for
-//    the given months, for one flat, on the year tab derived from the
-//    payment date. Never throws — failures are reported in the return value
-//    so a guard-sheet hiccup never blocks the main maintenance-payment save.
-function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid) {
-  const year = extractGuardYear(paymentDateInput);
-  if (!year) {
-    return { ok: false, error: "Could not determine year from payment date: " + paymentDateInput };
-  }
-  const months = normalizePaidMonths(paidMonths)
-    .map(toGuardMonthLabel)
-    .filter(function(m) { return GUARD_MONTH_COLUMNS.indexOf(m) >= 0; });
-  if (!months.length) {
-    return { ok: true, sheet: year, months: [], note: "No months to sync." };
-  }
-
-  const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
-    const sheet = openGuardSheetForYear(year);
-    const row = findGuardRow(sheet, block, flatNo);
-    if (!row) {
-      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + "." };
-    }
-    months.forEach(function(m) {
-      const col = guardMonthColumn(m);
-      if (col) sheet.getRange(row, col).setValue(markPaid ? GUARD_MONTHLY_AMOUNT : "");
-    });
-    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid };
-  } catch (err) {
-    return { ok: false, sheet: year, error: err.message };
-  } finally {
-    lock.releaseLock();
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // VEHICLE DIRECTORY — Write Handlers
