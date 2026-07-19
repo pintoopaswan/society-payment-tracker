@@ -672,6 +672,15 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
   transition:all 0.14s;
 }
 .pay-edit-btn:hover{border-color:var(--blue-400);color:var(--blue-600);background:var(--blue-50)}
+.pay-add-btn{
+  height:34px;padding:0 14px;font-size:0.76rem;font-weight:700;
+  border-radius:var(--r-sm);border:none;
+  background:linear-gradient(135deg,var(--green-600),var(--green-500));
+  color:#fff;display:flex;align-items:center;gap:6px;
+  box-shadow:var(--s-green);transition:all 0.18s var(--ease-out);
+}
+.pay-add-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(5,150,105,0.30)}
+.pay-add-btn:active{transform:none}
 
 .pay-row-editable{cursor:pointer}
 .pay-row-editable:hover td{background:var(--blue-50)!important}
@@ -1019,8 +1028,22 @@ body.dark .form-input{background:var(--surface-3)}
   border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:middle;
 }
 
+/* Paid-for row: Year select + month multi-select side by side (matches payments.html) */
+.paid-for-row{display:flex;gap:8px;align-items:flex-start}
+.pay-year-select{
+  flex:0 0 92px;min-height:42px;border:1.5px solid var(--line-md);
+  border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);
+  font-size:0.88rem;font-weight:600;padding:9px 28px 9px 10px;
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232563eb' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.pay-year-select:focus{outline:none;border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,0.10)}
+body.dark .pay-year-select{background-color:var(--surface-3);border-color:var(--line-md);color:var(--ink)}
+
 /* Month picker for flat-search payment modal */
-.pay-month-picker-wrap{position:relative}
+.pay-month-picker-wrap{flex:1 1 auto;min-width:0;position:relative}
 .pay-month-picker-trigger{
   width:100%;min-height:42px;border:1.5px solid var(--line-md);border-radius:var(--r-sm);
   background:var(--surface-2);color:var(--ink-2);font-size:0.88rem;font-weight:500;
@@ -1664,6 +1687,10 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg>
             Payment History
           </div>
+          <button class="pay-add-btn" id="addPaymentBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+            Add Payment
+          </button>
           <button class="pay-edit-btn" id="editPaymentBtn" type="button">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
             Edit
@@ -1892,20 +1919,23 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
             <option value="CASH">CASH</option>
           </select>
         </div>
+        <div class="pay-form-field" id="editPayRecvField" style="display:none">
+          <label for="editPayRecv">Received By</label>
+          <input id="editPayRecv" type="text" placeholder="Guard/person name">
+        </div>
         <div class="pay-form-field full">
           <label for="editPayDate">Payment Date</label>
           <input id="editPayDate" type="date">
         </div>
         <div class="pay-form-field full">
-          <label>Payment For Month(s)</label>
-          <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
-            <button class="pay-month-picker-trigger" id="payMonthPickerTrigger" type="button" aria-expanded="false">Select months</button>
-            <div class="pay-month-picker-dropdown" id="payMonthPickerDropdown">
-              <div class="pay-month-year-row">
-                <label for="payMonthYearSelect">Year</label>
-                <select class="pay-month-year-select" id="payMonthYearSelect"></select>
+          <label id="payMonthsLabel">Payment For (Months)</label>
+          <div class="paid-for-row">
+            <select id="payMonthYearSelect" class="pay-year-select" aria-label="Year"></select>
+            <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
+              <button class="pay-month-picker-trigger" id="payMonthPickerTrigger" type="button" aria-expanded="false">Select months</button>
+              <div class="pay-month-picker-dropdown" id="payMonthPickerDropdown">
+                <div class="pay-month-options-grid" id="payMonthOptionsGrid"></div>
               </div>
-              <div class="pay-month-options-grid" id="payMonthOptionsGrid"></div>
             </div>
           </div>
         </div>
@@ -2872,6 +2902,21 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
    EDIT MODALS — PAYMENT (ENHANCED)
 ═══════════════════════════════════════════════ */
 
+/* ── Staff email (for audit trail) ──
+   There is no per-user login/email captured anywhere in this app today
+   (the auth gate is a single shared password — see AUTH_KEY). Until a real
+   login step exists, we ask once per browser session and cache it, then
+   stamp it onto the payment's notes so there is a record of who made the
+   change. */
+const STAFF_EMAIL_KEY="mig_staff_email";
+function getStaffEmail(){
+  let email=(sessionStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
+  if(email)return email;
+  const entered=(window.prompt("Enter your email address (used to log who made this payment change; asked once per session):","")||"").trim();
+  if(entered){ sessionStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
+  return email;
+}
+
 /* ── Month picker helpers ──
    Separate Year dropdown (2025 through next year, current year selected by
    default) + a 12-month multi-select for whichever year is currently shown.
@@ -2880,25 +2925,24 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
    pick Year=2025, check Nov+Dec, switch to Year=2026, check Jan. */
 let payMonthSelected=new Set();   // accumulated selection, as "YYYY-MM" keys
 let payMonthDisabled=new Set();   // months already covered by OTHER records for this flat (all years)
+let modalPaymentAction="update";  // "create" | "update" — which flow the shared modal is running
 
 function updatePayMonthTrigger(){
   const sel=getSelectedPayMonths();
   document.getElementById("payMonthPickerTrigger").textContent=sel.length?PaymentMonths.formatList(sel).join(", "):"Select months";
 }
 function getSelectedPayMonths(){
-  return Array.from(payMonthSelected);
+  return Array.from(payMonthSelected).filter(Boolean);
 }
 function setPayMonthPickerOpen(o){
   const w=document.getElementById("payMonthPickerWrap"),t=document.getElementById("payMonthPickerTrigger");
   w.classList.toggle("open",o); t.setAttribute("aria-expanded",o?"true":"false");
 }
 
-/* Exact Month-Year keys already covered by OTHER payment records for this
-   flat (across ALL years — not just the record's own year, which was the
-   root cause of the original bug). The record currently being edited is
-   excluded by its own covered keys, so its own already-selected months
-   stay fully editable (checkable/uncheckable) while every other flat
-   record's coverage still blocks a double-booking. */
+/* Exact Month-Year keys already covered by payment records for this flat.
+   When editing, pass the record so its OWN months stay excluded (editable);
+   when adding a fresh payment, pass null so every existing record's
+   coverage blocks a double-booking. */
 function alreadyPaidMonthsFor(record){
   const disabled=new Set();
   paymentFiltered.forEach(rec=>{
@@ -2930,7 +2974,8 @@ function renderPayMonthGrid(){
 
 /* selected/disabledMonths seed the picker (e.g. an existing record's paid
    months + what other records already cover); preferredYear is which
-   year's months to show first (the record's own year when editing). */
+   year's months to show first (the record's own year when editing, the
+   current year when adding). */
 function setPayMonthOptions(selected=[],disabledMonths=new Set(),preferredYear){
   payMonthSelected=new Set(selected);
   payMonthDisabled=disabledMonths;
@@ -2969,14 +3014,59 @@ function setPayFormMsg(msg,ok=false){
   el.className="pay-form-msg"+(ok?" success":"");
 }
 
+/* Received By is only relevant for CASH payments — mirrors payments.html */
+function setPayRecvVisibility(){
+  const isCash=document.getElementById("editPayMode").value==="CASH";
+  document.getElementById("editPayRecvField").style.display=isCash?"":"none";
+}
+document.getElementById("editPayMode").addEventListener("change",setPayRecvVisibility);
+
+function openPaymentAddModal(){
+  if(!currentFlatData){ showToast("Search for a flat first"); return; }
+  editingPaymentIdx=-1;
+  modalPaymentAction="create";
+
+  setPayFormMsg("");
+  setPayMonthPickerOpen(false);
+
+  document.getElementById("payModalTitle").textContent="Add Payment";
+  document.getElementById("paymentModal").querySelector(".pay-modal-subtitle").textContent="Create a new payment entry";
+  document.getElementById("paymentModalSave").textContent="Save Payment";
+
+  document.getElementById("editPayBlock").value=currentFlatData.block||"";
+  document.getElementById("editPayFlat").value=currentFlatData.flat||"";
+  document.getElementById("editPayAmount").value="";
+  document.getElementById("editPayMode").value="ONLINE";
+  document.getElementById("editPayRecv").value="";
+  setPayRecvVisibility();
+  document.getElementById("editPayDate").value=todayInputDate();
+  document.getElementById("editPayDate").max=todayInputDate();
+  document.getElementById("editPayRemarks").value="";
+
+  /* Default the picker to the current month/year, greyed out against every
+     month already covered by this flat's existing payment records. */
+  const today=todayInputDate();
+  const [ty,tm]=today.split("-");
+  const currentKey=`${ty}-${tm}`;
+  const disabled=alreadyPaidMonthsFor(null);
+  setPayMonthOptions(disabled.has(currentKey)?[]:[currentKey],disabled,Number(ty));
+
+  openModal("paymentModal");
+}
+
 function openPaymentEditModal(idx){
   const records=paymentFiltered;
   if(idx<0||idx>=records.length)return;
   editingPaymentIdx=idx;
+  modalPaymentAction="update";
   const p=records[idx];
 
   setPayFormMsg("");
   setPayMonthPickerOpen(false);
+
+  document.getElementById("payModalTitle").textContent="Edit Payment Record";
+  document.getElementById("paymentModal").querySelector(".pay-modal-subtitle").textContent="Update existing payment";
+  document.getElementById("paymentModalSave").textContent="Update Payment";
 
   /* Pre-fill read-only flat context */
   document.getElementById("editPayBlock").value=p.block||"";
@@ -2985,6 +3075,8 @@ function openPaymentEditModal(idx){
   /* Pre-fill editable fields */
   document.getElementById("editPayAmount").value=p.amount||"";
   document.getElementById("editPayMode").value=(p.paymentMode||"ONLINE").toUpperCase()==="CASH"?"CASH":"ONLINE";
+  document.getElementById("editPayRecv").value=p.receivedBy||"";
+  setPayRecvVisibility();
   document.getElementById("editPayDate").value=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
   document.getElementById("editPayDate").max=todayInputDate();
   document.getElementById("editPayRemarks").value=p.remarks||"";
@@ -2998,46 +3090,57 @@ function openPaymentEditModal(idx){
 }
 
 
-async function savePaymentEdit(){
-  if(editingPaymentIdx<0)return;
+async function savePaymentForm(){
+  const isAdd=modalPaymentAction==="create";
   const records=paymentFiltered;
-  if(editingPaymentIdx>=records.length)return;
-  const p=records[editingPaymentIdx];
+  const p=isAdd?null:records[editingPaymentIdx];
+  if(!isAdd&&(editingPaymentIdx<0||editingPaymentIdx>=records.length))return;
 
+  const block=isAdd?(currentFlatData?.block||""):p.block;
+  const flat=isAdd?(currentFlatData?.flat||""):p.flat;
   const amount=Number(document.getElementById("editPayAmount").value);
   const payDate=document.getElementById("editPayDate").value;
   const mode=document.getElementById("editPayMode").value;
+  const receivedBy=document.getElementById("editPayRecv").value.trim();
+  // Read the selection fresh (not cached) so a month checked right before
+  // clicking Save is never dropped.
   const paidMonths=getSelectedPayMonths();
   const rawRemarks=document.getElementById("editPayRemarks").value.trim();
-  // Build audit note: "Payment added on DD/MM/YYYY for amount ₹XXX"
+
+  if(!block||!flat){ setPayFormMsg("Missing flat context — please reopen this flat's profile and try again."); return; }
+  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
+  if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
+  if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
+  if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
+  const disabled=isAdd?alreadyPaidMonthsFor(null):alreadyPaidMonthsFor(p);
+  const clash=paidMonths.find(k=>disabled.has(k));
+  if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
+
+  // Build audit note + "who made this change" note (see getStaffEmail).
   const auditDate=(()=>{
     if(!payDate)return "";
     const [y,m,d]=payDate.split("-");
     return`${d}/${m}/${y}`;
   })();
-  const auditNote=auditDate?`Payment added on ${auditDate} for amount ₹${amount}`:"";
-  const remarks=rawRemarks?(rawRemarks+(auditNote?` | ${auditNote}`:"")):auditNote;
-
-  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
-  if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
-  if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
-  if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
-  const disabled=alreadyPaidMonthsFor(p);
-  const clash=paidMonths.find(k=>disabled.has(k));
-  if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
+  const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
+  const staffEmail=getStaffEmail();
+  const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
+  const remarks=[rawRemarks,auditNote,attribNote].filter(Boolean).join(" | ");
 
   const payload={
     secret:WRITE_SECRET,
-    actionType:"update",
-    block:p.block,
-    flatNo:p.flat,
+    actionType:isAdd?"create":"update",
+    block,
+    flatNo:flat,
     amount,
     paymentMode:mode,
-    receivedBy:p.receivedBy||"",
+    receivedBy,
     paymentDate:fmtSheetDate(payDate),
     paymentDateInput:payDate,
-    paymentMonthSheet:paymentMonthCode(document.getElementById("editPayDate").value),
-    paidMonths,
+    paymentMonthSheet:paymentMonthCode(payDate),
+    // Send a plain, de-duplicated array of "YYYY-MM" keys — read fresh
+    // above so it always reflects exactly what's checked at Save time.
+    paidMonths:Array.from(new Set(paidMonths)),
     notes:remarks,
     paymentStatus:"DONE"
   };
@@ -3052,7 +3155,7 @@ async function savePaymentEdit(){
     setTimeout(()=>{
       closeModal("paymentModal");
       if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);
-      showToast("Payment updated ✓");
+      showToast(isAdd?"Payment added ✓":"Payment updated ✓");
       editingPaymentIdx=-1;
     },600);
   }catch(ex){
@@ -3126,11 +3229,12 @@ function closeConfirmDelete(){
   document.getElementById("confirmDeleteOverlay").classList.remove("open");
 }
 
+document.getElementById("addPaymentBtn").addEventListener("click",openPaymentAddModal);
 document.getElementById("editPaymentBtn").addEventListener("click",()=>{
   if(paymentFiltered.length>0)openPaymentEditModal(0);
   else showToast("No payment records to edit");
 });
-document.getElementById("paymentModalSave").addEventListener("click",savePaymentEdit);
+document.getElementById("paymentModalSave").addEventListener("click",savePaymentForm);
 document.getElementById("paymentModalClose").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("paymentModalCancel").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("confirmDeleteConfirm").addEventListener("click",deletePaymentRecord);
