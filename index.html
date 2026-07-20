@@ -707,9 +707,19 @@ body.modal-open{overflow:hidden}
 .ico-green {background:var(--green-100);color:var(--green-700)}
 .ico-violet{background:var(--violet-100);color:var(--violet-600)}
 .ico-teal  {background:var(--teal-100);color:var(--teal-600)}
+.ico-amber {background:var(--amber-100);color:var(--amber-700)}
+.ico-red   {background:var(--red-100);color:var(--red-700)}
 .qt-body{min-width:0}
 .qt-title{font-size:0.84rem;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-0.01em}
 .qt-copy{font-size:0.72rem;color:var(--ink-3);margin-top:3px;line-height:1.4}
+.qt-stat{font-size:0.7rem;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:5px}
+.qt-stat::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.qt-stat-blue{color:var(--blue-600)}
+.qt-stat-green{color:var(--green-600)}
+.qt-stat-violet{color:var(--violet-600)}
+.qt-stat-teal{color:var(--teal-600)}
+.qt-stat-amber{color:var(--amber-600)}
+.qt-stat-red{color:var(--red-600)}
 
 /* ══════════════════════════════════════
    DASHBOARD GRID
@@ -1209,23 +1219,31 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
     <div class="quick-row">
       <a class="qt" href="payments.html">
         <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Add or edit payments</div><div class="qt-copy">Payment register &amp; month-wise entries</div></div>
+        <div class="qt-body"><div class="qt-title">Add or edit payments</div><div class="qt-copy">Payment register &amp; month-wise entries</div><div class="qt-stat qt-stat-blue" id="qtStatPayments">—</div></div>
       </a>
       <a class="qt" href="fund-ledger.html">
         <div class="qt-ico ico-green"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h12M2 8h12M2 11h12"/><path d="M5.5 2.5L4 13.5M12 2.5l-1.5 11"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Fund Ledger</div><div class="qt-copy">Society income &amp; expense register</div></div>
+        <div class="qt-body"><div class="qt-title">Fund Ledger</div><div class="qt-copy">Society income &amp; expense register</div><div class="qt-stat qt-stat-green" id="qtStatLedger">—</div></div>
       </a>
       <a class="qt" href="owner-tenant.html">
         <div class="qt-ico ico-violet"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div></div>
+        <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div><div class="qt-stat qt-stat-violet" id="qtStatResidents">—</div></div>
       </a>
       <a class="qt" href="emergency-contact.html">
         <div class="qt-ico ico-teal"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Emergency</div><div class="qt-copy">Vendors, guards &amp; services</div></div>
+        <div class="qt-body"><div class="qt-title">Emergency</div><div class="qt-copy">Vendors, guards &amp; services</div><div class="qt-stat qt-stat-teal" id="qtStatEmergency">—</div></div>
       </a>
       <a class="qt" href="vehicles.html">
         <div class="qt-ico ico-amber"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Vehicle Directory</div><div class="qt-copy">Registered cars, bikes &amp; scooters</div></div>
+        <div class="qt-body"><div class="qt-title">Vehicle Directory</div><div class="qt-copy">Registered cars, bikes &amp; scooters</div><div class="qt-stat qt-stat-amber" id="qtStatVehicles">—</div></div>
+      </a>
+      <a class="qt" href="payment-history.html">
+        <div class="qt-ico ico-red"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><polyline points="10,5 10,10 14,13"/></svg></div>
+        <div class="qt-body"><div class="qt-title">Payment History</div><div class="qt-copy">Full transaction log &amp; receipts</div><div class="qt-stat qt-stat-red" id="qtStatHistory">—</div></div>
+      </a>
+      <a class="qt" href="flat-search.html">
+        <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><line x1="14" y1="14" x2="10.5" y2="10.5"/></svg></div>
+        <div class="qt-body"><div class="qt-title">Flat Search</div><div class="qt-copy">Look up any flat's payment status</div><div class="qt-stat qt-stat-blue" id="qtStatSearch">—</div></div>
       </a>
     </div>
 
@@ -2034,6 +2052,9 @@ function renderDash({pd,rd,ec,year,expData}){
   const availBal=(expData?.totalCredits||0)-(expData?.totalDebits||0);
   const balSign=availBal>=0?"Surplus":"Deficit";
 
+  // Total known flats (used by the Flat Search quick-link stat)
+  const totalFlats=pd.allFlats.size;
+
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total));setTxt("kpiSub",`Year ${year}`);
   setTxt("kpiMonth",fmt$(monthTotal));setTxt("kpiMonthSub",curMonthName+" "+year);
@@ -2086,6 +2107,15 @@ function renderDash({pd,rd,ec,year,expData}){
   setTxt("resOwner",fmtN(rd.stats.owner));setTxt("resTenant",fmtN(rd.stats.tenant));setTxt("resPend",fmtN(rd.stats.pending));
   setTxt("resComplete",`${compl}% complete`);setTxt("resCars",`${fmtN(rd.stats.vehicles)} vehicles`);
   rmSkEl(document.getElementById("resGrid"));
+
+  // Quick-link tile live stats
+  setTxt("qtStatPayments",`${fmt$(monthTotal)} this month`);
+  setTxt("qtStatLedger",`${fmt$(Math.abs(availBal))} ${balSign.toLowerCase()}`);
+  setTxt("qtStatResidents",`${fmtN(rd.stats.total)} flats · ${compl}% complete`);
+  setTxt("qtStatEmergency",`${fmtN(ec)} contact${ec===1?"":"s"} listed`);
+  setTxt("qtStatVehicles",`${fmtN(rd.stats.vehicles)} registered`);
+  setTxt("qtStatHistory",`${fmtN(pd.payments.length)} entries logged`);
+  setTxt("qtStatSearch",`${fmtN(totalFlats)} flats searchable`);
 
   renderTrend(pd.monthTotals, pd.monthCounts);
   _cachedPayments=pd.payments;_cachedAllBlocks=pd.allBlocks;
