@@ -505,10 +505,13 @@ tbody td{
   padding:10px 14px;color:var(--ink-2);
   font-size:0.81rem;vertical-align:middle;
   white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
 }
 tbody td.td-wrap{white-space:normal}
+.th-name{width:21%}
+.th-contact{width:15%}
 .td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem}
-.td-name{font-weight:600;color:var(--ink)}
+.td-name{font-weight:600;color:var(--ink);white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;overflow-wrap:anywhere}
 .td-phone a,.call-link{
   color:var(--blue-600);font-weight:500;
   display:inline-flex;align-items:center;gap:4px;
@@ -1141,7 +1144,7 @@ if(!sessionStorage.getItem(AUTH_KEY))sessionStorage.setItem(AUTH_KEY,"true");
 /* ── Constants ── */
 const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
-const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwCnOleD2qsF3nJJe39X5dyvXJbIIndxxf4ZuTf48D-knyQU28FxoiaoF7j3rI9omjlcw/exec";
+const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwu5LEqAVy1BKgQX5kNZJzsLdzgSdX53GPLMFm85ryefTi7jNEHy3-lLSLP6YQ7qea9Xg/exec";
 const RESIDENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const RESIDENT_OCCUPIED_OPTIONS = ["UNOCCUPIED","TENANT","OWNER","PHQ"];
 const VEHICLE_TYPE_OPTIONS = ["BIKE","SCOOTY","CAR"];
@@ -1245,12 +1248,23 @@ function renderTable(data){
 
   const colLabels={};
   headers.forEach((h,i)=>colLabels[i]=h);
-  thead.innerHTML=`<tr>${cols.slice(0,2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Status</th>${cols.slice(2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Actions</th></tr>`;
+  thead.innerHTML=`<tr>${cols.slice(0,2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th class="th-status">Status</th>${cols.slice(2).map((i,j)=>`<th class="${j%2===0?"th-name":"th-contact"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-actions">Actions</th></tr>`;
 
   const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
   tbody.innerHTML=data.map(row=>{
     const b=bI>=0?row[bI]:"",f=fI>=0?row[fI]:"";
-    const cells=cols.slice(2).map(i=>`<td class="${isPhoneHdr(headers[i])?"td-phone":""}">${isPhoneHdr(headers[i])?phoneLink(row[i]):esc(row[i]||"—")}</td>`).join("");
+    // Columns alternate Name, Contact, Name, Contact (see dispCols()) —
+    // give names their own class so long ones wrap onto a 2nd line
+    // instead of overflowing into the Contact column next to them.
+    const cells=cols.slice(2).map((i,j)=>{
+      const isPhone=isPhoneHdr(headers[i]);
+      const isName=j%2===0;
+      const val=row[i]||"";
+      const cls=isPhone?"td-phone":(isName?"td-name":"");
+      const content=isPhone?phoneLink(val):esc(val||"—");
+      const title=(!isPhone&&val)?` title="${esc(val)}"`:"";
+      return`<td class="${cls}"${title}>${content}</td>`;
+    }).join("");
     return`<tr>
       <td><div class="td-flat">${esc(blockDisp(b))}</div></td>
       <td><div class="td-flat">${esc(f)}</div></td>
