@@ -238,6 +238,11 @@ body.modal-open{overflow:hidden}
 
 /* Sidebar footer */
 .sb-footer{padding:12px 10px;border-top:1px solid var(--line);flex-shrink:0}
+.app-footer{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:22px 4px 6px;font-size:0.72rem;color:var(--ink-3)}
+.app-footer-item{display:inline-flex;align-items:center;gap:5px}
+.app-footer-item svg{color:var(--ink-4,var(--ink-3));flex-shrink:0}
+.app-footer-item b{color:var(--ink-2);font-weight:600}
+.app-footer-dot{color:var(--line)}
 .sb-user{
   display:flex;align-items:center;gap:10px;
   padding:9px 10px;border-radius:var(--r-md);
@@ -1383,6 +1388,15 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       </div>
 
     </div><!-- /dash-grid -->
+
+    <div class="app-footer">
+      <span class="app-footer-item">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z"/><circle cx="10" cy="10" r="2.5"/></svg>
+        <span id="visitCount">—</span> visits on this device
+      </span>
+      <span class="app-footer-dot">·</span>
+      <span class="app-footer-item">System designed by <b>Pintoo Paswan</b></span>
+    </div>
   </div><!-- /page -->
 
 </div><!-- /main -->
@@ -2224,6 +2238,18 @@ window.addEventListener("resize",()=>{
 });
 
 loadDash();
+
+/* ── Visit counter (per-device, stored in this browser's localStorage) ── */
+(function trackVisit(){
+  try{
+    const key="mig_dashboard_visits";
+    const count=(parseInt(localStorage.getItem(key),10)||0)+1;
+    localStorage.setItem(key,count);
+    setTxt("visitCount",fmtN(count));
+  }catch(e){
+    setTxt("visitCount","—");
+  }
+})();
 </script>
 </body>
 </html>

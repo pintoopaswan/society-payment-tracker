@@ -498,6 +498,8 @@ thead th{
 }
 thead th.th-actions{width:100px;text-align:center}
 thead th.th-status{width:110px}
+thead th.th-block{width:112px}
+thead th.th-unit{width:82px}
 tbody tr{border-bottom:1px solid var(--line);transition:background 0.13s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--blue-50)}
@@ -508,9 +510,10 @@ tbody td{
   overflow:hidden;text-overflow:ellipsis;
 }
 tbody td.td-wrap{white-space:normal}
+tbody td.td-block,tbody td.td-unit{white-space:nowrap;overflow:visible;text-overflow:clip}
 .th-name{width:21%}
 .th-contact{width:15%}
-.td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem}
+.td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem;white-space:nowrap;overflow:visible;text-overflow:clip}
 .td-name{font-weight:600;color:var(--ink);white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;overflow-wrap:anywhere}
 .td-phone a,.call-link{
   color:var(--blue-600);font-weight:500;
@@ -1043,6 +1046,11 @@ function phoneLink(v){
 }
 function isPhoneHdr(h){ const l=norm(h); return["mobile","phone","contact","whatsapp"].some(p=>l.includes(p)); }
 function hiIdx(pats){ const nh=headers.map(h=>norm(h)); return pats.reduce((f,p)=>f>=0?f:nh.findIndex(h=>h.includes(p)),-1); }
+function blockIdx(){
+  const nh=headers.map(h=>norm(h));
+  const exact=nh.findIndex(h=>h==="block"||h==="block no"||h==="block no."||h==="block number");
+  return exact>=0?exact:hiIdx(["block"]);
+}
 function personIdx(pri,exc=[]){ const excPats=["vehicle","car","bike","scooter","number plate","registration","veh","type","parking"]; const nh=headers.map(h=>norm(h)); for(const p of pri){ const i=nh.findIndex(h=>h.includes(p)&&!excPats.some(e=>h.includes(e))); if(i>=0)return i; } return-1; }
 function occIdx(){ return hiIdx(["occupied by","occupiedby","occupancy"]); }
 function vehIdx(){ return hiIdx(["vehicle type","veh type","vehicle"]); }
@@ -1065,7 +1073,7 @@ function sanitize(rh,rr){
 
 function dispCols(){
   return[
-    hiIdx(["block"]),
+    blockIdx(),
     hiIdx(["flat","house","apartment"]),
     personIdx(["owner name","owner"],["resident name","name"]),
     hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]),
@@ -1095,7 +1103,7 @@ function updateKPI(){
 }
 
 function updateBlockFilter(){
-  const bf=document.getElementById("blockFilter"),bI=hiIdx(["block"]);
+  const bf=document.getElementById("blockFilter"),bI=blockIdx();
   const sel=bf.value;
   const blocks=[...new Set(rows.map(r=>bI>=0?String(r[bI]||"").trim():"").filter(Boolean))].sort((a,b)=>{
     const na=parseInt(a),nb=parseInt(b);return!isNaN(na)&&!isNaN(nb)?na-nb:a.localeCompare(b);
@@ -1122,9 +1130,9 @@ function renderTable(data){
 
   const colLabels={};
   headers.forEach((h,i)=>colLabels[i]=h);
-  thead.innerHTML=`<tr>${cols.slice(0,2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th class="th-status">Status</th>${cols.slice(2).map((i,j)=>`<th class="${j%2===0?"th-name":"th-contact"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-actions">Actions</th></tr>`;
+  thead.innerHTML=`<tr>${cols.slice(0,2).map((i,j)=>`<th class="${j===0?"th-block":"th-unit"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-status">Status</th>${cols.slice(2).map((i,j)=>`<th class="${j%2===0?"th-name":"th-contact"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-actions">Actions</th></tr>`;
 
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   tbody.innerHTML=data.map(row=>{
     const b=bI>=0?row[bI]:"",f=fI>=0?row[fI]:"";
     // Columns alternate Name, Contact, Name, Contact (see dispCols()) —
@@ -1140,8 +1148,8 @@ function renderTable(data){
       return`<td class="${cls}"${title}>${content}</td>`;
     }).join("");
     return`<tr>
-      <td><div class="td-flat">${esc(blockDisp(b))}</div></td>
-      <td><div class="td-flat">${esc(f)}</div></td>
+      <td class="td-block" title="${esc(blockDisp(b))}"><div class="td-flat">${esc(blockDisp(b))}</div></td>
+      <td class="td-unit"><div class="td-flat">${esc(f)}</div></td>
       <td>${occBadge(row)}</td>
       ${cells}
       <td><div class="action-btns">
@@ -1163,7 +1171,7 @@ function renderTable(data){
 
 /* ── Render mobile cards ── */
 function renderCards(data){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   const ownerI=personIdx(["owner name","owner"],["resident name","name"]);
   const tenantI=personIdx(["tenant name","tenant"],["occupant"]);
   const ownerPhI=hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]);
@@ -1227,7 +1235,7 @@ function applyFilters(){
   const q=norm(document.getElementById("searchInput").value);
   const type=document.getElementById("searchType").value;
   const blockVal=norm(document.getElementById("blockFilter").value);
-  const bI=hiIdx(["block"]);
+  const bI=blockIdx();
 
   filteredRows=rows.filter(row=>{
     if(blockVal&&bI>=0&&norm(row[bI])!==blockVal)return false;
@@ -1392,7 +1400,7 @@ async function deleteResident(block,flat){
 
 /* ── Find row ── */
 function findRow(block,flat){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   return rows.find(r=>(bI<0||String(r[bI]||"").trim()===block)&&(fI<0||String(r[fI]||"").trim()===flat));
 }
 
