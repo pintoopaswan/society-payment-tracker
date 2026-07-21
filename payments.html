@@ -558,8 +558,9 @@ tr:hover td:nth-child(1),tr:hover td:nth-child(2){background:var(--blue-50)}
 td.paid{background:var(--green-50);color:var(--green-700);cursor:pointer;border-left:2px solid var(--green-200)}
 td.paid:hover{background:#d1fae5;transform:scale(1.02)}
 /* ── Unpaid / empty cell — RED ── */
-td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-left:2px solid var(--red-100)}
+td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-left:2px solid var(--red-100);cursor:pointer;transition:background 0.14s,color 0.14s}
 tr:hover td.empty{background:#ffe4e6}
+td.empty:hover{background:var(--blue-50);color:var(--blue-600)}
 td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid var(--red-200)}
 
 .total-row td{
@@ -654,8 +655,10 @@ td.empty.has-tx:hover{background:#ffe4e6}
 .month-tile.not-paid{background:var(--red-50);border-color:var(--red-100);cursor:pointer;border-left:3px solid var(--red-300)}
 .month-tile.not-paid:hover{background:#ffe4e6}
 /* Red — empty months (no transaction at all) */
-.month-tile.no-data{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100)}
-.month-tile.no-data .mt-empty{color:var(--red-400)}
+.month-tile.no-data{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100);cursor:pointer}
+.month-tile.no-data .mt-empty{color:var(--red-400);font-weight:600}
+.month-tile.no-data:hover{background:var(--blue-50);border-color:var(--blue-200)}
+.month-tile.no-data:hover .mt-empty{color:var(--blue-600)}
 .mt-name{font-size:0.72rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.06em}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--green-700);font-family:'DM Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
@@ -1520,7 +1523,8 @@ function renderAll(){
         const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
         html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
       }else{
-        html+=`<td class="empty month-cell">—</td>`;
+        const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
+        html+=`<td class="empty month-cell"${aa}>—</td>`;
       }
     });
     html+=`<td><strong style="font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></td></tr>`;
@@ -1577,13 +1581,13 @@ function renderAll(){
         months.forEach((m,i)=>{
           const isPaidTile=yd.paidMonthIndices?.has(i)||false;
           const txMd=yd.months?.[i]||null;
-          const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+          const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`;
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent;
           if(txMd){
             tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
           }else{
-            tileContent=`<div class="mt-empty">—</div>`;
+            tileContent=`<div class="mt-empty">+ Add</div>`;
           }
           chtml+=`<div class="month-tile${txMd?" has-payment":" no-data"}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
@@ -1922,6 +1926,31 @@ function openEditModal(ctx){
   refreshMonthPicker(ctx.paidMonths||[]);
 }
 
+function openAddModalForCell(block,flat,year,mi){
+  if(!block||!flat||!year||mi<0)return;
+  openModal({mode:"web",block,flat});
+  populateBlockOptions(block);
+  populateFlatOptions(block,flat);
+  document.getElementById("fBlock").value=block;
+  document.getElementById("fFlat").value=flat;
+  document.getElementById("payYear").value=String(Number(year));
+  const key=PaymentMonths.toKey(Number(year),Number(mi));
+  refreshMonthPicker([key]);
+  // Default the payment date to somewhere sensible inside the clicked
+  // month/year: today if it's the current month, the last day of that
+  // month if it's in the past, otherwise leave today's date (can't pick a
+  // future payment date).
+  const today=getToday();
+  const y=Number(year),m=Number(mi);
+  const now=new Date();
+  const isCurrentMonth=(y===now.getFullYear()&&m===now.getMonth());
+  if(!isCurrentMonth){
+    const lastDay=new Date(y,m+1,0);
+    const candidate=`${y}-${String(m+1).padStart(2,"0")}-${String(lastDay.getDate()).padStart(2,"0")}`;
+    if(candidate<=today)document.getElementById("fDate").value=candidate;
+  }
+}
+
 function closeModal(){
   setMonthPickerOpen(false);
   const overlay=document.getElementById("payModalOverlay");
@@ -2137,16 +2166,24 @@ document.getElementById("fDate").addEventListener("change",e=>{
 
 /* ── Table click ── */
 document.getElementById("tableBody").addEventListener("click",e=>{
-  const t=e.target.closest('[data-action="edit"]');
-  if(!t)return;
-  const ctx=findCtx(t.dataset.block||"",t.dataset.flat||"",t.dataset.year||"",Number(t.dataset.mi||-1));
-  if(ctx)openEditModal(ctx);
+  const editT=e.target.closest('[data-action="edit"]');
+  if(editT){
+    const ctx=findCtx(editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi||-1));
+    if(ctx)openEditModal(ctx);
+    return;
+  }
+  const addT=e.target.closest('[data-action="add"]');
+  if(addT){
+    openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
+  }
 });
 
 /* ── Mobile card clicks ── */
 document.getElementById("mobileCards").addEventListener("click",e=>{
   const edit=e.target.closest('[data-action="edit"]');
   if(edit){e.stopPropagation();const ctx=findCtx(edit.dataset.block||"",edit.dataset.flat||"",edit.dataset.year||"",Number(edit.dataset.mi||-1));if(ctx)openEditModal(ctx);return;}
+  const add=e.target.closest('[data-action="add"]');
+  if(add){e.stopPropagation();openAddModalForCell(add.dataset.block||"",add.dataset.flat||"",add.dataset.year||"",Number(add.dataset.mi??-1));return;}
   const yr=e.target.closest(".year-row");
   if(yr){yr.classList.toggle("expanded");return;}
   const head=e.target.closest(".mob-card-head");
