@@ -2872,15 +2872,18 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
 /* ── Staff email (for audit trail) ──
    There is no per-user login/email captured anywhere in this app today
    (the auth gate is a single shared password — see AUTH_KEY). Until a real
-   login step exists, we ask once per browser session and cache it, then
-   stamp it onto the payment's notes so there is a record of who made the
-   change. */
+   login step exists, we capture the logged-in person's email once and keep
+   it in localStorage (so it survives across sessions on this device/browser,
+   not just the current tab), then stamp it onto the payment's notes so
+   there is a record of who made the change. It's cleared on logout (see the
+   logout handler below) so the next person to log in on this browser is
+   asked for their own email instead of inheriting the previous person's. */
 const STAFF_EMAIL_KEY="mig_staff_email";
 function getStaffEmail(){
-  let email=(sessionStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
+  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
   if(email)return email;
-  const entered=(window.prompt("Enter your email address (used to log who made this payment change; asked once per session):","")||"").trim();
-  if(entered){ sessionStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
+  const entered=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
+  if(entered){ localStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
   return email;
 }
 
@@ -3289,7 +3292,7 @@ document.addEventListener("click",()=>document.querySelectorAll(".profile-dropdo
 
 ["logoutDesk","logoutMob","logoutDeskNew","logoutDeskMenuNew","drawerLogoutBtn"].forEach(id=>{
   const b=document.getElementById(id);
-  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";});
+  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(STAFF_EMAIL_KEY);window.location.href="index.html";});
 });
 
 /* ═══════════════════════════════════════════════

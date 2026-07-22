@@ -1307,6 +1307,25 @@ let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Se
 let modalAction="create", editCtx=null;
 let selectedPaidMonthKeys=new Set(); // "YYYY-MM" keys selected across ALL years, not just the one currently shown
 
+/* ── Staff email (for audit trail) ──
+   There is no per-user login/email captured anywhere in this app today
+   (the auth gate is a single shared password — see AUTH_SESSION_KEY). Until
+   a real login step exists, we capture the logged-in person's email once
+   and keep it in localStorage (so it survives across sessions on this
+   device/browser, not just the current tab), then stamp it onto the
+   payment's notes so there is a record of who made the change. It's
+   cleared on logout (see the logout handlers below) so the next person to
+   log in on this browser is asked for their own email instead of
+   inheriting the previous person's. */
+const STAFF_EMAIL_KEY="mig_staff_email";
+function getStaffEmail(){
+  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
+  if(email)return email;
+  const entered=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
+  if(entered){ localStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
+  return email;
+}
+
 /* ── Utils ── */
 const parseCSV = l => l.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,""))||[];
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
@@ -1957,9 +1976,16 @@ function findCtx(block,flat,year,mi){
 }
 
 /* ── Form submit ── */
-function getPayload(){
+function getPayload(includeAttribution=true){
   const {block,flat}=activeBlockFlat();
   const payDate=document.getElementById("fDate").value;
+  let notes=document.getElementById("fNotes").value.trim();
+  if(includeAttribution){
+    const isAdd=modalAction!=="update";
+    const staffEmail=getStaffEmail();
+    const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
+    notes=[notes,attribNote].filter(Boolean).join(" | ");
+  }
   return{
     secret:PAYMENT_WRITE_SECRET,actionType:modalAction,
     block,flatNo:flat,amount:Number(document.getElementById("fAmount").value),
@@ -1968,7 +1994,7 @@ function getPayload(){
     paymentDate:fmtSheetDate(payDate),paymentDateInput:payDate,
     paymentMonthSheet:monthFromDate(payDate),
     paidMonths:selectedMonths(),
-    notes:document.getElementById("fNotes").value.trim(),
+    notes,
     paymentStatus:"DONE"
   };
 }
@@ -2033,7 +2059,7 @@ async function savePayment(e){
 async function deletePayment(){
   if(!editCtx)return;
   const scroll={x:window.scrollX,y:window.scrollY};
-  const payload=getPayload(); payload.actionType="delete";
+  const payload=getPayload(false); payload.actionType="delete";
   const sb=document.getElementById("saveBtn"),db=document.getElementById("deleteBtn");
   sb.disabled=true; db.disabled=true;
   setFormMsg("Deleting…");
@@ -2090,8 +2116,8 @@ document.getElementById("mobMenuBtn")?.addEventListener("click",openDrawer);
 _mobOverlay?.addEventListener("click",closeDrawer);
 
 /* ── Sidebar logout ── */
-document.getElementById("desktopLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
+document.getElementById("desktopLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
+document.getElementById("drawerLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
 
 /* ── Dropdown setup ── */
 function setupDD(togId,ddId){
@@ -2106,7 +2132,7 @@ document.addEventListener("click",()=>{
 });
 
 /* ── Logout ── */
-document.getElementById("logoutDesk")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
+document.getElementById("logoutDesk")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
 
 /* ── Year sync ── */
 const yDesk=document.getElementById("yearDesk"),yMob=document.getElementById("yearMob");
