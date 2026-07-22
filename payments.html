@@ -1579,9 +1579,8 @@ function renderAll(){
         chtml+=`<div class="year-section"><div class="year-row" data-year="${yr}"><span class="year-label">${yr}</span><div class="year-right"><span class="year-total">${fmt$(yd.total)}</span><span class="year-chevron"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></span></div></div>
         <div class="year-months"><div class="month-grid">`;
         months.forEach((m,i)=>{
-          const isPaidTile=yd.paidMonthIndices?.has(i)||false;
           const txMd=yd.months?.[i]||null;
-          const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`;
+          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`;
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent;
           if(txMd){
@@ -1936,20 +1935,10 @@ function openAddModalForCell(block,flat,year,mi){
   document.getElementById("payYear").value=String(Number(year));
   const key=PaymentMonths.toKey(Number(year),Number(mi));
   refreshMonthPicker([key]);
-  // Default the payment date to somewhere sensible inside the clicked
-  // month/year: today if it's the current month, the last day of that
-  // month if it's in the past, otherwise leave today's date (can't pick a
-  // future payment date).
-  const today=getToday();
-  const y=Number(year),m=Number(mi);
-  const now=new Date();
-  const isCurrentMonth=(y===now.getFullYear()&&m===now.getMonth());
-  if(!isCurrentMonth){
-    const lastDay=new Date(y,m+1,0);
-    const candidate=`${y}-${String(m+1).padStart(2,"0")}-${String(lastDay.getDate()).padStart(2,"0")}`;
-    if(candidate<=today)document.getElementById("fDate").value=candidate;
-  }
+  // Payment date always defaults to today (already set by openModal above);
+  // the user can change it to any valid past date if required.
 }
+
 
 function closeModal(){
   setMonthPickerOpen(false);
