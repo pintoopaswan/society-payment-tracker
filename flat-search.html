@@ -2590,13 +2590,17 @@ function paymentMonthCode(value){
 
 /* Parse a record's raw "paidMonths" cell into canonical "YYYY-MM" keys.
    The record's own tab (record.year / record.monthIndex) is used as the
-   inference anchor for legacy bare month names (see payment-months.js). */
+   inference anchor for legacy bare month names (see payment-months.js).
+
+   Paid Months field is the ONLY source of truth for coverage — no fallback.
+   If paidMonths is empty/unparseable, the record covers nothing. (Matches
+   payments.html; previously this silently treated an empty paidMonths cell
+   as if the record's own tab month were paid, which produced phantom extra
+   months — e.g. an empty June row showing up as "June paid" here while
+   payments.html correctly showed no June coverage.) */
 function paidMonthsForRecord(record){
   if(!record)return [];
-  const keys=PaymentMonths.parseField(record.paidMonths,Number(record.year),Number(record.monthIndex));
-  if(keys.length)return keys;
-  const fallback=PaymentMonths.toKey(Number(record.year),Number(record.monthIndex));
-  return fallback?[fallback]:[];
+  return PaymentMonths.parseField(record.paidMonths,Number(record.year),Number(record.monthIndex));
 }
 
 /* "YYYY-MM" keys → "Nov 2025, Dec 2025, Jan 2026" for display. */
@@ -2870,21 +2874,45 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
 ═══════════════════════════════════════════════ */
 
 /* ── Staff email (for audit trail) ──
-   There is no per-user login/email captured anywhere in this app today
-   (the auth gate is a single shared password — see AUTH_KEY). Until a real
-   login step exists, we capture the logged-in person's email once and keep
-   it in localStorage (so it survives across sessions on this device/browser,
-   not just the current tab), then stamp it onto the payment's notes so
-   there is a record of who made the change. It's cleared on logout (see the
-   logout handler below) so the next person to log in on this browser is
-   asked for their own email instead of inheriting the previous person's. */
+   The app sits behind Cloudflare Access, gated by Gmail login, so the
+   real identity of whoever is logged in is available from Cloudflare via
+   the same-origin `/cdn-cgi/access/get-identity` endpoint (no separate
+   login step of our own needed). We fetch it once and cache the email in
+   localStorage (so it survives across sessions on this device/browser),
+   then stamp it onto the payment's notes so there is a record of who made
+   the change. It's cleared on logout (see the logout handler below) so a
+   different Cloudflare-authenticated person gets their own identity looked
+   up again. If the identity endpoint is ever unreachable (e.g. testing
+   outside Cloudflare Access), we fall back to asking once via prompt so
+   attribution still works. */
 const STAFF_EMAIL_KEY="mig_staff_email";
-function getStaffEmail(){
+async function fetchAccessIdentityEmail(){
+  try{
+    const res=await fetch("/cdn-cgi/access/get-identity",{credentials:"include"});
+    if(!res.ok)return "";
+    const data=await res.json();
+    return String(data?.email||"").trim();
+  }catch(ex){
+    return "";
+  }
+}
+async function getStaffEmail(){
   let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
   if(email)return email;
-  const entered=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
-  if(entered){ localStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
+  email=await fetchAccessIdentityEmail();
+  if(!email){
+    email=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
+  }
+  if(email)localStorage.setItem(STAFF_EMAIL_KEY,email);
   return email;
+}
+/* Prefetch right away: the page only ever loads because Cloudflare Access
+   already authenticated this request, so grab the identity now and cache
+   it, instead of waiting until the first payment save to fetch it. Silent
+   (no prompt fallback here) — getStaffEmail() still covers that case if
+   this prefetch doesn't find anything by the time a save happens. */
+if(!localStorage.getItem(STAFF_EMAIL_KEY)){
+  fetchAccessIdentityEmail().then(email=>{ if(email)localStorage.setItem(STAFF_EMAIL_KEY,email); });
 }
 
 /* ── Month picker helpers ──
@@ -3093,7 +3121,7 @@ async function savePaymentForm(){
     return`${d}/${m}/${y}`;
   })();
   const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
-  const staffEmail=getStaffEmail();
+  const staffEmail=await getStaffEmail();
   const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
   const remarks=[rawRemarks,auditNote,attribNote].filter(Boolean).join(" | ");
 
