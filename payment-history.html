@@ -197,6 +197,13 @@ body.modal-open{overflow:hidden}
 .year-sel:hover{border-color:var(--blue-300)}
 .year-sel:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(37,99,235,0.12)}
 .refresh-btn,.export-btn{height:34px;padding:0 13px;font-size:0.76rem;font-weight:600;border:1px solid var(--line-md);border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;gap:7px;transition:all 0.18s var(--ease-out)}
+.export-wrap{position:relative}
+.export-btn .chev-ico{transition:transform 0.18s var(--ease-out)}
+.export-wrap.open .export-btn .chev-ico{transform:rotate(180deg)}
+.export-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--s-lg);padding:6px;min-width:172px;display:none;animation:scaleIn 0.18s var(--ease-out) both;transform-origin:top right;z-index:20}
+.export-wrap.open .export-menu{display:block}
+.export-menu button{width:100%;display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--r-sm);font-size:0.8rem;font-weight:500;color:var(--ink-2);transition:background 0.13s,color 0.13s;background:transparent;text-align:left}
+.export-menu button:hover{background:var(--blue-50);color:var(--blue-700)}
 .refresh-btn:hover{background:var(--blue-50);border-color:var(--blue-200);color:var(--blue-600);transform:translateY(-1px);box-shadow:var(--s-sm)}
 .export-btn:hover{background:var(--green-50);border-color:var(--green-100);color:var(--green-700);transform:translateY(-1px);box-shadow:var(--s-sm)}
 .refresh-btn.loading svg{animation:spin 0.75s linear infinite}
@@ -298,7 +305,7 @@ body.modal-open{overflow:hidden}
 .page{padding:20px 28px 32px;max-width:1600px;margin:0 auto;flex:1;min-width:0;width:100%}
 
 /* ── PAGE HERO ── */
-.page-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;padding:0 2px;animation:fadeUp 0.38s var(--ease-out) both}
+.page-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;padding:0 2px;animation:fadeUp 0.38s var(--ease-out) both;position:relative;z-index:2}
 .hero-eyebrow{font-size:0.68rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
 .hero-title{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-0.04em;line-height:1.1;font-family:'Fraunces',serif}
 .hero-sub{font-size:0.82rem;color:var(--ink-3);margin-top:5px;font-weight:400}
@@ -357,16 +364,6 @@ body.modal-open{overflow:hidden}
 }
 .results-count{font-size:0.78rem;font-weight:600;color:var(--ink-3)}
 .results-count strong{color:var(--ink-2)}
-.sort-wrap{display:flex;align-items:center;gap:6px}
-.sort-label{font-size:0.72rem;color:var(--ink-4);font-weight:500}
-.sort-select{
-  height:30px;padding:0 24px 0 10px;font-size:0.72rem;font-weight:600;
-  border:1px solid var(--line-md);border-radius:var(--r-sm);
-  background:var(--surface-2);color:var(--ink-2);
-  appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231e3a72' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 7px center;
-}
 
 /* ── TABLE ── */
 .table-card{
@@ -388,6 +385,11 @@ th{
 }
 th.th-num{text-align:right}
 th.th-center{text-align:center}
+th[data-sort]{cursor:pointer;user-select:none;transition:background 0.15s,color 0.15s}
+th[data-sort]:hover{background:linear-gradient(160deg,var(--midnight-800) 0%,var(--midnight-700) 100%);color:#fff}
+th[data-sort] .sort-arrow{display:inline-block;margin-left:6px;font-size:0.72em;opacity:0.32;transform:translateY(-1px);transition:opacity 0.15s,transform 0.15s}
+th[data-sort].sorted .sort-arrow{opacity:1;color:var(--blue-300,#93c5fd)}
+th[data-sort].sorted.dir-desc .sort-arrow{transform:translateY(-1px) rotate(180deg)}
 td{border-bottom:1px solid var(--surface-3);padding:11px 14px;font-size:0.8rem;color:var(--ink-2);vertical-align:middle}
 td.td-num{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.82rem}
 td.td-center{text-align:center}
@@ -612,7 +614,6 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
   .table-card{display:none}
   .mob-card-list{display:block}
   .results-meta{flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:10px}
-  .sort-wrap{align-self:flex-end}
   .pagination{padding:11px 14px;gap:8px}
   .pg-btn{min-width:34px;height:34px;font-size:0.78rem}
 }
@@ -665,10 +666,23 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
         Refresh
       </button>
-      <button id="exportBtn" class="export-btn" type="button">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
-        Export CSV
-      </button>
+      <div class="export-wrap" id="exportWrapDesk">
+        <button id="exportBtn" class="export-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
+          Export
+          <svg class="chev-ico" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+        </button>
+        <div class="export-menu" id="exportMenuDesk">
+          <button type="button" data-export="csv">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v3h3"/></svg>
+            Export as CSV
+          </button>
+          <button type="button" data-export="pdf">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v3h3"/></svg>
+            Export as PDF
+          </button>
+        </div>
+      </div>
       <div class="profile-wrap">
         <button class="profile-btn" id="profileTogDesk" type="button">A</button>
         <div class="profile-dropdown" id="pdDesk">
@@ -767,10 +781,23 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
       <div class="hero-sub">Full transaction log — every payment recorded across all flats and months</div>
     </div>
     <div class="hero-actions desktop-only">
-      <button id="exportBtnPage" class="export-btn" type="button">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
-        Export CSV
-      </button>
+      <div class="export-wrap" id="exportWrapPage">
+        <button id="exportBtnPage" class="export-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
+          Export
+          <svg class="chev-ico" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+        </button>
+        <div class="export-menu" id="exportMenuPage">
+          <button type="button" data-export="csv">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v3h3"/></svg>
+            Export as CSV
+          </button>
+          <button type="button" data-export="pdf">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v3h3"/></svg>
+            Export as PDF
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -851,17 +878,6 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
   <!-- Results meta -->
   <div class="results-meta">
     <div class="results-count" id="resultsCount">Loading…</div>
-    <div class="sort-wrap">
-      <span class="sort-label">Sort by</span>
-      <select id="sortSelect" class="sort-select">
-        <option value="date-desc">Date (Newest)</option>
-        <option value="date-asc">Date (Oldest)</option>
-        <option value="amount-desc">Amount (High → Low)</option>
-        <option value="amount-asc">Amount (Low → High)</option>
-        <option value="block-asc">Block A → Z</option>
-        <option value="flat-asc">Flat Number</option>
-      </select>
-    </div>
   </div>
 
   <!-- Desktop table -->
@@ -871,12 +887,11 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
         <thead>
           <tr>
             <th style="width:42px">#</th>
-            <th style="width:110px">Block</th>
-            <th style="width:72px">Flat</th>
-            <th class="th-num" style="width:100px">Amount</th>
-            <th style="width:120px">Payment Mode</th>
-            <th style="width:105px">Payment Date</th>
-            <th style="width:105px">Sheet Month</th>
+            <th style="width:110px" data-sort="block">Block<span class="sort-arrow">▲</span></th>
+            <th style="width:72px" data-sort="flat">Flat<span class="sort-arrow">▲</span></th>
+            <th class="th-num" style="width:100px" data-sort="amount">Amount<span class="sort-arrow">▲</span></th>
+            <th style="width:120px" data-sort="mode">Payment Mode<span class="sort-arrow">▲</span></th>
+            <th style="width:105px" data-sort="date">Payment Date<span class="sort-arrow">▲</span></th>
             <th style="width:120px">Received By</th>
             <th style="width:170px">Paid Months</th>
             <th>Remarks</th>
@@ -884,7 +899,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
         </thead>
         <tbody id="tableBody">
           <tr class="loading-row">
-            <td colspan="10"><div class="spinner"></div></td>
+            <td colspan="9"><div class="spinner"></div></td>
           </tr>
         </tbody>
       </table>
@@ -935,6 +950,8 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
      JAVASCRIPT
 ════════════════════════════════════════════════ -->
 <script src="payment-months.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
 <script>
 /* ── Constants (exact match to payments.html) ── */
 const SHEET_IDS_BY_YEAR = {
@@ -970,6 +987,7 @@ const monthSheetNamesByYear = {
 let allRecords = [];    // flat array of every transaction row
 let filtered   = [];   // after filters applied
 let currentPage = 1;
+let sortState = {col:"date", dir:"desc"};   // driven by clicking sortable column headers
 const PAGE_SIZE_DESK = 15;
 const PAGE_SIZE_MOB  = 10;
 function isMobile(){ return window.innerWidth <= 768; }
@@ -1062,7 +1080,7 @@ async function loadData(){
   if(btn) btn.classList.add("loading");
 
   document.getElementById("tableBody").innerHTML =
-    `<tr class="loading-row"><td colspan="10"><div class="spinner"></div></td></tr>`;
+    `<tr class="loading-row"><td colspan="9"><div class="spinner"></div></td></tr>`;
   document.getElementById("mobCardList").innerHTML = "";
 
   allRecords = [];
@@ -1146,7 +1164,7 @@ function applyFiltersAndRender(){
   const mode     = document.getElementById("modeFilter").value;
   const recv     = document.getElementById("recvFilter").value;
   const monthIdx = document.getElementById("monthFilter").value;
-  const sortVal  = document.getElementById("sortSelect").value;
+  const sortVal  = `${sortState.col}-${sortState.dir}`;
 
   filtered = allRecords.filter(r => {
     if(block && r.block !== block) return false;
@@ -1168,16 +1186,32 @@ function applyFiltersAndRender(){
       case "amount-desc": return b.amount - a.amount;
       case "amount-asc":  return a.amount - b.amount;
       case "block-asc":   return a.block.localeCompare(b.block,undefined,{numeric:true});
+      case "block-desc":  return b.block.localeCompare(a.block,undefined,{numeric:true});
       case "flat-asc":    return parseInt(a.flat) - parseInt(b.flat);
+      case "flat-desc":   return parseInt(b.flat) - parseInt(a.flat);
+      case "mode-asc":    return (a.mode||"").localeCompare(b.mode||"");
+      case "mode-desc":   return (b.mode||"").localeCompare(a.mode||"");
       default:            return 0;
     }
   });
+
+  updateSortHeaders(sortVal);
 
   currentPage = 1;
   updateKpis();
   renderTable();
   renderMobileCards();
   renderPagination();
+}
+
+/* Sync the ▲/▼ arrow on sortable column headers with the active sort. */
+function updateSortHeaders(sortVal){
+  const [col, dir] = String(sortVal||"").split("-");
+  document.querySelectorAll("th[data-sort]").forEach(th=>{
+    const active = th.dataset.sort === col;
+    th.classList.toggle("sorted", active);
+    th.classList.toggle("dir-desc", active && dir === "desc");
+  });
 }
 
 /* ── KPI computation on filtered data ── */
@@ -1262,7 +1296,7 @@ function updateKpis(){
 function renderTable(){
   const tbody = document.getElementById("tableBody");
   if(!filtered.length){
-    tbody.innerHTML=`<tr><td colspan="10" style="padding:0;border:none"><div class="empty-state">
+    tbody.innerHTML=`<tr><td colspan="9" style="padding:0;border:none"><div class="empty-state">
       <div class="empty-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
       <div class="empty-title">No transactions found</div>
       <div class="empty-body">Try adjusting the filters or clearing your search to see results.</div>
@@ -1285,9 +1319,6 @@ function renderTable(){
     if(r.paidMonthKeys && r.paidMonthKeys.length){
       paidChips = `<div class="months-pill">${r.paidMonthKeys.map(k=>`<span class="m-chip">${PaymentMonths.label(k)}</span>`).join("")}</div>`;
     }
-    /* Sheet month label */
-    const sheetMonthLbl = MONTH_SHORT[r.sheetMonth] || "";
-
     html += `<tr>
       <td class="td-center"><span class="row-idx">${globalIdx+1}</span></td>
       <td><span class="block-badge">${r.block}</span></td>
@@ -1295,7 +1326,6 @@ function renderTable(){
       <td class="td-num amount-cell">${fmt$(r.amount)}</td>
       <td><span class="mode-badge ${modeCls}">${modeLbl}</span></td>
       <td class="date-cell">${r.date||"—"}</td>
-      <td class="td-center" style="font-size:0.74rem;color:var(--ink-3)">${sheetMonthLbl} ${r.sheetYear}</td>
       <td class="recv-cell">${r.receivedBy||"—"}</td>
       <td>${paidChips || '<span style="color:var(--ink-4);font-size:0.74rem">—</span>'}</td>
       <td><span class="remarks-cell" title="${r.notes||""}">${r.notes||"—"}</span></td>
@@ -1367,18 +1397,104 @@ function renderMobileCards(){
 
 /* ── Export CSV ── */
 function exportCsv(){
-  const headers = ["#","Block","Flat","Amount","Payment Mode","Payment Date","Sheet Month","Received By","Paid Months","Remarks"];
-  const rows = filtered.map((r,i)=>[
-    i+1, r.block, r.flat, r.amount, r.mode, r.date,
-    `${MONTH_SHORT[r.sheetMonth]||""} ${r.sheetYear}`,
-    r.receivedBy, r.paidMonths, `"${(r.notes||"").replace(/"/g,'""')}"`
-  ].join(","));
+  const headers = ["#","Block","Flat","Amount","Payment Mode","Payment Date","Received By","Paid Months","Remarks"];
+  const rows = filtered.map((r,i)=>{
+    const paidMonthsFmt = (r.paidMonthKeys && r.paidMonthKeys.length) ? PaymentMonths.formatList(r.paidMonthKeys).join(", ") : "";
+    return [
+      i+1, r.block, r.flat, r.amount, r.mode, r.date,
+      r.receivedBy, `"${paidMonthsFmt.replace(/"/g,'""')}"`, `"${(r.notes||"").replace(/"/g,'""')}"`
+    ].join(",");
+  });
   const csv = [headers.join(","), ...rows].join("\n");
   const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `payment-history-${activeYear() === "all" ? "all-years" : activeYear()}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ── Export PDF ── */
+/* jsPDF's built-in fonts (helvetica/times/courier) only support the
+   WinAnsi character set — they have no glyph for ₹ (U+20B9) and drop or
+   mis-measure a handful of other Unicode punctuation marks that sometimes
+   turn up in free-text fields (smart quotes, em/en dashes, ellipsis,
+   emoji, etc). Feeding those straight into autoTable breaks its string-
+   width math (which is why the ₹ in Amount was throwing off right-align
+   enough to clip the last digit) and renders inconsistently wherever they
+   appear (which is why Remarks looked mismatched). Normalize everything
+   to the safe WinAnsi range before it reaches the PDF so every cell uses
+   the same font consistently. */
+function pdfSafe(v){
+  return String(v==null ? "" : v)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u20B9/g, "Rs. ")
+    .replace(/[^\x00-\xFF]/g, "")
+    .trim();
+}
+const fmtAmtPdf = v => pdfSafe(`Rs. ${Number(v||0).toLocaleString("en-IN")}`);
+
+function exportPdf(){
+  const JsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!JsPDFCtor){
+    alert("PDF export isn't available right now — the PDF library failed to load. Check your connection and try again.");
+    return;
+  }
+
+  const yearLabel = activeYear() === "all" ? "All Years" : activeYear();
+  const generatedOn = new Date().toLocaleString("en-IN", {dateStyle:"medium", timeStyle:"short"});
+
+  const doc = new JsPDFCtor({orientation:"landscape", unit:"pt", format:"a4"});
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(15);
+  doc.setTextColor(15,23,42);
+  doc.text("MIG Society, Sector-29 — Payment History", 40, 38);
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(100,116,139);
+  doc.text(`Year: ${yearLabel}   ·   Records: ${fmtN(filtered.length)}   ·   Generated: ${generatedOn}`, 40, 55);
+
+  const head = [["#","Block","Flat","Amount","Mode","Payment Date","Received By","Paid Months","Remarks"]];
+  const body = filtered.map((r,i)=>{
+    const paidMonthsFmt = (r.paidMonthKeys && r.paidMonthKeys.length) ? PaymentMonths.formatList(r.paidMonthKeys).join(", ") : "-";
+    return [
+      i+1, pdfSafe(r.block), pdfSafe(r.flat), fmtAmtPdf(r.amount), pdfSafe(r.mode)||"-", pdfSafe(r.date)||"-",
+      pdfSafe(r.receivedBy)||"-", pdfSafe(paidMonthsFmt), pdfSafe(r.notes)
+    ];
+  });
+
+  doc.autoTable({
+    head, body,
+    startY: 68,
+    theme: "grid",
+    styles:{font:"helvetica", fontStyle:"normal", fontSize:8, cellPadding:5, textColor:[30,41,59], lineColor:[226,232,240], lineWidth:0.5, overflow:"linebreak"},
+    headStyles:{font:"helvetica", fillColor:[37,99,235], textColor:255, fontStyle:"bold", fontSize:8.5},
+    bodyStyles:{font:"helvetica", fontStyle:"normal"},
+    alternateRowStyles:{fillColor:[248,250,252]},
+    columnStyles:{
+      0:{cellWidth:24},
+      3:{halign:"right", cellWidth:78, fontStyle:"normal"},
+      5:{cellWidth:70},
+      7:{cellWidth:140},
+      8:{fontStyle:"normal"}
+    },
+    margin:{left:40, right:40, top:40}
+  });
+
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(8);
+    doc.setTextColor(148,163,184);
+    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.getWidth()-90, doc.internal.pageSize.getHeight()-16);
+  }
+
+  doc.save(`payment-history-${activeYear() === "all" ? "all-years" : activeYear()}.pdf`);
 }
 
 /* ── Render pagination ── */
@@ -1457,8 +1573,19 @@ function wireControls(){
   ["searchInput"].forEach(id=>{
     document.getElementById(id)?.addEventListener("input", debouncedApply);
   });
-  ["blockFilter","modeFilter","recvFilter","monthFilter","sortSelect"].forEach(id=>{
+  ["blockFilter","modeFilter","recvFilter","monthFilter"].forEach(id=>{
     document.getElementById(id)?.addEventListener("change", applyFiltersAndRender);
+  });
+
+  /* Clickable column-header sorting (Block, Flat, Amount, Payment Mode, Payment Date) */
+  const HEADER_SORT_DEFAULT_DIR = {block:"asc", flat:"asc", amount:"desc", mode:"asc", date:"desc"};
+  document.querySelectorAll("th[data-sort]").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const col = th.dataset.sort;
+      const dir = (sortState.col === col) ? (sortState.dir === "asc" ? "desc" : "asc") : HEADER_SORT_DEFAULT_DIR[col];
+      sortState = {col, dir};
+      applyFiltersAndRender();
+    });
   });
 
   /* Clear all */
@@ -1474,9 +1601,26 @@ function wireControls(){
   /* Refresh */
   document.getElementById("refreshBtn")?.addEventListener("click", loadData);
 
-  /* Export */
-  ["exportBtn","exportBtnPage"].forEach(id=>{
-    document.getElementById(id)?.addEventListener("click", exportCsv);
+  /* Export dropdowns (CSV / PDF) */
+  [["exportWrapDesk","exportBtn"],["exportWrapPage","exportBtnPage"]].forEach(([wrapId,btnId])=>{
+    const wrap = document.getElementById(wrapId);
+    const btn  = document.getElementById(btnId);
+    if(!wrap || !btn) return;
+    btn.addEventListener("click", e=>{
+      e.stopPropagation();
+      document.querySelectorAll(".export-wrap.open").forEach(w=>{
+        if(w !== wrap){ w.classList.remove("open"); w.querySelector(".export-btn")?.setAttribute("aria-expanded","false"); }
+      });
+      const isOpen = wrap.classList.toggle("open");
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+    wrap.querySelectorAll("[data-export]").forEach(opt=>{
+      opt.addEventListener("click", ()=>{
+        wrap.classList.remove("open");
+        btn.setAttribute("aria-expanded","false");
+        if(opt.dataset.export === "pdf") exportPdf(); else exportCsv();
+      });
+    });
   });
 
   /* Profile dropdowns */
@@ -1489,6 +1633,10 @@ function wireControls(){
   });
   document.addEventListener("click", ()=>{
     document.querySelectorAll(".profile-dropdown.open").forEach(d=>d.classList.remove("open"));
+    document.querySelectorAll(".export-wrap.open").forEach(w=>{
+      w.classList.remove("open");
+      w.querySelector(".export-btn")?.setAttribute("aria-expanded","false");
+    });
   });
 
   /* Logout */
