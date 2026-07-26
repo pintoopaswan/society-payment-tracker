@@ -558,8 +558,9 @@ tr:hover td:nth-child(1),tr:hover td:nth-child(2){background:var(--blue-50)}
 td.paid{background:var(--green-50);color:var(--green-700);cursor:pointer;border-left:2px solid var(--green-200)}
 td.paid:hover{background:#d1fae5;transform:scale(1.02)}
 /* ── Unpaid / empty cell — RED ── */
-td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-left:2px solid var(--red-100)}
+td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-left:2px solid var(--red-100);cursor:pointer;transition:background 0.14s,color 0.14s}
 tr:hover td.empty{background:#ffe4e6}
+td.empty:hover{background:var(--blue-50);color:var(--blue-600)}
 td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid var(--red-200)}
 
 .total-row td{
@@ -654,8 +655,10 @@ td.empty.has-tx:hover{background:#ffe4e6}
 .month-tile.not-paid{background:var(--red-50);border-color:var(--red-100);cursor:pointer;border-left:3px solid var(--red-300)}
 .month-tile.not-paid:hover{background:#ffe4e6}
 /* Red — empty months (no transaction at all) */
-.month-tile.no-data{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100)}
-.month-tile.no-data .mt-empty{color:var(--red-400)}
+.month-tile.no-data{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100);cursor:pointer}
+.month-tile.no-data .mt-empty{color:var(--red-400);font-weight:600}
+.month-tile.no-data:hover{background:var(--blue-50);border-color:var(--blue-200)}
+.month-tile.no-data:hover .mt-empty{color:var(--blue-600)}
 .mt-name{font-size:0.72rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.06em}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--green-700);font-family:'DM Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
@@ -1291,7 +1294,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwu5LEqAVy1BKgQX5kNZJzsLdzgSdX53GPLMFm85ryefTi7jNEHy3-lLSLP6YQ7qea9Xg/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxRcXiJKt-HHVizq7Qm3wLcKS_blsyzTAKOsqorzZtPUo3zJzRB7M_uKddi2HrWle-dTg/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -1303,6 +1306,25 @@ const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={};
 let modalAction="create", editCtx=null;
 let selectedPaidMonthKeys=new Set(); // "YYYY-MM" keys selected across ALL years, not just the one currently shown
+
+/* ── Staff email (for audit trail) ──
+   There is no per-user login/email captured anywhere in this app today
+   (the auth gate is a single shared password — see AUTH_SESSION_KEY). Until
+   a real login step exists, we capture the logged-in person's email once
+   and keep it in localStorage (so it survives across sessions on this
+   device/browser, not just the current tab), then stamp it onto the
+   payment's notes so there is a record of who made the change. It's
+   cleared on logout (see the logout handlers below) so the next person to
+   log in on this browser is asked for their own email instead of
+   inheriting the previous person's. */
+const STAFF_EMAIL_KEY="mig_staff_email";
+function getStaffEmail(){
+  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
+  if(email)return email;
+  const entered=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
+  if(entered){ localStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
+  return email;
+}
 
 /* ── Utils ── */
 const parseCSV = l => l.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,""))||[];
@@ -1520,7 +1542,8 @@ function renderAll(){
         const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
         html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
       }else{
-        html+=`<td class="empty month-cell">—</td>`;
+        const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
+        html+=`<td class="empty month-cell"${aa}>—</td>`;
       }
     });
     html+=`<td><strong style="font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></td></tr>`;
@@ -1575,15 +1598,14 @@ function renderAll(){
         chtml+=`<div class="year-section"><div class="year-row" data-year="${yr}"><span class="year-label">${yr}</span><div class="year-right"><span class="year-total">${fmt$(yd.total)}</span><span class="year-chevron"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></span></div></div>
         <div class="year-months"><div class="month-grid">`;
         months.forEach((m,i)=>{
-          const isPaidTile=yd.paidMonthIndices?.has(i)||false;
           const txMd=yd.months?.[i]||null;
-          const ea=(isPaidTile||txMd)?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`;
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent;
           if(txMd){
             tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
           }else{
-            tileContent=`<div class="mt-empty">—</div>`;
+            tileContent=`<div class="mt-empty">+ Add</div>`;
           }
           chtml+=`<div class="month-tile${txMd?" has-payment":" no-data"}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
@@ -1922,6 +1944,21 @@ function openEditModal(ctx){
   refreshMonthPicker(ctx.paidMonths||[]);
 }
 
+function openAddModalForCell(block,flat,year,mi){
+  if(!block||!flat||!year||mi<0)return;
+  openModal({mode:"web",block,flat});
+  populateBlockOptions(block);
+  populateFlatOptions(block,flat);
+  document.getElementById("fBlock").value=block;
+  document.getElementById("fFlat").value=flat;
+  document.getElementById("payYear").value=String(Number(year));
+  const key=PaymentMonths.toKey(Number(year),Number(mi));
+  refreshMonthPicker([key]);
+  // Payment date always defaults to today (already set by openModal above);
+  // the user can change it to any valid past date if required.
+}
+
+
 function closeModal(){
   setMonthPickerOpen(false);
   const overlay=document.getElementById("payModalOverlay");
@@ -1939,9 +1976,16 @@ function findCtx(block,flat,year,mi){
 }
 
 /* ── Form submit ── */
-function getPayload(){
+function getPayload(includeAttribution=true){
   const {block,flat}=activeBlockFlat();
   const payDate=document.getElementById("fDate").value;
+  let notes=document.getElementById("fNotes").value.trim();
+  if(includeAttribution){
+    const isAdd=modalAction!=="update";
+    const staffEmail=getStaffEmail();
+    const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
+    notes=[notes,attribNote].filter(Boolean).join(" | ");
+  }
   return{
     secret:PAYMENT_WRITE_SECRET,actionType:modalAction,
     block,flatNo:flat,amount:Number(document.getElementById("fAmount").value),
@@ -1950,7 +1994,7 @@ function getPayload(){
     paymentDate:fmtSheetDate(payDate),paymentDateInput:payDate,
     paymentMonthSheet:monthFromDate(payDate),
     paidMonths:selectedMonths(),
-    notes:document.getElementById("fNotes").value.trim(),
+    notes,
     paymentStatus:"DONE"
   };
 }
@@ -2015,7 +2059,7 @@ async function savePayment(e){
 async function deletePayment(){
   if(!editCtx)return;
   const scroll={x:window.scrollX,y:window.scrollY};
-  const payload=getPayload(); payload.actionType="delete";
+  const payload=getPayload(false); payload.actionType="delete";
   const sb=document.getElementById("saveBtn"),db=document.getElementById("deleteBtn");
   sb.disabled=true; db.disabled=true;
   setFormMsg("Deleting…");
@@ -2072,8 +2116,8 @@ document.getElementById("mobMenuBtn")?.addEventListener("click",openDrawer);
 _mobOverlay?.addEventListener("click",closeDrawer);
 
 /* ── Sidebar logout ── */
-document.getElementById("desktopLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
+document.getElementById("desktopLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
+document.getElementById("drawerLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
 
 /* ── Dropdown setup ── */
 function setupDD(togId,ddId){
@@ -2088,7 +2132,7 @@ document.addEventListener("click",()=>{
 });
 
 /* ── Logout ── */
-document.getElementById("logoutDesk")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
+document.getElementById("logoutDesk")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
 
 /* ── Year sync ── */
 const yDesk=document.getElementById("yearDesk"),yMob=document.getElementById("yearMob");
@@ -2137,16 +2181,24 @@ document.getElementById("fDate").addEventListener("change",e=>{
 
 /* ── Table click ── */
 document.getElementById("tableBody").addEventListener("click",e=>{
-  const t=e.target.closest('[data-action="edit"]');
-  if(!t)return;
-  const ctx=findCtx(t.dataset.block||"",t.dataset.flat||"",t.dataset.year||"",Number(t.dataset.mi||-1));
-  if(ctx)openEditModal(ctx);
+  const editT=e.target.closest('[data-action="edit"]');
+  if(editT){
+    const ctx=findCtx(editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi||-1));
+    if(ctx)openEditModal(ctx);
+    return;
+  }
+  const addT=e.target.closest('[data-action="add"]');
+  if(addT){
+    openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
+  }
 });
 
 /* ── Mobile card clicks ── */
 document.getElementById("mobileCards").addEventListener("click",e=>{
   const edit=e.target.closest('[data-action="edit"]');
   if(edit){e.stopPropagation();const ctx=findCtx(edit.dataset.block||"",edit.dataset.flat||"",edit.dataset.year||"",Number(edit.dataset.mi||-1));if(ctx)openEditModal(ctx);return;}
+  const add=e.target.closest('[data-action="add"]');
+  if(add){e.stopPropagation();openAddModalForCell(add.dataset.block||"",add.dataset.flat||"",add.dataset.year||"",Number(add.dataset.mi??-1));return;}
   const yr=e.target.closest(".year-row");
   if(yr){yr.classList.toggle("expanded");return;}
   const head=e.target.closest(".mob-card-head");
