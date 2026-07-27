@@ -3120,7 +3120,8 @@ async function savePaymentForm(){
     const [y,m,d]=payDate.split("-");
     return`${d}/${m}/${y}`;
   })();
-  const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
+  const auditNote= "₹"+amount +" received on "+auditDate;
+  //const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
   const staffEmail=await getStaffEmail();
   const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
   const remarks=[rawRemarks,auditNote,attribNote].filter(Boolean).join(" | ");

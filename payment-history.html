@@ -1436,6 +1436,32 @@ function pdfSafe(v){
 }
 const fmtAmtPdf = v => pdfSafe(`Rs. ${Number(v||0).toLocaleString("en-IN")}`);
 
+/* Draw one summary tile (card with a colored top accent, label, big
+   value, and a small context line) — mirrors the on-screen KPI cards. */
+function drawKpiTile(doc, x, y, w, h, accent, bg, label, value, sub){
+  doc.setFillColor(bg[0],bg[1],bg[2]);
+  doc.setDrawColor(226,232,240);
+  doc.setLineWidth(0.6);
+  doc.rect(x, y, w, h, "FD");
+  doc.setFillColor(accent[0],accent[1],accent[2]);
+  doc.rect(x, y, w, 3, "F");
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(7);
+  doc.setTextColor(100,116,139);
+  doc.text(pdfSafe(label).toUpperCase(), x+12, y+22);
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(14.5);
+  doc.setTextColor(15,23,42);
+  doc.text(pdfSafe(value), x+12, y+41);
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(7.6);
+  doc.setTextColor(100,116,139);
+  doc.text(pdfSafe(sub), x+12, y+56);
+}
+
 function exportPdf(){
   const JsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
   if(!JsPDFCtor){
@@ -1458,18 +1484,47 @@ function exportPdf(){
   doc.setTextColor(100,116,139);
   doc.text(`Year: ${yearLabel}   ·   Records: ${fmtN(filtered.length)}   ·   Generated: ${generatedOn}`, 40, 55);
 
-  const head = [["#","Block","Flat","Amount","Mode","Payment Date","Received By","Paid Months","Remarks"]];
+  /* ── Summary tiles (same figures as the on-screen KPI cards, scoped to
+     the currently filtered/exported records) ── */
+  let totalCollection = 0, onlineCollection = 0, cashCollection = 0;
+  const uniqueFlats = new Set();
+  const EXPECTED_RATE = 200 * 12;
+  filtered.forEach(r=>{
+    totalCollection += r.amount;
+    if(r.mode === "ONLINE") onlineCollection += r.amount;
+    else if(r.mode === "CASH") cashCollection += r.amount;
+    uniqueFlats.add(`${r.block}-${r.flat}`);
+  });
+  const expectedTotal = uniqueFlats.size * EXPECTED_RATE;
+  const totalPct  = expectedTotal>0 ? Math.round((totalCollection/expectedTotal)*100) : 0;
+  const onlinePct = totalCollection>0 ? Math.round((onlineCollection/totalCollection)*100) : 0;
+  const cashPct   = totalCollection>0 ? Math.round((cashCollection/totalCollection)*100) : 0;
+
+  const tileY = 68, tileH = 62, tileGap = 12;
+  const pageW = doc.internal.pageSize.getWidth();
+  const tileW = (pageW - 80 - tileGap*3) / 4;
+
+  drawKpiTile(doc, 40, tileY, tileW, tileH, [59,130,246],[239,246,255],
+    "Total Collected", fmtAmtPdf(totalCollection), `${totalPct}% of expected`);
+  drawKpiTile(doc, 40+(tileW+tileGap), tileY, tileW, tileH, [16,185,129],[236,253,245],
+    "Transactions", fmtN(filtered.length), `${fmtN(uniqueFlats.size)} unique flats`);
+  drawKpiTile(doc, 40+(tileW+tileGap)*2, tileY, tileW, tileH, [245,158,11],[255,251,235],
+    "Online Collection", fmtAmtPdf(onlineCollection), `${onlinePct}% of total collected`);
+  drawKpiTile(doc, 40+(tileW+tileGap)*3, tileY, tileW, tileH, [139,92,246],[245,243,255],
+    "Cash Collection", fmtAmtPdf(cashCollection), `${cashPct}% of total collected`);
+
+  const head = [["#","Block","Flat","Amount","Mode","Payment Date","Received By","Paid Months"]];
   const body = filtered.map((r,i)=>{
     const paidMonthsFmt = (r.paidMonthKeys && r.paidMonthKeys.length) ? PaymentMonths.formatList(r.paidMonthKeys).join(", ") : "-";
     return [
       i+1, pdfSafe(r.block), pdfSafe(r.flat), fmtAmtPdf(r.amount), pdfSafe(r.mode)||"-", pdfSafe(r.date)||"-",
-      pdfSafe(r.receivedBy)||"-", pdfSafe(paidMonthsFmt), pdfSafe(r.notes)
+      pdfSafe(r.receivedBy)||"-", pdfSafe(paidMonthsFmt)
     ];
   });
 
   doc.autoTable({
     head, body,
-    startY: 68,
+    startY: tileY + tileH + 18,
     theme: "grid",
     styles:{font:"helvetica", fontStyle:"normal", fontSize:8, cellPadding:5, textColor:[30,41,59], lineColor:[226,232,240], lineWidth:0.5, overflow:"linebreak"},
     headStyles:{font:"helvetica", fillColor:[37,99,235], textColor:255, fontStyle:"bold", fontSize:8.5},
@@ -1479,8 +1534,7 @@ function exportPdf(){
       0:{cellWidth:24},
       3:{halign:"right", cellWidth:78, fontStyle:"normal"},
       5:{cellWidth:70},
-      7:{cellWidth:140},
-      8:{fontStyle:"normal"}
+      7:{cellWidth:170}
     },
     margin:{left:40, right:40, top:40}
   });
