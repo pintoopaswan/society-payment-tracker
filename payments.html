@@ -768,6 +768,9 @@ td.empty.has-tx:hover{background:#ffe4e6}
   transform:translateY(-65%) rotate(45deg);transition:transform 0.2s;
 }
 .month-picker-wrap.open .month-picker-trigger{border-color:var(--blue-400)}
+.month-picker-wrap.invalid .month-picker-trigger{border-color:var(--red-500);box-shadow:0 0 0 3px rgba(244,63,94,0.12)}
+.amount-months-hint{font-size:0.74rem;font-weight:600;color:var(--red-600);margin-top:6px;display:none}
+.amount-months-hint.show{display:block}
 .month-picker-wrap.open .month-picker-trigger::after{transform:translateY(-35%) rotate(-135deg)}
 .month-picker-dropdown{
   position:absolute;left:0;right:0;top:calc(100% + 6px);
@@ -1255,6 +1258,7 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
                 </div>
               </div>
             </div>
+            <div class="amount-months-hint" id="amountMonthsHint"></div>
           </div>
           <div class="form-field full">
             <label for="fNotes">Notes</label>
@@ -1295,7 +1299,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxRcXiJKt-HHVizq7Qm3wLcKS_blsyzTAKOsqorzZtPUo3zJzRB7M_uKddi2HrWle-dTg/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxCoj4o33jB6TQc4vZ6543yqFBI8jsu4WKHOXLGLkbjK3xt00br8bmoMDRiFQcrJeKwgA/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -1863,6 +1867,7 @@ function renderMonthGrid(){
     return`<label class="month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${lbl}</span><span class="mo-tag">Paid</span></label>`;
   }).join("");
   updateMonthTrigger();
+  updateAmountMonthsValidation();
 }
 /* Reset (or seed) the persistent selection and render the grid for
    whatever year is currently chosen in the Year dropdown. Called whenever
@@ -1881,8 +1886,30 @@ document.addEventListener("change",e=>{
     else selectedPaidMonthKeys.delete(e.target.value);
     if(opt)opt.classList.toggle("selected",e.target.checked);
     updateMonthTrigger();
+    updateAmountMonthsValidation();
   }
 });
+
+/* Live-validate the ₹200/month guard-fee rule as the user edits the
+   Amount field or toggles month checkboxes, so mismatches are caught
+   before they ever hit Save/Update — not just at submit time. Only
+   shows the red highlight/message once the Amount field has been
+   touched, so a freshly-opened modal (which seeds one default month
+   before any amount is typed) doesn't flash an error on open. */
+function updateAmountMonthsValidation(){
+  const amountRaw=document.getElementById("fAmount").value;
+  const amount=Number(amountRaw);
+  const monthCount=selectedMonths().length;
+  const err=PaymentMonths.validateAmountMonths(amount,monthCount);
+  const touched=amountRaw!=="";
+  const wrap=document.getElementById("monthPickerWrap");
+  const hint=document.getElementById("amountMonthsHint");
+  wrap.classList.toggle("invalid",touched&&!!err);
+  if(hint){ hint.textContent=touched?err:""; hint.classList.toggle("show",touched&&!!err); }
+  document.getElementById("saveBtn").disabled=!!err;
+  return err;
+}
+document.getElementById("fAmount").addEventListener("input",updateAmountMonthsValidation);
 
 /* ── Modal helpers ── */
 function setFormMsg(msg,ok=false){ const el=document.getElementById("formMsg"); el.textContent=msg; el.className="form-msg"+(ok?" success":""); }
@@ -2040,7 +2067,8 @@ function validatePayload(p){
   if(!p.paymentDate||!p.paymentMonthSheet)return"Please select a valid payment date.";
   if(p.paymentDateInput>getToday())return"Payment date cannot be in the future.";
   if(p.paymentMode==="CASH"&&!p.receivedBy)return"Please enter who received the cash payment.";
-  if(!p.paidMonths.length)return"Please select at least one month.";
+  const feeErr=PaymentMonths.validateAmountMonths(p.amount,p.paidMonths.length);
+  if(feeErr)return feeErr;
   // Defense in depth: re-check against the current disabled set in case the
   // in-form state went stale (e.g. data refreshed while the modal was open).
   const excludeKeys=(modalAction==="update"&&editCtx)?(editCtx.paidMonths||[]):[];

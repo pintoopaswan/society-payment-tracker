@@ -188,6 +188,38 @@
     return out;
   }
 
+  /* ── Guard maintenance fee validation ──────────────────────────────
+     The monthly guard maintenance fee is fixed at MONTHLY_FEE. Any
+     payment amount must be a positive whole multiple of it, and the
+     number of months selected in the picker must exactly equal
+     amount / MONTHLY_FEE. Both payments.html and flat-search.html call
+     validateAmountMonths() so the rule (and its wording) can't drift
+     between the two pages. The backend (guard-payment-write-apps-script.gs)
+     re-implements the same check server-side, since Apps Script can't
+     import this browser file. */
+  var MONTHLY_FEE = 200;
+
+  /* Returns "" when (amount, monthCount) are consistent with the guard
+     fee rule, otherwise a user-facing error message. */
+  function validateAmountMonths(amount, monthCount) {
+    var amt = Number(amount);
+    if (!Number.isFinite(amt) || amt <= 0 || Math.round(amt) !== amt || amt % MONTHLY_FEE !== 0) {
+      return "Payment amount must be a multiple of \u20B9" + MONTHLY_FEE + ".";
+    }
+    var required = amt / MONTHLY_FEE;
+    var count = Number(monthCount) || 0;
+    if (count !== required) {
+      var amtLabel = "\u20B9" + amt.toLocaleString("en-IN");
+      var reqWord = required === 1 ? "month" : "months";
+      if (count === 0) {
+        return "Please select exactly " + required + " " + reqWord + " for a payment of " + amtLabel + ".";
+      }
+      var countWord = count === 1 ? "month" : "months";
+      return "You have selected " + count + " " + countWord + ", but the entered amount covers " + required + " " + reqWord + ".";
+    }
+    return "";
+  }
+
   global.PaymentMonths = {
     MONTH_FULL: MONTH_FULL,
     MONTH_SHORT: MONTH_SHORT,
@@ -205,6 +237,8 @@
     buildWindow: buildWindow,
     YEAR_RANGE_START: YEAR_RANGE_START,
     yearOptions: yearOptions,
-    yearMonthKeys: yearMonthKeys
+    yearMonthKeys: yearMonthKeys,
+    MONTHLY_FEE: MONTHLY_FEE,
+    validateAmountMonths: validateAmountMonths
   };
 })(window);

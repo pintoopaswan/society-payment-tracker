@@ -1057,6 +1057,9 @@ body.dark .pay-year-select{background-color:var(--surface-3);border-color:var(--
   transform:translateY(-65%) rotate(45deg);transition:transform 0.2s;
 }
 .pay-month-picker-wrap.open .pay-month-picker-trigger{border-color:var(--blue-400)}
+.pay-month-picker-wrap.invalid .pay-month-picker-trigger{border-color:var(--red-500);box-shadow:0 0 0 3px rgba(244,63,94,0.12)}
+.pay-amount-months-hint{font-size:0.74rem;font-weight:600;color:var(--red-600);margin-top:6px;display:none}
+.pay-amount-months-hint.show{display:block}
 .pay-month-picker-wrap.open .pay-month-picker-trigger::after{transform:translateY(-35%) rotate(-135deg)}
 .pay-month-picker-dropdown{
   position:absolute;left:0;right:0;top:calc(100% + 6px);
@@ -1906,6 +1909,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
               </div>
             </div>
           </div>
+          <div class="pay-amount-months-hint" id="payAmountMonthsHint"></div>
         </div>
         <div class="pay-form-field full">
           <label for="editPayRemarks">Remarks</label>
@@ -1955,7 +1959,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxRcXiJKt-HHVizq7Qm3wLcKS_blsyzTAKOsqorzZtPUo3zJzRB7M_uKddi2HrWle-dTg/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxCoj4o33jB6TQc4vZ6543yqFBI8jsu4WKHOXLGLkbjK3xt00br8bmoMDRiFQcrJeKwgA/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2969,6 +2973,7 @@ function renderPayMonthGrid(){
     return`<label class="pay-month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${PaymentMonths.MONTH_DISPLAY[mi]}</span><span class="pmo-tag">Paid</span></label>`;
   }).join("");
   updatePayMonthTrigger();
+  updatePayAmountMonthsValidation();
 }
 
 /* selected/disabledMonths seed the picker (e.g. an existing record's paid
@@ -2990,8 +2995,31 @@ document.addEventListener("change",e=>{
     const opt=e.target.closest(".pay-month-option");
     if(opt)opt.classList.toggle("selected",e.target.checked);
     updatePayMonthTrigger();
+    updatePayAmountMonthsValidation();
   }
 });
+
+/* Live-validate the ₹200/month guard-fee rule as the user edits the
+   Amount field or toggles month checkboxes — mirrors payments.html so
+   the two pages behave identically. Only shows the red highlight/hint
+   once Amount has been touched, so a freshly-opened Add modal (which
+   seeds one default month before any amount is typed) doesn't flash an
+   error before the user has done anything. */
+function updatePayAmountMonthsValidation(){
+  const amountRaw=document.getElementById("editPayAmount").value;
+  const amount=Number(amountRaw);
+  const monthCount=getSelectedPayMonths().length;
+  const err=PaymentMonths.validateAmountMonths(amount,monthCount);
+  const touched=amountRaw!=="";
+  const wrap=document.getElementById("payMonthPickerWrap");
+  const hint=document.getElementById("payAmountMonthsHint");
+  wrap.classList.toggle("invalid",touched&&!!err);
+  if(hint){ hint.textContent=touched?err:""; hint.classList.toggle("show",touched&&!!err); }
+  const saveBtn=document.getElementById("paymentModalSave");
+  if(saveBtn)saveBtn.disabled=!!err;
+  return err;
+}
+document.getElementById("editPayAmount").addEventListener("input",updatePayAmountMonthsValidation);
 
 /* Switching the Year dropdown only changes which year's checkboxes are
    shown — the overall cross-year selection is untouched. */
@@ -3112,7 +3140,8 @@ async function savePaymentForm(){
   if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
   if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
   if(mode==="CASH"&&!receivedBy){ setPayFormMsg("Please enter who received the cash payment."); return; }
-  if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
+  const feeErr=PaymentMonths.validateAmountMonths(amount,paidMonths.length);
+  if(feeErr){ setPayFormMsg(feeErr); return; }
   const disabled=isAdd?alreadyPaidMonthsFor(null):alreadyPaidMonthsFor(p);
   const clash=paidMonths.find(k=>disabled.has(k));
   if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }

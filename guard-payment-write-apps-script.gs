@@ -170,6 +170,45 @@ function handlePaymentMutation(payload) {
   return savePaymentPayload(payload);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Guard maintenance fee validation — server-side mirror of
+   PaymentMonths.validateAmountMonths() in payment-months.js. The frontend
+   (payments.html / flat-search.html) already blocks mismatched
+   amount/month submissions before they're sent, but that's client-side
+   only; this re-checks the same rule here so a malformed or forged
+   request can't bypass it and write inconsistent data to the sheet.
+   Keep the constant and message wording in sync with payment-months.js
+   if either ever changes.
+═══════════════════════════════════════════════════════════════════════ */
+var MONTHLY_FEE = 200;
+
+function formatIndianAmount_(amt) {
+  var s = String(Math.round(amt));
+  var lastThree = s.length > 3 ? s.slice(-3) : s;
+  var rest = s.length > 3 ? s.slice(0, -3) : "";
+  if (rest !== "") lastThree = "," + lastThree;
+  return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+}
+
+function validateAmountMonths_(amount, monthCount) {
+  var amt = Number(amount);
+  if (!isFinite(amt) || amt <= 0 || Math.round(amt) !== amt || amt % MONTHLY_FEE !== 0) {
+    return "Payment amount must be a multiple of \u20B9" + MONTHLY_FEE + ".";
+  }
+  var required = amt / MONTHLY_FEE;
+  var count = Number(monthCount) || 0;
+  if (count !== required) {
+    var amtLabel = "\u20B9" + formatIndianAmount_(amt);
+    var reqWord = required === 1 ? "month" : "months";
+    if (count === 0) {
+      return "Please select exactly " + required + " " + reqWord + " for a payment of " + amtLabel + ".";
+    }
+    var countWord = count === 1 ? "month" : "months";
+    return "You have selected " + count + " " + countWord + ", but the entered amount covers " + required + " " + reqWord + ".";
+  }
+  return "";
+}
+
 function savePaymentPayload(payload) {
   const sheetName = getSheetNameFromPaymentDate(payload.paymentDateInput);
   if (!sheetName) {
@@ -185,6 +224,10 @@ function savePaymentPayload(payload) {
   const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
+  }
+  const feeErr = validateAmountMonths_(amount, submittedPaidMonths.length);
+  if (feeErr) {
+    return { ok: false, error: feeErr };
   }
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -254,6 +297,10 @@ function updatePaymentPayload(payload) {
   const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
+  }
+  const feeErr = validateAmountMonths_(amount, submittedPaidMonths.length);
+  if (feeErr) {
+    return { ok: false, error: feeErr };
   }
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
