@@ -654,6 +654,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
   .filter-panel-head{margin-bottom:10px}
   .filter-panel-body{overflow:hidden;max-height:0;transition:max-height 0.34s var(--ease-out)}
   .filter-panel-body.open{max-height:800px}
+  .filter-panel-body.open.expanded{overflow:visible}
   .filter-grid{grid-template-columns:1fr 1fr;gap:8px}
   .search-field{grid-column:span 2}
   .table-card{display:none}
@@ -1865,6 +1866,20 @@ function wireControls(){
     mobToggle.addEventListener("click", ()=>{
       const isOpen = filterBody.classList.toggle("open");
       mobToggle.classList.toggle("open", isOpen);
+      if(isOpen){
+        // Reveal overflow only once the slide-down animation has actually
+        // finished, so the month multi-select dropdown (and any other
+        // filter dropdown) isn't clipped by the panel's own bounds on
+        // mobile — but still clips cleanly while it's mid-animation.
+        filterBody.addEventListener("transitionend", function onOpen(e){
+          if(e.propertyName !== "max-height") return;
+          filterBody.removeEventListener("transitionend", onOpen);
+          if(filterBody.classList.contains("open")) filterBody.classList.add("expanded");
+        });
+      }else{
+        filterBody.classList.remove("expanded");
+        setMonthFilterOpen(false);
+      }
     });
   }
 
