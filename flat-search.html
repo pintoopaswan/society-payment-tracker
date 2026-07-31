@@ -998,6 +998,7 @@ body.dark .form-input{background:var(--surface-3)}
   font-size:0.67rem;font-weight:700;color:var(--blue-600);
   text-transform:uppercase;letter-spacing:0.08em;
 }
+.required-mark{color:#e11d48;margin-left:2px;font-weight:800;}
 .pay-form-field input,.pay-form-field select,.pay-form-field textarea{
   width:100%;min-height:42px;border:1.5px solid var(--line-md);
   border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);
@@ -1876,26 +1877,26 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           <input id="editPayFlat" type="text" readonly placeholder="—">
         </div>
         <div class="pay-form-field">
-          <label for="editPayAmount">Amount (₹)</label>
+          <label for="editPayAmount">Amount (₹)<span class="required-mark">*</span></label>
           <input id="editPayAmount" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 200">
         </div>
         <div class="pay-form-field">
-          <label for="editPayMode">Payment Mode</label>
+          <label for="editPayMode">Payment Mode<span class="required-mark">*</span></label>
           <select id="editPayMode">
             <option value="ONLINE">ONLINE</option>
             <option value="CASH">CASH</option>
           </select>
         </div>
-        <div class="pay-form-field" id="editPayRecvField" style="display:none">
-          <label for="editPayRecv">Received By</label>
+        <div class="pay-form-field" id="editPayRecvField">
+          <label for="editPayRecv">Received By<span class="required-mark" id="editPayRecvRequiredMark" style="display:none">*</span></label>
           <input id="editPayRecv" type="text" placeholder="Guard/person name">
         </div>
-        <div class="pay-form-field full">
-          <label for="editPayDate">Payment Date</label>
+        <div class="pay-form-field">
+          <label for="editPayDate">Payment Date<span class="required-mark">*</span></label>
           <input id="editPayDate" type="date">
         </div>
         <div class="pay-form-field full">
-          <label id="payMonthsLabel">Payment For (Months)</label>
+          <label id="payMonthsLabel">Payment For (Months)<span class="required-mark">*</span></label>
           <div class="paid-for-row">
             <select id="payMonthYearSelect" class="pay-year-select" aria-label="Year"></select>
             <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
@@ -3012,10 +3013,11 @@ function setPayFormMsg(msg,ok=false){
   el.className="pay-form-msg"+(ok?" success":"");
 }
 
-/* Received By is only relevant for CASH payments — mirrors payments.html */
+/* Received By is visible for both ONLINE and CASH payments, but only
+   mandatory (shown with a red asterisk) for CASH — mirrors payments.html */
 function setPayRecvVisibility(){
   const isCash=document.getElementById("editPayMode").value==="CASH";
-  document.getElementById("editPayRecvField").style.display=isCash?"":"none";
+  document.getElementById("editPayRecvRequiredMark").style.display=isCash?"":"none";
 }
 document.getElementById("editPayMode").addEventListener("change",setPayRecvVisibility);
 
@@ -3106,22 +3108,17 @@ async function savePaymentForm(){
   const rawRemarks=document.getElementById("editPayRemarks").value.trim();
 
   if(!block||!flat){ setPayFormMsg("Missing flat context — please reopen this flat's profile and try again."); return; }
-  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
+  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid amount."); return; }
   if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
   if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
+  if(mode==="CASH"&&!receivedBy){ setPayFormMsg("Please enter who received the cash payment."); return; }
   if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
   const disabled=isAdd?alreadyPaidMonthsFor(null):alreadyPaidMonthsFor(p);
   const clash=paidMonths.find(k=>disabled.has(k));
   if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
 
   // Build audit note + "who made this change" note (see getStaffEmail).
-  const auditDate=(()=>{
-    if(!payDate)return "";
-    const [y,m,d]=payDate.split("-");
-    return`${d}/${m}/${y}`;
-  })();
-  const auditNote= "₹"+amount +" received on "+auditDate;
-  //const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
+  const auditNote= amount+" "+mode+" received on "+fmtSheetDate(payDate);
   const staffEmail=await getStaffEmail();
   const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
   const remarks=[rawRemarks,auditNote,attribNote].filter(Boolean).join(" | ");

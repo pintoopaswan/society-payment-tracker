@@ -724,6 +724,7 @@ td.empty.has-tx:hover{background:#ffe4e6}
   font-size:0.67rem;font-weight:700;color:var(--blue-700);
   text-transform:uppercase;letter-spacing:0.08em;
 }
+.required-mark{color:#e11d48;margin-left:2px;font-weight:800;}
 .form-field input,.form-field select,.form-field textarea{
   width:100%;min-height:42px;border:1.5px solid var(--line-md);
   border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);
@@ -1215,36 +1216,36 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
       <form id="paymentForm" autocomplete="off">
         <div class="form-grid">
           <div class="form-field">
-            <label for="fBlock">Block</label>
+            <label for="fBlock">Block<span class="required-mark">*</span></label>
             <select id="fBlock" required></select>
             <input id="fBlockR" type="text" readonly class="hidden" />
           </div>
           <div class="form-field">
-            <label for="fFlat">Flat No.</label>
+            <label for="fFlat">Flat No.<span class="required-mark">*</span></label>
             <select id="fFlat" required></select>
             <input id="fFlatR" type="text" readonly class="hidden" />
           </div>
           <div class="form-field">
-            <label for="fAmount">Amount (₹)</label>
+            <label for="fAmount">Amount (₹)<span class="required-mark">*</span></label>
             <input id="fAmount" type="number" min="1" step="1" inputmode="numeric" required placeholder="e.g. 200" />
           </div>
           <div class="form-field">
-            <label for="fMode">Payment Mode</label>
+            <label for="fMode">Payment Mode<span class="required-mark">*</span></label>
             <select id="fMode" required>
               <option value="ONLINE">ONLINE</option>
               <option value="CASH">CASH</option>
             </select>
           </div>
-          <div class="form-field hidden" id="fRecvField">
-            <label for="fRecv">Received By</label>
+          <div class="form-field" id="fRecvField">
+            <label for="fRecv">Received By<span class="required-mark" id="fRecvRequiredMark" style="display:none">*</span></label>
             <input id="fRecv" type="text" placeholder="Guard/person name" />
           </div>
           <div class="form-field">
-            <label for="fDate">Payment Date</label>
+            <label for="fDate">Payment Date<span class="required-mark">*</span></label>
             <input id="fDate" type="date" required />
           </div>
           <div class="form-field full">
-            <label id="fMonthsLabel">Payment For (Months)</label>
+            <label id="fMonthsLabel">Payment For (Months)<span class="required-mark">*</span></label>
             <div class="paid-for-row">
               <select id="payYear" class="pay-year-select" aria-label="Year"></select>
               <div class="month-picker-wrap" id="monthPickerWrap">
@@ -1886,13 +1887,20 @@ document.addEventListener("change",e=>{
 /* ── Modal helpers ── */
 function setFormMsg(msg,ok=false){ const el=document.getElementById("formMsg"); el.textContent=msg; el.className="form-msg"+(ok?" success":""); }
 
+/* Received By stays visible for both ONLINE and CASH; it's only mandatory
+   (shown with a red asterisk) when the payment mode is CASH. */
+function updateRecvRequirement(){
+  const isCash=document.getElementById("fMode").value==="CASH";
+  document.getElementById("fRecvRequiredMark").style.display=isCash?"":"none";
+}
+
 function openModal({mode="web",block="",flat=""}={}){
   document.getElementById("paymentForm").reset();
   const today=getToday();
   document.getElementById("fDate").max=today;
   document.getElementById("fDate").value=today;
   document.getElementById("fMode").value="ONLINE";
-  document.getElementById("fRecvField").classList.add("hidden");
+  updateRecvRequirement();
   setFormMsg("");
   setMonthPickerOpen(false);
   modalAction="create"; editCtx=null;
@@ -1935,7 +1943,7 @@ function openEditModal(ctx){
   document.getElementById("fAmount").value=String(ctx.amount||"");
   document.getElementById("fMode").value=ctx.paymentMode||"ONLINE";
   document.getElementById("fRecv").value=ctx.receivedBy||"";
-  document.getElementById("fRecvField").classList.toggle("hidden",(ctx.paymentMode||"ONLINE")!=="CASH");
+  updateRecvRequirement();
   const id=toInputDate(ctx.date); if(id)document.getElementById("fDate").value=id;
   document.getElementById("fNotes").value=ctx.notes||"";
   // Re-anchor the Year dropdown on this record's own year and exclude its
@@ -1975,16 +1983,43 @@ function findCtx(block,flat,year,mi){
   return{ block,flat:String(flat),year:String(year),monthIndex:Number(mi),amount:Number(md.amount||0),date:md.date||"",paymentMode:md.paymentMode||"ONLINE",receivedBy:md.receivedBy||"",notes:md.notes||"",paidMonths };
 }
 
+/* Auto-generated note segments (the "<amount> <MODE> received on <date>"
+   audit line and the "Added/Updated by: <email>" attribution line) match
+   these patterns. Used to strip out any such segments that were already
+   baked into a stored note (e.g. when re-opening an existing payment for
+   editing) so they aren't mistaken for free-text user notes and re-stamped
+   on top of themselves — see stripAutoStampedNotes(). The amount/mode
+   portion is tolerant of a missing mode word so legacy rows saved before
+   the mode was included in the template are still recognized and cleaned
+   up rather than surviving as a phantom "no mode" duplicate. */
+const AUTO_NOTE_PATTERNS=[
+  /^\d+(?:\.\d+)?\s*(?:CASH|ONLINE)?\s*received on\s+\d{1,2}\/\d{1,2}\/\d{4}$/i,
+  /^(?:Added|Updated) by:\s*.+$/i
+];
+function stripAutoStampedNotes(raw){
+  return String(raw||"")
+    .split(/\s*\|\s*/)
+    .map(s=>s.trim())
+    .filter(s=>s&&!AUTO_NOTE_PATTERNS.some(re=>re.test(s)))
+    .join(" | ");
+}
+
 /* ── Form submit ── */
 function getPayload(includeAttribution=true){
   const {block,flat}=activeBlockFlat();
   const payDate=document.getElementById("fDate").value;
-  let notes=document.getElementById("fNotes").value.trim();
+  const amount=Number(document.getElementById("fAmount").value);
+  const mode=document.getElementById("fMode").value;
+  // Defense in depth: even if a previously-stamped audit/attribution line
+  // slipped into the Notes field (e.g. from stale form state), strip it
+  // before appending a fresh one so it never gets duplicated.
+  let notes=stripAutoStampedNotes(document.getElementById("fNotes").value.trim());
   if(includeAttribution){
     const isAdd=modalAction!=="update";
     const staffEmail=getStaffEmail();
+    const auditNote=(Number.isInteger(amount)&&amount>0&&payDate)?`${amount} ${mode} received on ${fmtSheetDate(payDate)}`:"";
     const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
-    notes=[notes,attribNote].filter(Boolean).join(" | ");
+    notes=[notes,auditNote,attribNote].filter(Boolean).join(" | ");
   }
   return{
     secret:PAYMENT_WRITE_SECRET,actionType:modalAction,
@@ -2004,6 +2039,7 @@ function validatePayload(p){
   if(!Number.isInteger(p.amount)||p.amount<=0)return"Please enter a valid whole number amount.";
   if(!p.paymentDate||!p.paymentMonthSheet)return"Please select a valid payment date.";
   if(p.paymentDateInput>getToday())return"Payment date cannot be in the future.";
+  if(p.paymentMode==="CASH"&&!p.receivedBy)return"Please enter who received the cash payment.";
   if(!p.paidMonths.length)return"Please select at least one month.";
   // Defense in depth: re-check against the current disabled set in case the
   // in-form state went stale (e.g. data refreshed while the modal was open).
@@ -2172,8 +2208,8 @@ document.addEventListener("click",e=>{ if(!e.target.closest("#monthPickerWrap"))
 document.getElementById("fBlock").addEventListener("change",e=>{ populateFlatOptions(e.target.value); refreshMonthPicker([]); });
 document.getElementById("fFlat").addEventListener("change",()=>refreshMonthPicker([]));
 document.getElementById("payYear").addEventListener("change",()=>renderMonthGrid());
-document.getElementById("fMode").addEventListener("change",e=>{
-  document.getElementById("fRecvField").classList.toggle("hidden",e.target.value!=="CASH");
+document.getElementById("fMode").addEventListener("change",()=>{
+  updateRecvRequirement();
 });
 document.getElementById("fDate").addEventListener("change",e=>{
   const today=getToday(); if(e.target.value>today)e.target.value=today;

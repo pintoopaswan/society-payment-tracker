@@ -211,11 +211,16 @@ function savePaymentPayload(payload) {
     const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
     const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
-    const paymentNote = buildPaymentRemark(payload.paymentDateInput, amount);
+    // NOTE: the client (payments.html / flat-search.html) already builds a
+    // complete audit line — "<amount> <MODE> received on <date> | Added by: …" —
+    // and sends it as payload.notes. Do NOT also build a server-side audit
+    // note here (buildPaymentRemark) on top of it; doing so produced a
+    // duplicated, mode-less "<amount> received on <date>" line stacked in
+    // front of the client's own note on every Add. The server's only job is
+    // to preserve prior remarks and append whatever the client sent.
     const submittedNotes = String(payload.notes || "").trim();
     const remarksParts = [];
     if (existingRemarks) remarksParts.push(existingRemarks);
-    remarksParts.push(paymentNote);
     if (submittedNotes) remarksParts.push(submittedNotes);
 
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
