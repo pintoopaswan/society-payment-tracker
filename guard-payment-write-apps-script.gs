@@ -1,4 +1,4 @@
-const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com","kumaraalok77@gmail.com","sanny08nmp@gmail.com"];
+const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
 const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
