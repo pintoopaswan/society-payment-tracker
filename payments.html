@@ -1653,7 +1653,8 @@ function renderAll(){
         const isTxMonth=(year==="all")||(Number(year)===txEntry.txYear&&i===txEntry.txMonthIndex);
         if(isTxMonth){
           const cellYear=year==="all"?txEntry.txYear:Number(year);
-          const isCovered=entryCoversMonth(txEntry,cellYear,i);
+          const cellKey=PaymentMonths.toKey(cellYear,i);
+          const isCovered=entryCoversMonth(txEntry,cellYear,i)||!!row.coverageByKey?.[cellKey];
           const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
           html+=`<td class="${isCovered?"paid":"empty has-tx"} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
         }else{
@@ -1729,7 +1730,8 @@ function renderAll(){
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent,tileStateClass;
           if(txMd){
-            const isCovered=entryCoversMonth(txMd,Number(yr),i);
+            const cellKey=PaymentMonths.toKey(Number(yr),i);
+            const isCovered=entryCoversMonth(txMd,Number(yr),i)||!!row.coverageByKey?.[cellKey];
             tileContent=`<div class="mt-amount${isCovered?"":" mt-amount-red"}">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
             tileStateClass=isCovered?"has-payment":"not-paid";
           }else if(coverageEntry){
