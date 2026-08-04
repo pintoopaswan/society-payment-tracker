@@ -577,8 +577,14 @@ td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid va
   display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .cell-paid-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green-700);background:var(--green-100);border:1px solid var(--green-200);border-radius:999px;padding:1px 7px;margin-top:1px}
+/* Covered-but-not-the-recorded-month cell: same "paid" green family so it's
+   clearly not due, but visually lighter than the primary amount-bearing
+   cell so it doesn't read as a second, separate payment. */
+td.paid.covered{background:var(--green-50);opacity:0.82;cursor:default}
+td.paid.covered:hover{opacity:0.82;background:var(--green-50);transform:none}
 td.empty.has-tx{background:var(--red-50);cursor:pointer}
 td.empty.has-tx:hover{background:#ffe4e6}
+td.empty.has-tx .cell-amount{color:var(--red-600)}
 .cell-mode{font-size:0.58rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
 .mt-paid-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green-700);background:var(--green-100);border:1px solid var(--green-200);border-radius:999px;padding:2px 8px;margin-top:4px}
 .mt-pending-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--red-600);background:var(--red-50);border:1px solid var(--red-100);border-radius:999px;padding:2px 8px;margin-top:4px}
@@ -651,6 +657,8 @@ td.empty.has-tx:hover{background:#ffe4e6}
 /* Green — paid months */
 .month-tile.has-payment{background:var(--green-50);border-color:var(--green-200);cursor:pointer;border-left:3px solid var(--green-400)}
 .month-tile.has-payment:hover{background:#d1fae5}
+.month-tile.has-payment.covered{opacity:0.82;cursor:default}
+.month-tile.has-payment.covered:hover{opacity:0.82;background:var(--green-50);transform:none;box-shadow:none}
 /* Red — unpaid months (transaction exists but not in paid-months list) */
 .month-tile.not-paid{background:var(--red-50);border-color:var(--red-100);cursor:pointer;border-left:3px solid var(--red-300)}
 .month-tile.not-paid:hover{background:#ffe4e6}
@@ -1299,7 +1307,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxaqNI0m9sfKzxPIrhZ-Wn0yE9Jzx8S4x-O6TadIZncQ8jcPUNNOEgNlZJq4shN49RUmQ/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxwXw3rQJtm6MmgOV-qih7JyH4siWZGLV03X7-0DG6iojo_dSAsAtzZoqZtOe7oaYOckw/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -1332,7 +1340,26 @@ function getStaffEmail(){
 }
 
 /* ── Utils ── */
-const parseCSV = l => l.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,""))||[];
+/* The previous regex-based parser (`[^",\s]+` per token) silently dropped
+   every word except the last one in any unquoted multi-word field — e.g.
+   Received By "Pintoo Paswan" came back as just "Paswan", and a multi-word
+   Notes value lost its first word too. Google's CSV export only quotes
+   fields containing a comma/quote/newline, not plain spaces, so this hit
+   real data. Character-by-character parsing (matching flat-search.html's
+   already-correct implementation) handles spaces inside unquoted fields
+   correctly. */
+function parseCSV(line){
+  const result=[];let cur="",inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ}
+    else if(c===','&&!inQ){result.push(cur.trim());cur="";}
+    else{cur+=c;}
+  }
+  result.push(cur.trim());
+  return result;
+}
+const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
 const fmt$ = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN = v => Number(v||0).toLocaleString("en-IN");
@@ -1342,9 +1369,15 @@ function getToday(){
   const n=new Date();
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
 }
+/* Renders an ISO "YYYY-MM-DD" date as "DD/MM/YYYY" (India-standard order)
+   for use in human-readable note/audit text. NOT used to build the actual
+   sheet Date column (the backend writes that itself via its own
+   toSheetDate(), independently) nor relied on for re-parsing sheet dates
+   (that logic reads the raw CSV cell directly) — so this is safe to keep
+   in whichever order reads naturally to staff. */
 function fmtSheetDate(v){
   const [y,m,d]=String(v||"").split("-");
-  return (y&&m&&d)?`${m}/${d}/${y}`:"";
+  return (y&&m&&d)?`${d}/${m}/${y}`:"";
 }
 function monthFromDate(v){
   const i=Number(String(v||"").split("-")[1])-1;
@@ -1389,7 +1422,7 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
   let [mo,dy,yr]=[parseInt(p[0]),parseInt(p[1]),parseInt(p[2])];
   if(isNaN(dy)||isNaN(mo)||isNaN(yr)||monthIndex<0||monthIndex>11)return;
   const key=`${nb}-${flat}`;
-  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set()};
+  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
   if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{},paidMonthIndices:new Set()};
   const fmtDate=`${String(dy).padStart(2,"0")}/${String(mo).padStart(2,"0")}/${yr}`;
   const amtN=Number(amount||0);
@@ -1406,7 +1439,7 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
     ?`<span class="paid-months-compact" title="${PaymentMonths.formatList(paidKeys).join(", ")}">${PaymentMonths.formatList(paidKeys).join(", ")}</span>`
     :"";
 
-  const entry={amount:amtN,date:fmtDate,paidMonthsHtml:paidHtml,paymentMode:mode,receivedBy:String(recvRaw||"").trim(),notes:String(notesRaw||"").trim(),paidMonths:String(paidMonthsRaw||"").trim(),paidMonthKeys:paidKeys};
+  const entry={amount:amtN,date:fmtDate,paidMonthsHtml:paidHtml,paymentMode:mode,receivedBy:String(recvRaw||"").trim(),notes:String(notesRaw||"").trim(),paidMonths:String(paidMonthsRaw||"").trim(),paidMonthKeys:paidKeys,txYear:Number(year),txMonthIndex:Number(monthIndex)};
   groupedData[key].years[year].months[monthIndex]=entry;
   groupedData[key].years[year].total+=amtN;
 
@@ -1428,6 +1461,17 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
   // Flat-level exact Month-Year coverage set — the single source of truth
   // used by the Add/Update Payment picker to disable already-paid months.
   paidKeys.forEach(k=>groupedData[key].paidMonthYears.add(k));
+  // Flat-level exact Month-Year -> entry map. This is what the calendar
+  // grid uses to show that a month is covered when the payment was recorded
+  // under a different sheet tab. If a month also has its own transaction,
+  // keep that actual payment as the higher-priority editable entry.
+  paidKeys.forEach(k=>{
+    const existing=groupedData[key].coverageByKey[k];
+    const parsed=PaymentMonths.parseKey(k);
+    const newIsActual=parsed&&parsed.year===entry.txYear&&parsed.monthIndex===entry.txMonthIndex;
+    const existingIsActual=existing&&parsed&&parsed.year===existing.txYear&&parsed.monthIndex===existing.txMonthIndex;
+    if(!existing||newIsActual||!existingIsActual)groupedData[key].coverageByKey[k]=entry;
+  });
 
   if(!groupedData[key].months[monthIndex]){
     groupedData[key].months[monthIndex]={amount:0,date:fmtDate,paidMonthsHtml:"",paymentMode:"",receivedBy:"",notes:"",paidMonths:"",paidMonthKeys:[]};
@@ -1451,6 +1495,14 @@ function computeDisabledMonthYears(block,flat,excludeKeys=[]){
   const disabled=new Set(row?row.paidMonthYears:[]);
   excludeKeys.forEach(k=>disabled.delete(k));
   return disabled;
+}
+
+function entryCoversMonth(entry,year,mi){
+  const key=PaymentMonths.toKey(year,mi);
+  const keys=(entry?.paidMonthKeys&&entry.paidMonthKeys.length)
+    ?entry.paidMonthKeys
+    :PaymentMonths.parseField(entry?.paidMonths,Number(year),Number(mi));
+  return keys.includes(key);
 }
 
 /* ── Fetch CSV ── */
@@ -1486,9 +1538,33 @@ async function fetchAllMonthData(){
     return tabs.map(async(tab,mi)=>{
       if(!tab)return;
       const csv=await fetchCsv(sid,tab); if(!csv)return;
-      csv.split("\n").slice(1).forEach(row=>{
+      const lines=csv.split("\n");
+      if(!lines.length)return;
+      // Resolve columns BY HEADER NAME instead of trusting a fixed position.
+      // Previously this assumed column order was always
+      // block,flat,amount,mode,date,status,recv,notes,paid — so if a sheet's
+      // columns ever drifted from that (a column reordered/inserted on one
+      // tab, a header renamed, etc.) whichever field shifted would silently
+      // read the WRONG cell instead of erroring — exactly what happened to
+      // RECEIVED BY. flat-search.html already guards against this by
+      // matching header text; this mirrors that approach, keeping the old
+      // fixed positions only as a last-resort fallback for tabs with no
+      // recognizable header row.
+      const headers=parseCSV(lines[0]).map(h=>norm(h));
+      const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8};
+      const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
+      const blockIdx=idx(["block"],fallback.block);
+      const flatIdx=idx(["flat","room","house","apartment"],fallback.flat);
+      const amtIdx=idx(["amount","amt"],fallback.amount);
+      const modeIdx=idx(["mode","method"],fallback.mode);
+      const dateIdx=idx(["date"],fallback.date);
+      const statusIdx=idx(["status","done","paid"],fallback.status);
+      const recvIdx=idx(["received by","collected by","received"],fallback.recv);
+      const notesIdx=idx(["remark","note","description"],fallback.notes);
+      const paidIdx=idx(["paid month","month paid"],fallback.paid);
+      lines.slice(1).forEach(row=>{
         const c=parseCSV(row);
-        const block=c[0],flat=c[1],amount=c[2],mode=c[3],date=c[4],status=c[5],recv=c[6],notes=c[7],paid=c[8];
+        const block=c[blockIdx],flat=c[flatIdx],amount=c[amtIdx],mode=c[modeIdx],date=c[dateIdx],status=c[statusIdx],recv=c[recvIdx],notes=c[notesIdx],paid=c[paidIdx];
         if(!block||!flat)return;
         const nb=blockName(block);
         allBlocks.add(nb);
@@ -1529,23 +1605,39 @@ function renderAll(){
   /* Table */
   let html="";
   sorted.forEach(row=>{
-    const paidSet=year==="all"
-      ? (row.paidMonthIndices||new Set())
-      : (row.years?.[year]?.paidMonthIndices||new Set());
-
     html+=`<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
     months.forEach((_,i)=>{
-      const isPaid=paidSet.has(i);
       let txEntry=null;
-      const _searchYrs=year==="all"?Object.keys(row.years||{}):[year];
-      for(const _yr of _searchYrs){
-        const _yd=row.years?.[_yr];
-        if(_yd?.months?.[i]){txEntry=_yd.months[i];break;}
+      if(year==="all"){
+        // Collapsed "All Years" summary — approximate, non-editable view;
+        // still keyed by tab position since it's not year-scoped.
+        const _searchYrs=Object.keys(row.years||{});
+        for(const _yr of _searchYrs){
+          const _yd=row.years?.[_yr];
+          if(_yd?.months?.[i]){txEntry=_yd.months[i];break;}
+        }
+      }else{
+        // Actual transaction wins over a generic covered/Paid state for the
+        // same month, so a real payment amount stays visible and editable.
+        txEntry=row.years?.[year]?.months?.[i]||row.coverageByKey?.[PaymentMonths.toKey(year,i)]||null;
       }
       const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
       if(txEntry){
-        const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
-        html+=`<td class="paid month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
+        // A single payment can cover multiple months (coverageByKey maps every
+        // covered month to the same entry). Only the month the payment was
+        // actually RECORDED against ("txMonthIndex"/"txYear") should display the
+        // full transaction details AND be editable. If the transaction month
+        // itself is not in Paid-For-Month, show the details in red because
+        // money exists but this month is still not covered.
+        const isTxMonth=(year==="all")||(Number(year)===txEntry.txYear&&i===txEntry.txMonthIndex);
+        if(isTxMonth){
+          const cellYear=year==="all"?txEntry.txYear:Number(year);
+          const isCovered=entryCoversMonth(txEntry,cellYear,i);
+          const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
+          html+=`<td class="${isCovered?"paid":"empty has-tx"} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
+        }else{
+          html+=`<td class="paid covered month-cell"><div class="month-cell-content"><span class="cell-paid-badge">PAID</span></div></td>`;
+        }
       }else{
         const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
         html+=`<td class="empty month-cell"${aa}>—</td>`;
@@ -1561,10 +1653,12 @@ function renderAll(){
   /* Month header totals (initial render — full dataset) */
   const monthlyFlatCounts = new Array(12).fill(0);
   sorted.forEach(row=>{
-    const _searchYrs=year==="all"?Object.keys(row.years||{}):[year];
     months.forEach((_,i)=>{
-      for(const _yr of _searchYrs){
-        if(row.years?.[_yr]?.months?.[i]){ monthlyFlatCounts[i]++; break; }
+      if(year==="all"){
+        const found=Object.keys(row.years||{}).some(_yr=>row.years?.[_yr]?.months?.[i]);
+        if(found)monthlyFlatCounts[i]++;
+      }else{
+        if(row.coverageByKey?.[PaymentMonths.toKey(year,i)])monthlyFlatCounts[i]++;
       }
     });
   });
@@ -1604,15 +1698,31 @@ function renderAll(){
         <div class="year-months"><div class="month-grid">`;
         months.forEach((m,i)=>{
           const txMd=yd.months?.[i]||null;
-          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`;
+          // Same "actual transaction month vs. merely-covered month" split as
+          // the desktop grid (see the coverageByKey-based lookup above): show
+          // full transaction details only in the month the payment was
+          // actually recorded, and a plain Paid mark for other months it
+          // covers — no repeated amount/date and no "via" label.
+          const coverageEntry=row.coverageByKey?.[PaymentMonths.toKey(yr,i)]||null;
+          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:(coverageEntry?"":` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`);
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
-          let tileContent;
+          let tileContent,tileStateClass;
           if(txMd){
-            tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
+            const isCovered=entryCoversMonth(txMd,Number(yr),i);
+            tileContent=`<div class="mt-amount${isCovered?"":" mt-amount-red"}">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
+            tileStateClass=isCovered?"has-payment":"not-paid";
+          }else if(coverageEntry){
+            // Read-only: this month is settled by a payment made in a
+            // different month. No amount/date shown, and no data-action —
+            // it can only be edited from the month the payment actually
+            // happened in.
+            tileContent=`<div class="mt-paid-badge">PAID</div>`;
+            tileStateClass="has-payment covered";
           }else{
             tileContent=`<div class="mt-empty">+ Add</div>`;
+            tileStateClass="no-data";
           }
-          chtml+=`<div class="month-tile${txMd?" has-payment":" no-data"}"${ea}>
+          chtml+=`<div class="month-tile ${tileStateClass}"${ea}>
             <div class="mt-name">${MONTH_SHORT[i]}</div>
             ${tileContent}
           </div>`;
@@ -2004,21 +2114,18 @@ function closeModal(){
 function findCtx(block,flat,year,mi){
   let row=groupedData[`${block}-${flat}`];
   if(!row)row=Object.values(groupedData).find(r=>r.Block===block&&String(r.Flat)===String(flat));
-  if(!row||!row.years?.[year]?.months[mi])return null;
-  const md=row.years[year].months[mi];
+  const md=row?.years?.[year]?.months?.[mi]||row?.coverageByKey?.[PaymentMonths.toKey(year,mi)];
+  if(!md)return null;
   const paidMonths=(md.paidMonthKeys&&md.paidMonthKeys.length)?md.paidMonthKeys.slice():PaymentMonths.parseField(md.paidMonths,Number(year),Number(mi));
   return{ block,flat:String(flat),year:String(year),monthIndex:Number(mi),amount:Number(md.amount||0),date:md.date||"",paymentMode:md.paymentMode||"ONLINE",receivedBy:md.receivedBy||"",notes:md.notes||"",paidMonths };
 }
 
 /* Auto-generated note segments (the "<amount> <MODE> received on <date>"
    audit line and the "Added/Updated by: <email>" attribution line) match
-   these patterns. Used to strip out any such segments that were already
-   baked into a stored note (e.g. when re-opening an existing payment for
-   editing) so they aren't mistaken for free-text user notes and re-stamped
-   on top of themselves — see stripAutoStampedNotes(). The amount/mode
-   portion is tolerant of a missing mode word so legacy rows saved before
-   the mode was included in the template are still recognized and cleaned
-   up rather than surviving as a phantom "no mode" duplicate. */
+   these patterns. Used only for brand-new payments to guard against stale
+   modal text carrying generated notes from an earlier session. Updates
+   intentionally preserve existing generated notes and append the new
+   generated notes after them. */
 const AUTO_NOTE_PATTERNS=[
   /^\d+(?:\.\d+)?\s*(?:CASH|ONLINE)?\s*received on\s+\d{1,2}\/\d{1,2}\/\d{4}$/i,
   /^(?:Added|Updated) by:\s*.+$/i
@@ -2031,22 +2138,96 @@ function stripAutoStampedNotes(raw){
     .join(" | ");
 }
 
+/* Human-friendly date formatter used only for changelog lines, e.g.
+   "2026-07-30" → "30 Jul 2026". */
+function humanDateFromISO(iso){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||""));
+  if(!m)return String(iso||"")||"—";
+  const mi=Number(m[2])-1;
+  return `${Number(m[3])} ${PaymentMonths.MONTH_DISPLAY[mi]||""} ${m[1]}`.trim();
+}
+
+/* Today's local date as "DD/MM/YYYY", used to stamp changelog lines with
+   the date the EDIT was made (as opposed to humanDateFromISO, which
+   formats a payment date that came from the form). */
+function todayDMY(){
+  const d=new Date();
+  const dd=String(d.getDate()).padStart(2,"0");
+  const mm=String(d.getMonth()+1).padStart(2,"0");
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+/* Builds permanent, human-readable changelog lines for an Update — one
+   line per field that actually changed (Amount, Payment Mode, Received
+   By, Payment Date, Paid Months) — e.g. "Amount updated to ₹400 from
+   ₹200 by Pintoo Paswan on 03/08/2026" or "Paid month changed from Jun
+   2026 to Jul 2026, Aug 2026 by Pintoo Paswan on 03/08/2026". Each line
+   is stamped with today's date (the date the edit was made), not the
+   payment date. Diffs the record's pre-edit values (oldVals) against the
+   values currently in the form (newVals). Unlike the audit/attribution
+   lines these are NOT matched by AUTO_NOTE_PATTERNS, so they survive
+   stripAutoStampedNotes and persist as a running history across edits
+   instead of being regenerated/overwritten each time. New lines are
+   always appended after any existing history (see getPayload's
+   [notes, ...changeNotes, auditNote, attribNote] join order), so the
+   most recent change always reads last. Returns [] if nothing changed.
+   oldVals/newVals shape: {amount, paymentMode, receivedBy, dateISO, paidMonths} */
+function buildChangeNotes(oldVals,newVals,staffLabel){
+  if(!staffLabel)return[];
+  const stamp=` on ${todayDMY()}`;
+  const lines=[];
+  const oldAmount=Number(oldVals.amount),newAmount=Number(newVals.amount);
+  if(Number.isFinite(oldAmount)&&Number.isFinite(newAmount)&&oldAmount!==newAmount){
+    lines.push(`Amount updated to ${fmt$(newAmount)} from ${fmt$(oldAmount)} by ${staffLabel}${stamp}`);
+  }
+  const oldMode=(oldVals.paymentMode||"").trim(),newMode=(newVals.paymentMode||"").trim();
+  if(oldMode&&newMode&&oldMode.toUpperCase()!==newMode.toUpperCase()){
+    lines.push(`Payment mode changed to ${newMode} from ${oldMode} by ${staffLabel}${stamp}`);
+  }
+  const oldRecv=(oldVals.receivedBy||"").trim(),newRecv=(newVals.receivedBy||"").trim();
+  if(oldRecv!==newRecv){
+    lines.push(`Received By changed to "${newRecv||"—"}" from "${oldRecv||"—"}" by ${staffLabel}${stamp}`);
+  }
+  const oldDateISO=oldVals.dateISO||"",newDateISO=newVals.dateISO||"";
+  if(oldDateISO&&newDateISO&&oldDateISO!==newDateISO){
+    lines.push(`Payment date changed to ${humanDateFromISO(newDateISO)} from ${humanDateFromISO(oldDateISO)} by ${staffLabel}${stamp}`);
+  }
+  const oldKeys=(oldVals.paidMonths||[]).slice(),newKeys=(newVals.paidMonths||[]).slice();
+  const oldSet=new Set(oldKeys),newSet=new Set(newKeys);
+  const monthsSame=oldSet.size===newSet.size&&oldKeys.every(k=>newSet.has(k));
+  if(!monthsSame){
+    const oldLabel=oldKeys.length?PaymentMonths.formatList(oldKeys).join(", "):"none";
+    const newLabel=newKeys.length?PaymentMonths.formatList(newKeys).join(", "):"none";
+    lines.push(`Paid month changed from ${oldLabel} to ${newLabel} by ${staffLabel}${stamp}`);
+  }
+  return lines;
+}
+
 /* ── Form submit ── */
 function getPayload(includeAttribution=true){
   const {block,flat}=activeBlockFlat();
   const payDate=document.getElementById("fDate").value;
   const amount=Number(document.getElementById("fAmount").value);
   const mode=document.getElementById("fMode").value;
-  // Defense in depth: even if a previously-stamped audit/attribution line
-  // slipped into the Notes field (e.g. from stale form state), strip it
-  // before appending a fresh one so it never gets duplicated.
-  let notes=stripAutoStampedNotes(document.getElementById("fNotes").value.trim());
+  const isAdd=modalAction!=="update";
+  // For updates, preserve the complete existing note history exactly as it
+  // appears in the form and append this save's generated notes after it.
+  // For creates, keep the older de-dup guard so a stale form cannot carry
+  // over generated audit/attribution text from a previous modal session.
+  let notes=document.getElementById("fNotes").value.trim();
+  if(isAdd)notes=stripAutoStampedNotes(notes);
   if(includeAttribution){
-    const isAdd=modalAction!=="update";
     const staffEmail=getStaffEmail();
     const auditNote=(Number.isInteger(amount)&&amount>0&&payDate)?`${amount} ${mode} received on ${fmtSheetDate(payDate)}`:"";
     const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
-    notes=[notes,auditNote,attribNote].filter(Boolean).join(" | ");
+    const changeNotes=(!isAdd&&editCtx&&staffEmail)
+      ?buildChangeNotes(
+          {amount:editCtx.amount,paymentMode:editCtx.paymentMode,receivedBy:editCtx.receivedBy,dateISO:toInputDate(editCtx.date),paidMonths:editCtx.paidMonths},
+          {amount,paymentMode:mode,receivedBy:document.getElementById("fRecv").value.trim(),dateISO:payDate,paidMonths:selectedMonths()},
+          staffEmail
+        )
+      :[];
+    notes=[notes,...changeNotes,auditNote,attribNote].filter(Boolean).join(" | ");
   }
   return{
     secret:PAYMENT_WRITE_SECRET,actionType:modalAction,
