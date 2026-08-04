@@ -478,10 +478,12 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function buildPaymentRemark(inputDate, amount) {
-  const dateText = toSheetDate(inputDate);
-  return amount + " received on " + dateText;
-}
+/* buildPaymentRemark() was removed — it built a mode-less "<amount> received
+   on <date>" audit line and was the root cause of the duplicated remark bug
+   described above savePaymentPayload(). The client (payments.html /
+   flat-search.html) already builds the complete audit line itself; the
+   server's only job is to preserve prior remarks and append whatever the
+   client sent. Do not reintroduce a server-side remark builder. */
 
 /* ═══════════════════════════════════════════════════════════════════════
    Month-Year ("YYYY-MM") paid-months helpers.
