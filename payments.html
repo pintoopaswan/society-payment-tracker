@@ -1352,15 +1352,36 @@ function parseCSV(line){
   const result=[];let cur="",inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
-    if(c==='"'){inQ=!inQ}
+    if(c==='"'&&line[i+1]==='"'){cur+='"';i++}
+    else if(c==='"'){inQ=!inQ}
     else if(c===','&&!inQ){result.push(cur.trim());cur="";}
     else{cur+=c;}
   }
   result.push(cur.trim());
   return result;
 }
+function parseCSVRows(csv){
+  const rows=[];let cur="",inQ=false;
+  for(let i=0;i<String(csv||"").length;i++){
+    const c=csv[i];
+    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
+    else if(c==='"'){inQ=!inQ;cur+=c;}
+    else if((c==="\n"||c==="\r")&&!inQ){
+      if(c==="\r"&&csv[i+1]==="\n")i++;
+      if(cur.trim())rows.push(cur);
+      cur="";
+    }else cur+=c;
+  }
+  if(cur.trim())rows.push(cur);
+  return rows;
+}
 const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
+const isValidPaymentFlatRow = (block,flat) => {
+  const b=norm(block), f=norm(flat);
+  if(!b||!f||b==="block"||f==="flat"||b==="total")return false;
+  return Number.isFinite(parseInt(flat,10));
+};
 const fmt$ = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN = v => Number(v||0).toLocaleString("en-IN");
 const setTxt = (id,v) => { const el=document.getElementById(id); if(el)el.textContent=v; };
@@ -1412,7 +1433,7 @@ function resetState(){
 
 /* ── Process row ── */
 function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw,recvRaw,notesRaw){
-  if(!block||block==="TOTAL"||!flat||!amount)return;
+  if(!isValidPaymentFlatRow(block,flat)||!amount)return;
   const nb=blockName(block);
   const rid=`${year}-${monthIndex}-${nb}-${flat}`;
   if(processedRecords.has(rid))return;
@@ -1538,7 +1559,7 @@ async function fetchAllMonthData(){
     return tabs.map(async(tab,mi)=>{
       if(!tab)return;
       const csv=await fetchCsv(sid,tab); if(!csv)return;
-      const lines=csv.split("\n");
+      const lines=parseCSVRows(csv);
       if(!lines.length)return;
       // Resolve columns BY HEADER NAME instead of trusting a fixed position.
       // Previously this assumed column order was always
@@ -1565,7 +1586,7 @@ async function fetchAllMonthData(){
       lines.slice(1).forEach(row=>{
         const c=parseCSV(row);
         const block=c[blockIdx],flat=c[flatIdx],amount=c[amtIdx],mode=c[modeIdx],date=c[dateIdx],status=c[statusIdx],recv=c[recvIdx],notes=c[notesIdx],paid=c[paidIdx];
-        if(!block||!flat)return;
+        if(!isValidPaymentFlatRow(block,flat))return;
         const nb=blockName(block);
         allBlocks.add(nb);
         if(!allFlats[nb])allFlats[nb]=new Set();
@@ -2138,6 +2159,12 @@ function stripAutoStampedNotes(raw){
     .join(" | ");
 }
 
+function appendNoteLines(existing,lines){
+  return [String(existing||"").trim(),...lines.map(s=>String(s||"").trim())]
+    .filter(Boolean)
+    .join("\n");
+}
+
 /* Human-friendly date formatter used only for changelog lines, e.g.
    "2026-07-30" → "30 Jul 2026". */
 function humanDateFromISO(iso){
@@ -2218,16 +2245,18 @@ function getPayload(includeAttribution=true){
   if(isAdd)notes=stripAutoStampedNotes(notes);
   if(includeAttribution){
     const staffEmail=getStaffEmail();
-    const auditNote=(Number.isInteger(amount)&&amount>0&&payDate)?`${amount} ${mode} received on ${fmtSheetDate(payDate)}`:"";
-    const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
-    const changeNotes=(!isAdd&&editCtx&&staffEmail)
-      ?buildChangeNotes(
+    if(isAdd){
+      const auditNote=(Number.isInteger(amount)&&amount>0&&payDate)?`${amount} ${mode} received on ${fmtSheetDate(payDate)}`:"";
+      const attribNote=staffEmail?`Added by: ${staffEmail}`:"";
+      notes=appendNoteLines(notes,[auditNote,attribNote]);
+    }else if(editCtx&&staffEmail){
+      const changeNotes=buildChangeNotes(
           {amount:editCtx.amount,paymentMode:editCtx.paymentMode,receivedBy:editCtx.receivedBy,dateISO:toInputDate(editCtx.date),paidMonths:editCtx.paidMonths},
           {amount,paymentMode:mode,receivedBy:document.getElementById("fRecv").value.trim(),dateISO:payDate,paidMonths:selectedMonths()},
           staffEmail
-        )
-      :[];
-    notes=[notes,...changeNotes,auditNote,attribNote].filter(Boolean).join(" | ");
+        );
+      notes=appendNoteLines(notes,changeNotes);
+    }
   }
   return{
     secret:PAYMENT_WRITE_SECRET,actionType:modalAction,

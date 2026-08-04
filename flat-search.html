@@ -1996,12 +1996,29 @@ function parseCSV(line){
   const result=[];let cur="",inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
-    if(c==='"'){inQ=!inQ}
+    if(c==='"'&&line[i+1]==='"'){cur+='"';i++}
+    else if(c==='"'){inQ=!inQ}
     else if(c===','&&!inQ){result.push(cur.trim());cur="";}
     else{cur+=c;}
   }
   result.push(cur.trim());
   return result;
+}
+
+function parseCSVRows(csv){
+  const rows=[];let cur="",inQ=false;
+  for(let i=0;i<String(csv||"").length;i++){
+    const c=csv[i];
+    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
+    else if(c==='"'){inQ=!inQ;cur+=c;}
+    else if((c==="\n"||c==="\r")&&!inQ){
+      if(c==="\r"&&csv[i+1]==="\n")i++;
+      if(cur.trim())rows.push(cur);
+      cur="";
+    }else cur+=c;
+  }
+  if(cur.trim())rows.push(cur);
+  return rows;
 }
 
 function hiIdx(pats){
@@ -2089,7 +2106,7 @@ async function loadDirectory(){
     }catch(_){}
   }
   if(!csv)return;
-  const lines=csv.split("\n").filter(Boolean);
+  const lines=parseCSVRows(csv);
   const rawH=parseCSV(lines[0]);
   const rawR=lines.slice(1).map(parseCSV);
   const ki=[];rawH.forEach((h,i)=>{if(String(h||"").trim())ki.push(i);});
@@ -2164,7 +2181,7 @@ function normFlat(v){
 }
 
 function parsePaymentTab({year,tab,monthIndex,csv}){
-  const lines=csv.split("\n").filter(Boolean);
+  const lines=parseCSVRows(csv);
   if(lines.length<2)return;
   const headers=parseCSV(lines[0]).map(h=>norm(h));
   const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,receivedBy:6,remarks:7,paidMonths:8};
@@ -2692,6 +2709,12 @@ function buildChangeNotes(oldVals,newVals,staffLabel){
   return lines;
 }
 
+function appendNoteLines(existing,lines){
+  return [String(existing||"").trim(),...lines.map(s=>String(s||"").trim())]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function toPaymentInputDate(value,record={}){
   const raw=String(value||"").trim();
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;
@@ -2758,7 +2781,7 @@ function renderPaymentTable(records){
       <td class="mono">${esc(displayPaymentDateDMY(p.paymentDate,p))||"—"}</td>
       <td>${esc(p.paymentMode)||"—"}</td>
       <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(displayPaidMonths(p)||"—")}</td>
-      <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3)">${esc(p.remarks||"—")}</td>
+      <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3);white-space:pre-line">${esc(p.remarks||"—")}</td>
       <td>${badge}</td>
       <td><div class="pay-row-actions">
         ${actionsHtml}
@@ -3271,18 +3294,23 @@ async function savePaymentForm(){
   const clash=paidMonths.find(k=>disabled.has(k));
   if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
 
-  // Build audit note + "who made this change" note (see getStaffEmail).
-  const auditNote= amount+" "+mode+" received on "+fmtSheetDate(payDate);
+  // Creates get the original receipt audit notes. Updates append only the
+  // field-specific change notes, so editing mode/date/etc. does not create
+  // another "payment received" line.
   const staffEmail=await getStaffEmail();
-  const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
-  const changeNotes=(!isAdd&&p&&staffEmail)
-    ?buildChangeNotes(
+  let remarks=rawRemarks;
+  if(isAdd){
+    const auditNote= amount+" "+mode+" received on "+fmtSheetDate(payDate);
+    const attribNote=staffEmail?`Added by: ${staffEmail}`:"";
+    remarks=appendNoteLines(remarks,[auditNote,attribNote]);
+  }else if(p&&staffEmail){
+    const changeNotes=buildChangeNotes(
         {amount:p.amount,paymentMode:p.paymentMode,receivedBy:p.receivedBy,dateISO:toPaymentInputDate(p.paymentDate,p),paidMonths:paidMonthsForRecord(p)},
         {amount,paymentMode:mode,receivedBy,dateISO:payDate,paidMonths},
         staffEmail
-      )
-    :[];
-  const remarks=[rawRemarks,...changeNotes,auditNote,attribNote].filter(Boolean).join(" | ");
+      );
+    remarks=appendNoteLines(remarks,changeNotes);
+  }
 
   const payload={
     secret:WRITE_SECRET,
