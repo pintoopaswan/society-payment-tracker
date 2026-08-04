@@ -1,4 +1,4 @@
-const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "anshumannayak724@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com","kumaraalok77@gmail.com","sanny08nmp@gmail.com"];
+const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
 const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
@@ -170,6 +170,45 @@ function handlePaymentMutation(payload) {
   return savePaymentPayload(payload);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Guard maintenance fee validation — server-side mirror of
+   PaymentMonths.validateAmountMonths() in payment-months.js. The frontend
+   (payments.html / flat-search.html) already blocks mismatched
+   amount/month submissions before they're sent, but that's client-side
+   only; this re-checks the same rule here so a malformed or forged
+   request can't bypass it and write inconsistent data to the sheet.
+   Keep the constant and message wording in sync with payment-months.js
+   if either ever changes.
+═══════════════════════════════════════════════════════════════════════ */
+var MONTHLY_FEE = 200;
+
+function formatIndianAmount_(amt) {
+  var s = String(Math.round(amt));
+  var lastThree = s.length > 3 ? s.slice(-3) : s;
+  var rest = s.length > 3 ? s.slice(0, -3) : "";
+  if (rest !== "") lastThree = "," + lastThree;
+  return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+}
+
+function validateAmountMonths_(amount, monthCount) {
+  var amt = Number(amount);
+  if (!isFinite(amt) || amt <= 0 || Math.round(amt) !== amt || amt % MONTHLY_FEE !== 0) {
+    return "Payment amount must be a multiple of \u20B9" + MONTHLY_FEE + ".";
+  }
+  var required = amt / MONTHLY_FEE;
+  var count = Number(monthCount) || 0;
+  if (count !== required) {
+    var amtLabel = "\u20B9" + formatIndianAmount_(amt);
+    var reqWord = required === 1 ? "month" : "months";
+    if (count === 0) {
+      return "Please select exactly " + required + " " + reqWord + " for a payment of " + amtLabel + ".";
+    }
+    var countWord = count === 1 ? "month" : "months";
+    return "You have selected " + count + " " + countWord + ", but the entered amount covers " + required + " " + reqWord + ".";
+  }
+  return "";
+}
+
 function savePaymentPayload(payload) {
   const sheetName = getSheetNameFromPaymentDate(payload.paymentDateInput);
   if (!sheetName) {
@@ -185,6 +224,10 @@ function savePaymentPayload(payload) {
   const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
+  }
+  const feeErr = validateAmountMonths_(amount, submittedPaidMonths.length);
+  if (feeErr) {
+    return { ok: false, error: feeErr };
   }
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -211,11 +254,16 @@ function savePaymentPayload(payload) {
     const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
     const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
-    const paymentNote = buildPaymentRemark(payload.paymentDateInput, amount);
+    // NOTE: the client (payments.html / flat-search.html) already builds a
+    // complete audit line — "<amount> <MODE> received on <date> | Added by: …" —
+    // and sends it as payload.notes. Do NOT also build a server-side audit
+    // note here (buildPaymentRemark) on top of it; doing so produced a
+    // duplicated, mode-less "<amount> received on <date>" line stacked in
+    // front of the client's own note on every Add. The server's only job is
+    // to preserve prior remarks and append whatever the client sent.
     const submittedNotes = String(payload.notes || "").trim();
     const remarksParts = [];
     if (existingRemarks) remarksParts.push(existingRemarks);
-    remarksParts.push(paymentNote);
     if (submittedNotes) remarksParts.push(submittedNotes);
 
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
@@ -249,6 +297,10 @@ function updatePaymentPayload(payload) {
   const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
+  }
+  const feeErr = validateAmountMonths_(amount, submittedPaidMonths.length);
+  if (feeErr) {
+    return { ok: false, error: feeErr };
   }
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -426,10 +478,12 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function buildPaymentRemark(inputDate, amount) {
-  const dateText = toSheetDate(inputDate);
-  return amount + " received on " + dateText;
-}
+/* buildPaymentRemark() was removed — it built a mode-less "<amount> received
+   on <date>" audit line and was the root cause of the duplicated remark bug
+   described above savePaymentPayload(). The client (payments.html /
+   flat-search.html) already builds the complete audit line itself; the
+   server's only job is to preserve prior remarks and append whatever the
+   client sent. Do not reintroduce a server-side remark builder. */
 
 /* ═══════════════════════════════════════════════════════════════════════
    Month-Year ("YYYY-MM") paid-months helpers.

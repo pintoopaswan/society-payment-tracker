@@ -316,6 +316,7 @@ body.modal-open{overflow:hidden}
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:16px 18px;box-shadow:var(--s-sm);margin-bottom:18px;
   animation:fadeUp 0.42s 0.06s var(--ease-out) both;
+  position:relative;z-index:50;
 }
 .filter-panel-head{
   display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;
@@ -346,6 +347,50 @@ body.modal-open{overflow:hidden}
 .filter-select:focus,.filter-input:focus{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
 .filter-input::placeholder{color:var(--ink-4)}
 .search-field{grid-column:span 2}
+
+/* Month multi-select filter */
+.ms-wrap{position:relative}
+.ms-trigger{
+  width:100%;height:36px;border:1px solid var(--line-md);border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-2);font-size:0.78rem;font-weight:500;
+  padding:0 30px 0 12px;text-align:left;cursor:pointer;position:relative;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:border-color 0.15s;
+}
+.ms-trigger::after{
+  content:'';position:absolute;right:11px;top:50%;
+  width:7px;height:7px;border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);
+  transform:translateY(-65%) rotate(45deg);transition:transform 0.2s;
+}
+.ms-wrap.open .ms-trigger{border-color:var(--midnight-400);box-shadow:0 0 0 3px rgba(39,77,150,0.10)}
+.ms-wrap.open .ms-trigger::after{transform:translateY(-35%) rotate(-135deg)}
+.ms-dropdown{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);min-width:210px;
+  background:var(--surface);border:1px solid var(--line-md);
+  border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:500;display:none;
+}
+.ms-wrap.open .ms-dropdown{display:block}
+.ms-dropdown-actions{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--line)}
+.ms-mini-btn{font-size:0.66rem;font-weight:700;color:var(--midnight-600);background:none;border:none;cursor:pointer;padding:2px 4px;letter-spacing:0.02em}
+.ms-mini-btn:hover{text-decoration:underline}
+.ms-options{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:10px;max-height:220px;overflow-y:auto}
+.ms-option{
+  display:flex;align-items:center;justify-content:center;
+  padding:7px 4px;border-radius:var(--r-sm);text-align:center;cursor:pointer;
+  font-size:0.72rem;font-weight:600;color:var(--ink-2);background:var(--surface-2);
+  border:1.5px solid transparent;transition:all 0.14s;position:relative;user-select:none;
+}
+.ms-option:hover{background:var(--midnight-50);color:var(--midnight-700)}
+.ms-option.selected{background:var(--midnight-600);color:#fff;border-color:var(--midnight-600)}
+.ms-option input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+body.dark-mode .ms-trigger{background:var(--surface-2);border-color:var(--line-md);color:var(--ink-2)}
+body.dark-mode .ms-dropdown{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .ms-option{background:var(--surface-3)}
+
+/* Date range filter */
+.date-range-field{grid-column:span 2}
+.date-range-row{display:flex;align-items:center;gap:6px}
+.date-range-row .filter-input{flex:1 1 0;min-width:0}
+.date-range-sep{font-size:0.7rem;color:var(--ink-4);font-weight:600;flex:0 0 auto}
 .search-wrap{position:relative;display:flex;align-items:center}
 .search-wrap svg{position:absolute;left:11px;color:var(--ink-4);pointer-events:none}
 .search-input{
@@ -609,6 +654,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
   .filter-panel-head{margin-bottom:10px}
   .filter-panel-body{overflow:hidden;max-height:0;transition:max-height 0.34s var(--ease-out)}
   .filter-panel-body.open{max-height:800px}
+  .filter-panel-body.open.expanded{overflow:visible}
   .filter-grid{grid-template-columns:1fr 1fr;gap:8px}
   .search-field{grid-column:span 2}
   .table-card{display:none}
@@ -620,6 +666,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 @media(max-width:480px){
   .filter-grid{grid-template-columns:1fr}
   .search-field{grid-column:span 1}
+  .date-range-field{grid-column:span 1}
   .pg-info{font-size:0.7rem}
 }
 </style>
@@ -858,18 +905,28 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
           <option value="">Anyone</option>
         </select>
       </div>
-      <!-- Month -->
+      <!-- Month (multi-select) -->
       <div class="filter-field">
         <div class="filter-label">Month</div>
-        <select id="monthFilter" class="filter-select">
-          <option value="">All Months</option>
-          <option value="0">January</option><option value="1">February</option>
-          <option value="2">March</option><option value="3">April</option>
-          <option value="4">May</option><option value="5">June</option>
-          <option value="6">July</option><option value="7">August</option>
-          <option value="8">September</option><option value="9">October</option>
-          <option value="10">November</option><option value="11">December</option>
-        </select>
+        <div class="ms-wrap" id="monthFilterWrap">
+          <button type="button" class="ms-trigger" id="monthFilterTrigger" aria-expanded="false">All Months</button>
+          <div class="ms-dropdown" id="monthFilterDropdown">
+            <div class="ms-dropdown-actions">
+              <button type="button" class="ms-mini-btn" id="monthFilterAll">Select all</button>
+              <button type="button" class="ms-mini-btn" id="monthFilterNone">Clear</button>
+            </div>
+            <div class="ms-options" id="monthFilterOptions"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Date Range -->
+      <div class="filter-field date-range-field">
+        <div class="filter-label">Date Range</div>
+        <div class="date-range-row">
+          <input id="dateFromFilter" type="date" class="filter-input" aria-label="From date">
+          <span class="date-range-sep">to</span>
+          <input id="dateToFilter" type="date" class="filter-input" aria-label="To date">
+        </div>
       </div>
     </div>
     </div><!-- /filter-panel-body -->
@@ -988,6 +1045,7 @@ let allRecords = [];    // flat array of every transaction row
 let filtered   = [];   // after filters applied
 let currentPage = 1;
 let sortState = {col:"date", dir:"desc"};   // driven by clicking sortable column headers
+let selectedMonths = new Set();   // 0-based month indices selected in the Month multi-select filter
 const PAGE_SIZE_DESK = 15;
 const PAGE_SIZE_MOB  = 10;
 function isMobile(){ return window.innerWidth <= 768; }
@@ -1157,20 +1215,60 @@ function buildFilterOptions(){
   if(curRecv && recvs.includes(curRecv)) rf.value = curRecv;
 }
 
+/* ── Month multi-select filter ── */
+function buildMonthFilterOptions(){
+  const wrap=document.getElementById("monthFilterOptions");
+  if(!wrap) return;
+  wrap.innerHTML = MONTH_SHORT.map((m,i)=>
+    `<label class="ms-option" data-mi="${i}"><input type="checkbox" value="${i}"><span>${m}</span></label>`
+  ).join("");
+  wrap.querySelectorAll(".ms-option").forEach(opt=>{
+    opt.addEventListener("click", e=>{
+      e.preventDefault();
+      const mi = Number(opt.dataset.mi);
+      if(selectedMonths.has(mi)) selectedMonths.delete(mi); else selectedMonths.add(mi);
+      opt.classList.toggle("selected", selectedMonths.has(mi));
+      opt.querySelector("input").checked = selectedMonths.has(mi);
+      updateMonthFilterTrigger();
+      applyFiltersAndRender();
+    });
+  });
+}
+
+function updateMonthFilterTrigger(){
+  const trig=document.getElementById("monthFilterTrigger");
+  if(!trig) return;
+  if(!selectedMonths.size || selectedMonths.size===12){ trig.textContent="All Months"; return; }
+  const sorted=[...selectedMonths].sort((a,b)=>a-b);
+  trig.textContent = sorted.length<=3
+    ? sorted.map(i=>MONTH_SHORT[i]).join(", ")
+    : `${sorted.length} months selected`;
+}
+
+function setMonthFilterOpen(open){
+  const w=document.getElementById("monthFilterWrap"), t=document.getElementById("monthFilterTrigger");
+  if(!w) return;
+  w.classList.toggle("open", open);
+  t?.setAttribute("aria-expanded", open?"true":"false");
+}
+
 /* ── Apply filters ── */
 function applyFiltersAndRender(){
   const search   = document.getElementById("searchInput").value.trim().toLowerCase();
   const block    = document.getElementById("blockFilter").value;
   const mode     = document.getElementById("modeFilter").value;
   const recv     = document.getElementById("recvFilter").value;
-  const monthIdx = document.getElementById("monthFilter").value;
+  const dateFrom = document.getElementById("dateFromFilter")?.value || "";
+  const dateTo   = document.getElementById("dateToFilter")?.value || "";
   const sortVal  = `${sortState.col}-${sortState.dir}`;
 
   filtered = allRecords.filter(r => {
     if(block && r.block !== block) return false;
     if(mode  && r.mode !== mode) return false;
     if(recv  && r.receivedBy !== recv) return false;
-    if(monthIdx !== "" && r.sheetMonth !== Number(monthIdx)) return false;
+    if(selectedMonths.size && !selectedMonths.has(r.sheetMonth)) return false;
+    if(dateFrom && r.sortDate < dateFrom) return false;
+    if(dateTo   && r.sortDate > dateTo) return false;
     if(search){
       const hay = `${r.block} ${r.flat} ${r.amount} ${r.receivedBy} ${r.notes} ${r.paidMonths}`.toLowerCase();
       if(!hay.includes(search)) return false;
@@ -1286,7 +1384,9 @@ function updateKpis(){
     document.getElementById("recvFilter")?.value,
     document.getElementById("minAmount")?.value,
     document.getElementById("maxAmount")?.value,
-    document.getElementById("monthFilter")?.value,
+    selectedMonths.size ? "x" : "",
+    document.getElementById("dateFromFilter")?.value,
+    document.getElementById("dateToFilter")?.value,
   ].filter(Boolean).length;
   const badge = document.getElementById("mobFilterBadge");
   if(badge){ badge.textContent = activeFilters; badge.style.display = activeFilters ? "" : "none"; }
@@ -1627,8 +1727,37 @@ function wireControls(){
   ["searchInput"].forEach(id=>{
     document.getElementById(id)?.addEventListener("input", debouncedApply);
   });
-  ["blockFilter","modeFilter","recvFilter","monthFilter"].forEach(id=>{
+  ["blockFilter","modeFilter","recvFilter"].forEach(id=>{
     document.getElementById(id)?.addEventListener("change", applyFiltersAndRender);
+  });
+  ["dateFromFilter","dateToFilter"].forEach(id=>{
+    document.getElementById(id)?.addEventListener("change", applyFiltersAndRender);
+  });
+
+  /* Month multi-select filter */
+  buildMonthFilterOptions();
+  document.getElementById("monthFilterTrigger")?.addEventListener("click", e=>{
+    e.stopPropagation();
+    setMonthFilterOpen(!document.getElementById("monthFilterWrap").classList.contains("open"));
+  });
+  document.getElementById("monthFilterDropdown")?.addEventListener("click", e=>e.stopPropagation());
+  document.getElementById("monthFilterAll")?.addEventListener("click", e=>{
+    e.preventDefault();
+    MONTH_SHORT.forEach((_,i)=>selectedMonths.add(i));
+    document.querySelectorAll("#monthFilterOptions .ms-option").forEach(opt=>{
+      opt.classList.add("selected"); opt.querySelector("input").checked=true;
+    });
+    updateMonthFilterTrigger();
+    applyFiltersAndRender();
+  });
+  document.getElementById("monthFilterNone")?.addEventListener("click", e=>{
+    e.preventDefault();
+    selectedMonths.clear();
+    document.querySelectorAll("#monthFilterOptions .ms-option").forEach(opt=>{
+      opt.classList.remove("selected"); opt.querySelector("input").checked=false;
+    });
+    updateMonthFilterTrigger();
+    applyFiltersAndRender();
   });
 
   /* Clickable column-header sorting (Block, Flat, Amount, Payment Mode, Payment Date) */
@@ -1648,7 +1777,13 @@ function wireControls(){
     document.getElementById("blockFilter").value  = "";
     document.getElementById("modeFilter").value   = "";
     document.getElementById("recvFilter").value   = "";
-    document.getElementById("monthFilter").value  = "";
+    selectedMonths.clear();
+    document.querySelectorAll("#monthFilterOptions .ms-option").forEach(opt=>{
+      opt.classList.remove("selected"); opt.querySelector("input").checked=false;
+    });
+    updateMonthFilterTrigger();
+    document.getElementById("dateFromFilter").value = "";
+    document.getElementById("dateToFilter").value = "";
     applyFiltersAndRender();
   });
 
@@ -1691,6 +1826,7 @@ function wireControls(){
       w.classList.remove("open");
       w.querySelector(".export-btn")?.setAttribute("aria-expanded","false");
     });
+    setMonthFilterOpen(false);
   });
 
   /* Logout */
@@ -1730,6 +1866,20 @@ function wireControls(){
     mobToggle.addEventListener("click", ()=>{
       const isOpen = filterBody.classList.toggle("open");
       mobToggle.classList.toggle("open", isOpen);
+      if(isOpen){
+        // Reveal overflow only once the slide-down animation has actually
+        // finished, so the month multi-select dropdown (and any other
+        // filter dropdown) isn't clipped by the panel's own bounds on
+        // mobile — but still clips cleanly while it's mid-animation.
+        filterBody.addEventListener("transitionend", function onOpen(e){
+          if(e.propertyName !== "max-height") return;
+          filterBody.removeEventListener("transitionend", onOpen);
+          if(filterBody.classList.contains("open")) filterBody.classList.add("expanded");
+        });
+      }else{
+        filterBody.classList.remove("expanded");
+        setMonthFilterOpen(false);
+      }
     });
   }
 
