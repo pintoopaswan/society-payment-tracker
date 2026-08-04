@@ -498,6 +498,8 @@ thead th{
 }
 thead th.th-actions{width:100px;text-align:center}
 thead th.th-status{width:110px}
+thead th.th-block{width:112px}
+thead th.th-unit{width:82px}
 tbody tr{border-bottom:1px solid var(--line);transition:background 0.13s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--blue-50)}
@@ -505,10 +507,14 @@ tbody td{
   padding:10px 14px;color:var(--ink-2);
   font-size:0.81rem;vertical-align:middle;
   white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
 }
 tbody td.td-wrap{white-space:normal}
-.td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem}
-.td-name{font-weight:600;color:var(--ink)}
+tbody td.td-block,tbody td.td-unit{white-space:nowrap;overflow:visible;text-overflow:clip}
+.th-name{width:21%}
+.th-contact{width:15%}
+.td-flat{font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;font-size:0.79rem;white-space:nowrap;overflow:visible;text-overflow:clip}
+.td-name{font-weight:600;color:var(--ink);white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;overflow-wrap:anywhere}
 .td-phone a,.call-link{
   color:var(--blue-600);font-weight:500;
   display:inline-flex;align-items:center;gap:4px;
@@ -842,68 +848,7 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 
 <!-- MOBILE OVERLAY + DRAWER -->
 <div class="mob-overlay" id="mobOverlay"></div>
-<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation">
-  <div class="sb-brand">
-    <div class="sb-logo">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
-      </svg>
-    </div>
-    <div class="sb-copy">
-      <div class="sb-name">MIG Society</div>
-      <div class="sb-tag">Sector-29 · Admin</div>
-    </div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main</div>
-    <a class="sb-item" href="index.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
-      <span class="sb-label">Dashboard</span>
-    </a>
-    <a class="sb-item" href="payments.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">Payments</span>
-    </a>
-    <a class="sb-item" href="payment-history.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">History</span>
-    </a>
-    <a class="sb-item" href="fund-ledger.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
-      <span class="sb-label">Fund Ledger</span>
-    </a>
-    <a class="sb-item" href="flat-search.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
-      <span class="sb-label">Flat Search</span>
-    </a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item active" href="owner-tenant.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
-      <span class="sb-label">Residents</span>
-      <span class="sb-badge" id="drawerNavResidents">0</span>
-    </a>
-    <a class="sb-item" href="vehicles.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-      <span class="sb-label">Vehicles</span>
-    </a>
-    <a class="sb-item" href="emergency-contact.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
-      <span class="sb-label">Emergency</span>
-    </a>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-user" id="drawerLogoutBtn">
-      <div class="sb-avatar">A</div>
-      <div class="sb-user-info">
-        <div class="sb-user-name">Admin</div>
-        <div class="sb-user-role">Society Manager</div>
-      </div>
-      <div class="sb-logout" title="Logout">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-      </div>
-    </div>
-  </div>
-</aside>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
 
 <!-- MOBILE HEADER -->
 <header class="mob-header" id="mobHeader">
@@ -922,73 +867,8 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 <div class="app-shell">
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-  <div class="sb-brand">
-    <div class="sb-logo">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
-      </svg>
-    </div>
-    <div class="sb-copy">
-      <div class="sb-name">MIG Society</div>
-      <div class="sb-tag">Sector-29 · Admin Panel</div>
-    </div>
-  </div>
-  <button class="sb-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="8,2 4,6 8,10"/>
-    </svg>
-  </button>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main Menu</div>
-    <a class="sb-item" href="index.html" data-tooltip="Dashboard">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
-      <span class="sb-label">Dashboard</span>
-    </a>
-    <a class="sb-item" href="payments.html" data-tooltip="Payments">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">Payments</span>
-    </a>
-    <a class="sb-item" href="payment-history.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">History</span>
-    </a>
-    <a class="sb-item" href="fund-ledger.html" data-tooltip="Fund Ledger">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
-      <span class="sb-label">Fund Ledger</span>
-    </a>
-    <a class="sb-item" href="flat-search.html" data-tooltip="Flat Search">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
-      <span class="sb-label">Flat Search</span>
-    </a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item active" href="owner-tenant.html" data-tooltip="Residents">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
-      <span class="sb-label">Residents</span>
-      <span class="sb-badge" id="navResidents">0</span>
-    </a>
-    <a class="sb-item" href="vehicles.html" data-tooltip="Vehicles">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-      <span class="sb-label">Vehicles</span>
-    </a>
-    <a class="sb-item" href="emergency-contact.html" data-tooltip="Emergency">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
-      <span class="sb-label">Emergency</span>
-    </a>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-user" id="logoutDesk">
-      <div class="sb-avatar">A</div>
-      <div class="sb-user-info">
-        <div class="sb-user-name">Admin</div>
-        <div class="sb-user-role">Society Manager</div>
-      </div>
-      <div class="sb-logout" title="Logout">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-      </div>
-    </div>
-  </div>
-</aside>
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="sidebar.js"></script>
 
 <!-- MAIN -->
 <div class="main" id="mainContent">
@@ -1141,7 +1021,7 @@ if(!sessionStorage.getItem(AUTH_KEY))sessionStorage.setItem(AUTH_KEY,"true");
 /* ── Constants ── */
 const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
-const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwCnOleD2qsF3nJJe39X5dyvXJbIIndxxf4ZuTf48D-knyQU28FxoiaoF7j3rI9omjlcw/exec";
+const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwu5LEqAVy1BKgQX5kNZJzsLdzgSdX53GPLMFm85ryefTi7jNEHy3-lLSLP6YQ7qea9Xg/exec";
 const RESIDENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const RESIDENT_OCCUPIED_OPTIONS = ["UNOCCUPIED","TENANT","OWNER","PHQ"];
 const VEHICLE_TYPE_OPTIONS = ["BIKE","SCOOTY","CAR"];
@@ -1166,6 +1046,11 @@ function phoneLink(v){
 }
 function isPhoneHdr(h){ const l=norm(h); return["mobile","phone","contact","whatsapp"].some(p=>l.includes(p)); }
 function hiIdx(pats){ const nh=headers.map(h=>norm(h)); return pats.reduce((f,p)=>f>=0?f:nh.findIndex(h=>h.includes(p)),-1); }
+function blockIdx(){
+  const nh=headers.map(h=>norm(h));
+  const exact=nh.findIndex(h=>h==="block"||h==="block no"||h==="block no."||h==="block number");
+  return exact>=0?exact:hiIdx(["block"]);
+}
 function personIdx(pri,exc=[]){ const excPats=["vehicle","car","bike","scooter","number plate","registration","veh","type","parking"]; const nh=headers.map(h=>norm(h)); for(const p of pri){ const i=nh.findIndex(h=>h.includes(p)&&!excPats.some(e=>h.includes(e))); if(i>=0)return i; } return-1; }
 function occIdx(){ return hiIdx(["occupied by","occupiedby","occupancy"]); }
 function vehIdx(){ return hiIdx(["vehicle type","veh type","vehicle"]); }
@@ -1188,7 +1073,7 @@ function sanitize(rh,rr){
 
 function dispCols(){
   return[
-    hiIdx(["block"]),
+    blockIdx(),
     hiIdx(["flat","house","apartment"]),
     personIdx(["owner name","owner"],["resident name","name"]),
     hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]),
@@ -1218,7 +1103,7 @@ function updateKPI(){
 }
 
 function updateBlockFilter(){
-  const bf=document.getElementById("blockFilter"),bI=hiIdx(["block"]);
+  const bf=document.getElementById("blockFilter"),bI=blockIdx();
   const sel=bf.value;
   const blocks=[...new Set(rows.map(r=>bI>=0?String(r[bI]||"").trim():"").filter(Boolean))].sort((a,b)=>{
     const na=parseInt(a),nb=parseInt(b);return!isNaN(na)&&!isNaN(nb)?na-nb:a.localeCompare(b);
@@ -1245,15 +1130,26 @@ function renderTable(data){
 
   const colLabels={};
   headers.forEach((h,i)=>colLabels[i]=h);
-  thead.innerHTML=`<tr>${cols.slice(0,2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Status</th>${cols.slice(2).map(i=>`<th>${esc(colLabels[i])}</th>`).join("")}<th>Actions</th></tr>`;
+  thead.innerHTML=`<tr>${cols.slice(0,2).map((i,j)=>`<th class="${j===0?"th-block":"th-unit"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-status">Status</th>${cols.slice(2).map((i,j)=>`<th class="${j%2===0?"th-name":"th-contact"}">${esc(colLabels[i])}</th>`).join("")}<th class="th-actions">Actions</th></tr>`;
 
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   tbody.innerHTML=data.map(row=>{
     const b=bI>=0?row[bI]:"",f=fI>=0?row[fI]:"";
-    const cells=cols.slice(2).map(i=>`<td class="${isPhoneHdr(headers[i])?"td-phone":""}">${isPhoneHdr(headers[i])?phoneLink(row[i]):esc(row[i]||"—")}</td>`).join("");
+    // Columns alternate Name, Contact, Name, Contact (see dispCols()) —
+    // give names their own class so long ones wrap onto a 2nd line
+    // instead of overflowing into the Contact column next to them.
+    const cells=cols.slice(2).map((i,j)=>{
+      const isPhone=isPhoneHdr(headers[i]);
+      const isName=j%2===0;
+      const val=row[i]||"";
+      const cls=isPhone?"td-phone":(isName?"td-name":"");
+      const content=isPhone?phoneLink(val):esc(val||"—");
+      const title=(!isPhone&&val)?` title="${esc(val)}"`:"";
+      return`<td class="${cls}"${title}>${content}</td>`;
+    }).join("");
     return`<tr>
-      <td><div class="td-flat">${esc(blockDisp(b))}</div></td>
-      <td><div class="td-flat">${esc(f)}</div></td>
+      <td class="td-block" title="${esc(blockDisp(b))}"><div class="td-flat">${esc(blockDisp(b))}</div></td>
+      <td class="td-unit"><div class="td-flat">${esc(f)}</div></td>
       <td>${occBadge(row)}</td>
       ${cells}
       <td><div class="action-btns">
@@ -1275,7 +1171,7 @@ function renderTable(data){
 
 /* ── Render mobile cards ── */
 function renderCards(data){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   const ownerI=personIdx(["owner name","owner"],["resident name","name"]);
   const tenantI=personIdx(["tenant name","tenant"],["occupant"]);
   const ownerPhI=hiIdx(["owner contact","owner mobile","owner phone","owner whatsapp"]);
@@ -1339,7 +1235,7 @@ function applyFilters(){
   const q=norm(document.getElementById("searchInput").value);
   const type=document.getElementById("searchType").value;
   const blockVal=norm(document.getElementById("blockFilter").value);
-  const bI=hiIdx(["block"]);
+  const bI=blockIdx();
 
   filteredRows=rows.filter(row=>{
     if(blockVal&&bI>=0&&norm(row[bI])!==blockVal)return false;
@@ -1504,7 +1400,7 @@ async function deleteResident(block,flat){
 
 /* ── Find row ── */
 function findRow(block,flat){
-  const bI=hiIdx(["block"]),fI=hiIdx(["flat","house","apartment"]);
+  const bI=blockIdx(),fI=hiIdx(["flat","house","apartment"]);
   return rows.find(r=>(bI<0||String(r[bI]||"").trim()===block)&&(fI<0||String(r[fI]||"").trim()===flat));
 }
 

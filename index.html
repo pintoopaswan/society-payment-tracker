@@ -238,6 +238,11 @@ body.modal-open{overflow:hidden}
 
 /* Sidebar footer */
 .sb-footer{padding:12px 10px;border-top:1px solid var(--line);flex-shrink:0}
+.app-footer{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:22px 4px 6px;font-size:0.72rem;color:var(--ink-3)}
+.app-footer-item{display:inline-flex;align-items:center;gap:5px}
+.app-footer-item svg{color:var(--ink-4,var(--ink-3));flex-shrink:0}
+.app-footer-item b{color:var(--ink-2);font-weight:600}
+.app-footer-dot{color:var(--line)}
 .sb-user{
   display:flex;align-items:center;gap:10px;
   padding:9px 10px;border-radius:var(--r-md);
@@ -707,9 +712,19 @@ body.modal-open{overflow:hidden}
 .ico-green {background:var(--green-100);color:var(--green-700)}
 .ico-violet{background:var(--violet-100);color:var(--violet-600)}
 .ico-teal  {background:var(--teal-100);color:var(--teal-600)}
+.ico-amber {background:var(--amber-100);color:var(--amber-700)}
+.ico-red   {background:var(--red-100);color:var(--red-700)}
 .qt-body{min-width:0}
 .qt-title{font-size:0.84rem;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-0.01em}
 .qt-copy{font-size:0.72rem;color:var(--ink-3);margin-top:3px;line-height:1.4}
+.qt-stat{font-size:0.7rem;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:5px}
+.qt-stat::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.qt-stat-blue{color:var(--blue-600)}
+.qt-stat-green{color:var(--green-600)}
+.qt-stat-violet{color:var(--violet-600)}
+.qt-stat-teal{color:var(--teal-600)}
+.qt-stat-amber{color:var(--amber-600)}
+.qt-stat-red{color:var(--red-600)}
 
 /* ══════════════════════════════════════
    DASHBOARD GRID
@@ -1021,70 +1036,7 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- MOBILE OVERLAY + DRAWER -->
 <div class="mob-overlay" id="mobOverlay"></div>
-<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation">
-  <div class="sb-brand">
-    <div class="sb-logo">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
-      </svg>
-    </div>
-    <div class="sb-copy">
-      <div class="sb-name">MIG Society</div>
-      <div class="sb-tag">Sector-29 · Admin</div>
-    </div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main</div>
-    <a class="sb-item active" href="index.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
-      <span class="sb-label">Dashboard</span>
-    </a>
-    <a class="sb-item" href="payments.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">Payments</span>
-    </a>
-    <a class="sb-item" href="payment-history.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">History</span>
-    </a>
-    <a class="sb-item" href="fund-ledger.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
-      <span class="sb-label">Fund Ledger</span>
-    </a>
-    <a class="sb-item" href="flat-search.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
-      <span class="sb-label">Flat Search</span>
-    </a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item" href="owner-tenant.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
-      <span class="sb-label">Residents</span>
-      <span class="sb-badge" id="drawerNavResidents">0</span>
-    </a>
-    <a class="sb-item" href="vehicles.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-      <span class="sb-label">Vehicles</span>
-      <span class="sb-badge" id="drawerNavVehicles">0</span>
-    </a>
-    <a class="sb-item" href="emergency-contact.html">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
-      <span class="sb-label">Emergency</span>
-      <span class="sb-badge" id="drawerNavEmergency">0</span>
-    </a>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-user" id="drawerLogoutBtn">
-      <div class="sb-avatar">A</div>
-      <div class="sb-user-info">
-        <div class="sb-user-name">Admin</div>
-        <div class="sb-user-role">Society Manager</div>
-      </div>
-      <div class="sb-logout">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-      </div>
-    </div>
-  </div>
-</aside>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
 
 <!-- MOBILE HEADER -->
 <header class="mob-header" id="mobHeader">
@@ -1127,75 +1079,8 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 <div class="app-shell">
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-  <div class="sb-brand">
-    <div class="sb-logo">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/>
-      </svg>
-    </div>
-    <div class="sb-copy">
-      <div class="sb-name">MIG Society</div>
-      <div class="sb-tag">Sector-29 · Admin Panel</div>
-    </div>
-  </div>
-  <button class="sb-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="8,2 4,6 8,10"/>
-    </svg>
-  </button>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main Menu</div>
-    <a class="sb-item active" href="index.html" data-tooltip="Dashboard">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
-      <span class="sb-label">Dashboard</span>
-    </a>
-    <a class="sb-item" href="payments.html" data-tooltip="Payments">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">Payments</span>
-    </a>
-    <a class="sb-item" href="payment-history.html" data-tooltip="Payment History">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div>
-      <span class="sb-label">History</span>
-    </a>
-    <a class="sb-item" href="fund-ledger.html" data-tooltip="Fund Ledger">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div>
-      <span class="sb-label">Fund Ledger</span>
-    </a>
-    <a class="sb-item" href="flat-search.html" data-tooltip="Flat Search">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div>
-      <span class="sb-label">Flat Search</span>
-    </a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item" href="owner-tenant.html" data-tooltip="Residents">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div>
-      <span class="sb-label">Residents</span>
-      <span class="sb-badge" id="navResidents">0</span>
-    </a>
-    <a class="sb-item" href="vehicles.html" data-tooltip="Vehicles">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-      <span class="sb-label">Vehicles</span>
-      <span class="sb-badge" id="navVehicles">0</span>
-    </a>
-    <a class="sb-item" href="emergency-contact.html" data-tooltip="Emergency">
-      <div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
-      <span class="sb-label">Emergency</span>
-      <span class="sb-badge" id="navEmergency">0</span>
-    </a>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-user" id="logoutDesk">
-      <div class="sb-avatar">A</div>
-      <div class="sb-user-info">
-        <div class="sb-user-name">Admin</div>
-        <div class="sb-user-role">Society Manager</div>
-      </div>
-      <div class="sb-logout" title="Logout">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-      </div>
-    </div>
-  </div>
-</aside>
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="sidebar.js"></script>
 
 <!-- MAIN -->
 <div class="main" id="mainContent">
@@ -1339,23 +1224,31 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
     <div class="quick-row">
       <a class="qt" href="payments.html">
         <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Add or edit payments</div><div class="qt-copy">Payment register &amp; month-wise entries</div></div>
+        <div class="qt-body"><div class="qt-title">Add or edit payments</div><div class="qt-copy">Payment register &amp; month-wise entries</div><div class="qt-stat qt-stat-blue" id="qtStatPayments">—</div></div>
       </a>
       <a class="qt" href="fund-ledger.html">
         <div class="qt-ico ico-green"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h12M2 8h12M2 11h12"/><path d="M5.5 2.5L4 13.5M12 2.5l-1.5 11"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Fund Ledger</div><div class="qt-copy">Society income &amp; expense register</div></div>
+        <div class="qt-body"><div class="qt-title">Fund Ledger</div><div class="qt-copy">Society income &amp; expense register</div><div class="qt-stat qt-stat-green" id="qtStatLedger">—</div></div>
       </a>
       <a class="qt" href="owner-tenant.html">
         <div class="qt-ico ico-violet"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div></div>
+        <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div><div class="qt-stat qt-stat-violet" id="qtStatResidents">—</div></div>
       </a>
       <a class="qt" href="emergency-contact.html">
         <div class="qt-ico ico-teal"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Emergency</div><div class="qt-copy">Vendors, guards &amp; services</div></div>
+        <div class="qt-body"><div class="qt-title">Emergency</div><div class="qt-copy">Vendors, guards &amp; services</div><div class="qt-stat qt-stat-teal" id="qtStatEmergency">—</div></div>
       </a>
       <a class="qt" href="vehicles.html">
         <div class="qt-ico ico-amber"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Vehicle Directory</div><div class="qt-copy">Registered cars, bikes &amp; scooters</div></div>
+        <div class="qt-body"><div class="qt-title">Vehicle Directory</div><div class="qt-copy">Registered cars, bikes &amp; scooters</div><div class="qt-stat qt-stat-amber" id="qtStatVehicles">—</div></div>
+      </a>
+      <a class="qt" href="payment-history.html">
+        <div class="qt-ico ico-red"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><polyline points="10,5 10,10 14,13"/></svg></div>
+        <div class="qt-body"><div class="qt-title">Payment History</div><div class="qt-copy">Full transaction log &amp; receipts</div><div class="qt-stat qt-stat-red" id="qtStatHistory">—</div></div>
+      </a>
+      <a class="qt" href="flat-search.html">
+        <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><line x1="14" y1="14" x2="10.5" y2="10.5"/></svg></div>
+        <div class="qt-body"><div class="qt-title">Flat Search</div><div class="qt-copy">Look up any flat's payment status</div><div class="qt-stat qt-stat-blue" id="qtStatSearch">—</div></div>
       </a>
     </div>
 
@@ -1495,6 +1388,15 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       </div>
 
     </div><!-- /dash-grid -->
+
+    <div class="app-footer">
+      <span class="app-footer-item">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z"/><circle cx="10" cy="10" r="2.5"/></svg>
+        <span id="visitCount">—</span> visits on this device
+      </span>
+      <span class="app-footer-dot">·</span>
+      <span class="app-footer-item">System designed by <b>Pintoo Paswan</b></span>
+    </div>
   </div><!-- /page -->
 
 </div><!-- /main -->
@@ -2164,6 +2066,9 @@ function renderDash({pd,rd,ec,year,expData}){
   const availBal=(expData?.totalCredits||0)-(expData?.totalDebits||0);
   const balSign=availBal>=0?"Surplus":"Deficit";
 
+  // Total known flats (used by the Flat Search quick-link stat)
+  const totalFlats=pd.allFlats.size;
+
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total));setTxt("kpiSub",`Year ${year}`);
   setTxt("kpiMonth",fmt$(monthTotal));setTxt("kpiMonthSub",curMonthName+" "+year);
@@ -2216,6 +2121,15 @@ function renderDash({pd,rd,ec,year,expData}){
   setTxt("resOwner",fmtN(rd.stats.owner));setTxt("resTenant",fmtN(rd.stats.tenant));setTxt("resPend",fmtN(rd.stats.pending));
   setTxt("resComplete",`${compl}% complete`);setTxt("resCars",`${fmtN(rd.stats.vehicles)} vehicles`);
   rmSkEl(document.getElementById("resGrid"));
+
+  // Quick-link tile live stats
+  setTxt("qtStatPayments",`${fmt$(monthTotal)} this month`);
+  setTxt("qtStatLedger",`${fmt$(Math.abs(availBal))} ${balSign.toLowerCase()}`);
+  setTxt("qtStatResidents",`${fmtN(rd.stats.total)} flats · ${compl}% complete`);
+  setTxt("qtStatEmergency",`${fmtN(ec)} contact${ec===1?"":"s"} listed`);
+  setTxt("qtStatVehicles",`${fmtN(rd.stats.vehicles)} registered`);
+  setTxt("qtStatHistory",`${fmtN(pd.payments.length)} entries logged`);
+  setTxt("qtStatSearch",`${fmtN(totalFlats)} flats searchable`);
 
   renderTrend(pd.monthTotals, pd.monthCounts);
   _cachedPayments=pd.payments;_cachedAllBlocks=pd.allBlocks;
@@ -2324,6 +2238,18 @@ window.addEventListener("resize",()=>{
 });
 
 loadDash();
+
+/* ── Visit counter (per-device, stored in this browser's localStorage) ── */
+(function trackVisit(){
+  try{
+    const key="mig_dashboard_visits";
+    const count=(parseInt(localStorage.getItem(key),10)||0)+1;
+    localStorage.setItem(key,count);
+    setTxt("visitCount",fmtN(count));
+  }catch(e){
+    setTxt("visitCount","—");
+  }
+})();
 </script>
 </body>
 </html>

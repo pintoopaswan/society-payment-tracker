@@ -672,6 +672,15 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
   transition:all 0.14s;
 }
 .pay-edit-btn:hover{border-color:var(--blue-400);color:var(--blue-600);background:var(--blue-50)}
+.pay-add-btn{
+  height:34px;padding:0 14px;font-size:0.76rem;font-weight:700;
+  border-radius:var(--r-sm);border:none;
+  background:linear-gradient(135deg,var(--green-600),var(--green-500));
+  color:#fff;display:flex;align-items:center;gap:6px;
+  box-shadow:var(--s-green);transition:all 0.18s var(--ease-out);
+}
+.pay-add-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(5,150,105,0.30)}
+.pay-add-btn:active{transform:none}
 
 .pay-row-editable{cursor:pointer}
 .pay-row-editable:hover td{background:var(--blue-50)!important}
@@ -1019,8 +1028,22 @@ body.dark .form-input{background:var(--surface-3)}
   border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:middle;
 }
 
+/* Paid-for row: Year select + month multi-select side by side (matches payments.html) */
+.paid-for-row{display:flex;gap:8px;align-items:flex-start}
+.pay-year-select{
+  flex:0 0 92px;min-height:42px;border:1.5px solid var(--line-md);
+  border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);
+  font-size:0.88rem;font-weight:600;padding:9px 28px 9px 10px;
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232563eb' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.pay-year-select:focus{outline:none;border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,0.10)}
+body.dark .pay-year-select{background-color:var(--surface-3);border-color:var(--line-md);color:var(--ink)}
+
 /* Month picker for flat-search payment modal */
-.pay-month-picker-wrap{position:relative}
+.pay-month-picker-wrap{flex:1 1 auto;min-width:0;position:relative}
 .pay-month-picker-trigger{
   width:100%;min-height:42px;border:1.5px solid var(--line-md);border-radius:var(--r-sm);
   background:var(--surface-2);color:var(--ink-2);font-size:0.88rem;font-weight:500;
@@ -1037,9 +1060,24 @@ body.dark .form-input{background:var(--surface-3)}
 .pay-month-picker-dropdown{
   position:absolute;left:0;right:0;top:calc(100% + 6px);
   background:var(--surface);border:1px solid var(--line-md);
-  border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:600;display:none;overflow:hidden;
+  border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:600;display:none;
+  overflow-y:auto;overflow-x:hidden;max-height:320px;
 }
 .pay-month-picker-wrap.open .pay-month-picker-dropdown{display:block}
+.pay-month-year-row{
+  display:flex;align-items:center;gap:8px;padding:10px 12px 8px;
+  border-bottom:1px solid var(--line);
+}
+.pay-month-year-row label{
+  font-size:0.66rem;font-weight:700;color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;
+}
+.pay-month-year-select{
+  flex:1;padding:6px 8px;border-radius:var(--r-sm);border:1.5px solid var(--line-md);
+  background:var(--surface);color:var(--ink);font-size:0.8rem;font-weight:600;
+  font-family:inherit;cursor:pointer;
+}
+.pay-month-year-select:focus{outline:none;border-color:var(--blue-500)}
 .pay-month-options-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px}
 .pay-month-option{
   padding:8px 6px;border-radius:var(--r-sm);text-align:center;cursor:pointer;
@@ -1050,6 +1088,16 @@ body.dark .form-input{background:var(--surface-3)}
 .pay-month-option.selected{
   background:var(--blue-600);color:#fff;border-color:var(--blue-600);
   box-shadow:0 3px 8px rgba(37,99,235,0.25);
+}
+.pay-month-option.disabled{
+  background:var(--surface-3);color:var(--ink-4);cursor:not-allowed;
+  opacity:0.6;pointer-events:none;
+}
+.pay-month-option.disabled:hover{background:var(--surface-3);color:var(--ink-4)}
+.pay-month-option .pmo-tag{display:none}
+.pay-month-option.disabled .pmo-tag{
+  display:block;font-size:0.56rem;font-weight:700;letter-spacing:0.04em;
+  color:var(--ink-4);margin-top:1px;text-transform:uppercase;
 }
 .pay-month-option input{position:absolute;opacity:0;pointer-events:none}
 
@@ -1106,6 +1154,7 @@ body.dark .pay-form-field select,
 body.dark .pay-form-field textarea{background:var(--surface-3);border-color:var(--line-md);color:var(--ink)}
 body.dark .pay-month-picker-trigger{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-2)}
 body.dark .pay-month-picker-dropdown{background:var(--surface);border-color:var(--line-md)}
+body.dark .pay-month-year-select{background:var(--surface-3);border-color:var(--line-md);color:var(--ink-2)}
 body.dark .pay-month-option{background:var(--surface-3);color:var(--ink-2)}
 body.dark .confirm-modal{background:var(--surface);border-color:var(--line-md)}
 
@@ -1115,7 +1164,7 @@ body.dark .confirm-modal{background:var(--surface);border-color:var(--line-md)}
   .pay-form-actions{flex-direction:column-reverse;gap:8px}
   .btn-save,.btn-cancel,.btn-delete{width:100%;height:44px;font-size:0.86rem}
   .pay-month-picker-dropdown{position:static;margin-top:6px;box-shadow:none;border:1px solid var(--line-md)}
-  .pay-month-options-grid{grid-template-columns:repeat(4,1fr)}
+  .pay-month-options-grid{grid-template-columns:repeat(3,1fr)}
 }
 
 /* Visually hidden — for screen reader accessible text */
@@ -1282,25 +1331,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 
 <!-- MOBILE OVERLAY + DRAWER -->
 <div class="mob-overlay" id="mobOverlay"></div>
-<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation">
-  <div class="sb-brand">
-    <div class="sb-logo"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg></div>
-    <div class="sb-copy"><div class="sb-name">MIG Society</div><div class="sb-tag">Sector-29 · Admin</div></div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main</div>
-    <a class="sb-item" href="index.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div><span class="sb-label">Dashboard</span></a>
-    <a class="sb-item" href="payments.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div><span class="sb-label">Payments</span></a>
-    <a class="sb-item" href="payment-history.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div><span class="sb-label">History</span></a>
-    <a class="sb-item" href="fund-ledger.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div><span class="sb-label">Fund Ledger</span></a>
-    <a class="sb-item active" href="flat-search.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div><span class="sb-label">Flat Search</span></a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item" href="owner-tenant.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div><span class="sb-label">Residents</span><span class="sb-badge" id="drawerNavResidents">0</span></a>
-    <a class="sb-item" href="vehicles.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div><span class="sb-label">Vehicles</span></a>
-    <a class="sb-item" href="emergency-contact.html"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div><span class="sb-label">Emergency</span></a>
-  </nav>
-  <div class="sb-footer"><div class="sb-user" id="drawerLogoutBtn"><div class="sb-avatar">A</div><div class="sb-user-info"><div class="sb-user-name">Admin</div><div class="sb-user-role">Society Manager</div></div><div class="sb-logout"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg></div></div></div>
-</aside>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
 
 <!-- MOBILE HEADER -->
 <header class="mob-header">
@@ -1312,23 +1343,8 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 </header>
 
 <div class="app-shell">
-<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
-  <div class="sb-brand"><div class="sb-logo"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="16" height="11" rx="2"/><path d="M6 8V6a4 4 0 0 1 8 0v2"/></svg></div><div class="sb-copy"><div class="sb-name">MIG Society</div><div class="sb-tag">Sector-29 · Admin Panel</div></div></div>
-  <button class="sb-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,2 4,6 8,10"/></svg></button>
-  <nav class="sb-nav">
-    <div class="sb-section-label">Main Menu</div>
-    <a class="sb-item" href="index.html" data-tooltip="Dashboard"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div><span class="sb-label">Dashboard</span></a>
-    <a class="sb-item" href="payments.html" data-tooltip="Payments"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div><span class="sb-label">Payments</span></a>
-    <a class="sb-item" href="payment-history.html" data-tooltip="Payment History"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="13" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg></div><span class="sb-label">History</span></a>
-    <a class="sb-item" href="fund-ledger.html" data-tooltip="Fund Ledger"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/></svg></div><span class="sb-label">Fund Ledger</span></a>
-    <a class="sb-item active" href="flat-search.html" data-tooltip="Flat Search"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/></svg></div><span class="sb-label">Flat Search</span></a>
-    <div class="sb-section-label">Directory</div>
-    <a class="sb-item" href="owner-tenant.html" data-tooltip="Residents"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/></svg></div><span class="sb-label">Residents</span><span class="sb-badge" id="navResidentsNew">0</span></a>
-    <a class="sb-item" href="vehicles.html" data-tooltip="Vehicles"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div><span class="sb-label">Vehicles</span></a>
-    <a class="sb-item" href="emergency-contact.html" data-tooltip="Emergency"><div class="sb-icon"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10.5"/><circle cx="10" cy="13.5" r="0.6" fill="currentColor"/></svg></div><span class="sb-label">Emergency</span></a>
-  </nav>
-  <div class="sb-footer"><div class="sb-user" id="logoutDeskNew"><div class="sb-avatar">A</div><div class="sb-user-info"><div class="sb-user-name">Admin</div><div class="sb-user-role">Society Manager</div></div><div class="sb-logout" title="Logout"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg></div></div></div>
-</aside>
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="sidebar.js"></script>
 <div class="main" id="mainContent">
   <header class="topbar">
     <div class="topbar-title"><div class="topbar-page">Flat Search</div><div class="topbar-sub">MIG Society, Sector-29 · Resident profile & payment history</div></div>
@@ -1638,6 +1654,10 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="14" x2="8" y2="14"/></svg>
             Payment History
           </div>
+          <button class="pay-add-btn" id="addPaymentBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+            Add Payment
+          </button>
           <button class="pay-edit-btn" id="editPaymentBtn" type="button">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
             Edit
@@ -1866,16 +1886,23 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
             <option value="CASH">CASH</option>
           </select>
         </div>
+        <div class="pay-form-field" id="editPayRecvField" style="display:none">
+          <label for="editPayRecv">Received By</label>
+          <input id="editPayRecv" type="text" placeholder="Guard/person name">
+        </div>
         <div class="pay-form-field full">
           <label for="editPayDate">Payment Date</label>
           <input id="editPayDate" type="date">
         </div>
         <div class="pay-form-field full">
-          <label>Payment For Month(s)</label>
-          <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
-            <button class="pay-month-picker-trigger" id="payMonthPickerTrigger" type="button" aria-expanded="false">Select months</button>
-            <div class="pay-month-picker-dropdown" id="payMonthPickerDropdown">
-              <div class="pay-month-options-grid" id="payMonthOptionsGrid"></div>
+          <label id="payMonthsLabel">Payment For (Months)</label>
+          <div class="paid-for-row">
+            <select id="payMonthYearSelect" class="pay-year-select" aria-label="Year"></select>
+            <div class="pay-month-picker-wrap" id="payMonthPickerWrap">
+              <button class="pay-month-picker-trigger" id="payMonthPickerTrigger" type="button" aria-expanded="false">Select months</button>
+              <div class="pay-month-picker-dropdown" id="payMonthPickerDropdown">
+                <div class="pay-month-options-grid" id="payMonthOptionsGrid"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1919,6 +1946,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<script src="payment-months.js"></script>
 <script>
 /* ═══════════════════════════════════════════════
    CONFIG
@@ -1926,7 +1954,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbylhbxE5hejxyPr1iMnkEcBuhWKlEerHZRc2tYCH-99Cj3A6ayrKKDgzh5G1sFBKNAWUg/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxRcXiJKt-HHVizq7Qm3wLcKS_blsyzTAKOsqorzZtPUo3zJzRB7M_uKddi2HrWle-dTg/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2560,12 +2588,25 @@ function paymentMonthCode(value){
   return idx>=0?MONTH_TABS[idx].slice(0,3):String(value||"").trim().toUpperCase();
 }
 
+/* Parse a record's raw "paidMonths" cell into canonical "YYYY-MM" keys.
+   The record's own tab (record.year / record.monthIndex) is used as the
+   inference anchor for legacy bare month names (see payment-months.js).
+
+   Paid Months field is the ONLY source of truth for coverage — no fallback.
+   If paidMonths is empty/unparseable, the record covers nothing. (Matches
+   payments.html; previously this silently treated an empty paidMonths cell
+   as if the record's own tab month were paid, which produced phantom extra
+   months — e.g. an empty June row showing up as "June paid" here while
+   payments.html correctly showed no June coverage.) */
 function paidMonthsForRecord(record){
-  const raw=String(record?.paidMonths||"").trim();
-  const parts=raw.split(/[,;|/]+|\s+/).map(v=>v.trim()).filter(Boolean);
-  if(parts.length)return parts.map(paymentMonthCode).filter(Boolean);
-  const fallback=paymentMonthCode(record?.month||"");
-  return fallback?[fallback]:[];
+  if(!record)return [];
+  return PaymentMonths.parseField(record.paidMonths,Number(record.year),Number(record.monthIndex));
+}
+
+/* "YYYY-MM" keys → "Nov 2025, Dec 2025, Jan 2026" for display. */
+function displayPaidMonths(record){
+  const keys=paidMonthsForRecord(record);
+  return keys.length?PaymentMonths.formatList(keys).join(", "):"";
 }
 
 function toPaymentInputDate(value,record={}){
@@ -2609,7 +2650,7 @@ function renderPaymentTable(records){
       <td class="amount-col">${esc(amt)}</td>
       <td class="mono">${esc(p.paymentDate)||"—"}</td>
       <td>${esc(p.paymentMode)||"—"}</td>
-      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(p.paidMonths||"—")}</td>
+      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(displayPaidMonths(p)||"—")}</td>
       <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3)">${esc(p.remarks||"—")}</td>
       <td>${badge}</td>
       <td><div class="pay-row-actions">
@@ -2646,8 +2687,9 @@ function renderPaymentTable(records){
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="2" y1="7" x2="14" y2="7"/></svg>${esc(p.paymentDate)}</span>`:"";
     const modeChip=p.paymentMode
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/></svg>${esc(p.paymentMode)}</span>`:"";
-    const monthsChip=p.paidMonths
-      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(p.paidMonths)}</span>`:"";
+    const paidMonthsDisplay=displayPaidMonths(p);
+    const monthsChip=paidMonthsDisplay
+      ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(paidMonthsDisplay)}</span>`:"";
     return`<div class="pay-card" data-pay-idx="${realIdx>=0?realIdx:idx}" data-status="${esc(p.status||'PENDING')}" style="cursor:pointer">
       <div class="pay-card-top">
         <div class="pay-card-month-wrap">
@@ -2831,49 +2873,128 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
    EDIT MODALS — PAYMENT (ENHANCED)
 ═══════════════════════════════════════════════ */
 
-/* ── Month picker helpers ── */
-const PAY_MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
-
-function buildPayMonthPicker(){
-  const grid=document.getElementById("payMonthOptionsGrid");
-  if(grid.children.length)return;
-  grid.innerHTML=PAY_MONTH_LBLS.map(m=>`<label class="pay-month-option"><input type="checkbox" value="${m}"><span>${m}</span></label>`).join("");
-  grid.addEventListener("change",updatePayMonthTrigger);
+/* ── Staff email (for audit trail) ──
+   The app sits behind Cloudflare Access, gated by Gmail login, so the
+   real identity of whoever is logged in is available from Cloudflare via
+   the same-origin `/cdn-cgi/access/get-identity` endpoint (no separate
+   login step of our own needed). We fetch it once and cache the email in
+   localStorage (so it survives across sessions on this device/browser),
+   then stamp it onto the payment's notes so there is a record of who made
+   the change. It's cleared on logout (see the logout handler below) so a
+   different Cloudflare-authenticated person gets their own identity looked
+   up again. If the identity endpoint is ever unreachable (e.g. testing
+   outside Cloudflare Access), we fall back to asking once via prompt so
+   attribution still works. */
+const STAFF_EMAIL_KEY="mig_staff_email";
+async function fetchAccessIdentityEmail(){
+  try{
+    const res=await fetch("/cdn-cgi/access/get-identity",{credentials:"include"});
+    if(!res.ok)return "";
+    const data=await res.json();
+    return String(data?.email||"").trim();
+  }catch(ex){
+    return "";
+  }
 }
+async function getStaffEmail(){
+  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
+  if(email)return email;
+  email=await fetchAccessIdentityEmail();
+  if(!email){
+    email=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
+  }
+  if(email)localStorage.setItem(STAFF_EMAIL_KEY,email);
+  return email;
+}
+/* Prefetch right away: the page only ever loads because Cloudflare Access
+   already authenticated this request, so grab the identity now and cache
+   it, instead of waiting until the first payment save to fetch it. Silent
+   (no prompt fallback here) — getStaffEmail() still covers that case if
+   this prefetch doesn't find anything by the time a save happens. */
+if(!localStorage.getItem(STAFF_EMAIL_KEY)){
+  fetchAccessIdentityEmail().then(email=>{ if(email)localStorage.setItem(STAFF_EMAIL_KEY,email); });
+}
+
+/* ── Month picker helpers ──
+   Separate Year dropdown (2025 through next year, current year selected by
+   default) + a 12-month multi-select for whichever year is currently shown.
+   The overall selection (payMonthSelected) persists across year switches,
+   so a single payment can still cover e.g. Nov 2025 + Dec 2025 + Jan 2026 —
+   pick Year=2025, check Nov+Dec, switch to Year=2026, check Jan. */
+let payMonthSelected=new Set();   // accumulated selection, as "YYYY-MM" keys
+let payMonthDisabled=new Set();   // months already covered by OTHER records for this flat (all years)
+let modalPaymentAction="update";  // "create" | "update" — which flow the shared modal is running
+
 function updatePayMonthTrigger(){
   const sel=getSelectedPayMonths();
-  document.getElementById("payMonthPickerTrigger").textContent=sel.length?sel.join(", "):"Select months";
+  document.getElementById("payMonthPickerTrigger").textContent=sel.length?PaymentMonths.formatList(sel).join(", "):"Select months";
 }
 function getSelectedPayMonths(){
-  return Array.from(document.querySelectorAll("#payMonthOptionsGrid input:checked")).map(i=>i.value);
+  return Array.from(payMonthSelected).filter(Boolean);
 }
 function setPayMonthPickerOpen(o){
   const w=document.getElementById("payMonthPickerWrap"),t=document.getElementById("payMonthPickerTrigger");
   w.classList.toggle("open",o); t.setAttribute("aria-expanded",o?"true":"false");
 }
-function setPayMonthOptions(selected=[]){
-  buildPayMonthPicker();
-  const normPay=v=>{
-    const raw=String(v||"").trim().toUpperCase();
-    const i=MONTH_TABS.findIndex(m=>m===raw||m.substring(0,3)===raw.substring(0,3));
-    return i>=0?PAY_MONTH_LBLS[i]:raw;
-  };
-  const s=new Set(selected.map(normPay));
-  document.querySelectorAll("#payMonthOptionsGrid .pay-month-option").forEach(opt=>{
-    const inp=opt.querySelector("input"); if(!inp)return;
-    const active=s.has(inp.value);
-    inp.checked=active; opt.classList.toggle("selected",active);
+
+/* Exact Month-Year keys already covered by payment records for this flat.
+   When editing, pass the record so its OWN months stay excluded (editable);
+   when adding a fresh payment, pass null so every existing record's
+   coverage blocks a double-booking. */
+function alreadyPaidMonthsFor(record){
+  const disabled=new Set();
+  paymentFiltered.forEach(rec=>{
+    if(rec===record)return;
+    paidMonthsForRecord(rec).forEach(k=>disabled.add(k));
   });
+  return disabled;
+}
+
+function buildPayMonthYearOptions(preferredYear){
+  const sel=document.getElementById("payMonthYearSelect");
+  const years=PaymentMonths.yearOptions();
+  const target=years.includes(preferredYear)?preferredYear:new Date().getFullYear();
+  sel.innerHTML=years.map(y=>`<option value="${y}"${y===target?" selected":""}>${y}</option>`).join("");
+}
+
+/* Render the 12-month grid for whichever year the Year dropdown currently
+   shows, reflecting the accumulated cross-year selection + disabled set. */
+function renderPayMonthGrid(){
+  const year=Number(document.getElementById("payMonthYearSelect").value);
+  const grid=document.getElementById("payMonthOptionsGrid");
+  grid.innerHTML=PaymentMonths.yearMonthKeys(year).map((k,mi)=>{
+    const active=payMonthSelected.has(k);
+    const locked=payMonthDisabled.has(k)&&!active;
+    return`<label class="pay-month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${PaymentMonths.MONTH_DISPLAY[mi]}</span><span class="pmo-tag">Paid</span></label>`;
+  }).join("");
   updatePayMonthTrigger();
 }
 
-/* Sync checkbox → visual class */
+/* selected/disabledMonths seed the picker (e.g. an existing record's paid
+   months + what other records already cover); preferredYear is which
+   year's months to show first (the record's own year when editing, the
+   current year when adding). */
+function setPayMonthOptions(selected=[],disabledMonths=new Set(),preferredYear){
+  payMonthSelected=new Set(selected);
+  payMonthDisabled=disabledMonths;
+  buildPayMonthYearOptions(preferredYear);
+  renderPayMonthGrid();
+}
+
+/* Sync checkbox → accumulated selection + visual class + trigger label */
 document.addEventListener("change",e=>{
   if(e.target.closest("#payMonthOptionsGrid")){
+    const key=e.target.value;
+    if(e.target.checked)payMonthSelected.add(key); else payMonthSelected.delete(key);
     const opt=e.target.closest(".pay-month-option");
     if(opt)opt.classList.toggle("selected",e.target.checked);
+    updatePayMonthTrigger();
   }
 });
+
+/* Switching the Year dropdown only changes which year's checkboxes are
+   shown — the overall cross-year selection is untouched. */
+document.getElementById("payMonthYearSelect").addEventListener("change",renderPayMonthGrid);
 
 /* Month picker trigger */
 document.getElementById("payMonthPickerTrigger").addEventListener("click",e=>{
@@ -2891,15 +3012,59 @@ function setPayFormMsg(msg,ok=false){
   el.className="pay-form-msg"+(ok?" success":"");
 }
 
+/* Received By is only relevant for CASH payments — mirrors payments.html */
+function setPayRecvVisibility(){
+  const isCash=document.getElementById("editPayMode").value==="CASH";
+  document.getElementById("editPayRecvField").style.display=isCash?"":"none";
+}
+document.getElementById("editPayMode").addEventListener("change",setPayRecvVisibility);
+
+function openPaymentAddModal(){
+  if(!currentFlatData){ showToast("Search for a flat first"); return; }
+  editingPaymentIdx=-1;
+  modalPaymentAction="create";
+
+  setPayFormMsg("");
+  setPayMonthPickerOpen(false);
+
+  document.getElementById("payModalTitle").textContent="Add Payment";
+  document.getElementById("paymentModal").querySelector(".pay-modal-subtitle").textContent="Create a new payment entry";
+  document.getElementById("paymentModalSave").textContent="Save Payment";
+
+  document.getElementById("editPayBlock").value=currentFlatData.block||"";
+  document.getElementById("editPayFlat").value=currentFlatData.flat||"";
+  document.getElementById("editPayAmount").value="";
+  document.getElementById("editPayMode").value="ONLINE";
+  document.getElementById("editPayRecv").value="";
+  setPayRecvVisibility();
+  document.getElementById("editPayDate").value=todayInputDate();
+  document.getElementById("editPayDate").max=todayInputDate();
+  document.getElementById("editPayRemarks").value="";
+
+  /* Default the picker to the current month/year, greyed out against every
+     month already covered by this flat's existing payment records. */
+  const today=todayInputDate();
+  const [ty,tm]=today.split("-");
+  const currentKey=`${ty}-${tm}`;
+  const disabled=alreadyPaidMonthsFor(null);
+  setPayMonthOptions(disabled.has(currentKey)?[]:[currentKey],disabled,Number(ty));
+
+  openModal("paymentModal");
+}
+
 function openPaymentEditModal(idx){
   const records=paymentFiltered;
   if(idx<0||idx>=records.length)return;
   editingPaymentIdx=idx;
+  modalPaymentAction="update";
   const p=records[idx];
 
-  buildPayMonthPicker();
   setPayFormMsg("");
   setPayMonthPickerOpen(false);
+
+  document.getElementById("payModalTitle").textContent="Edit Payment Record";
+  document.getElementById("paymentModal").querySelector(".pay-modal-subtitle").textContent="Update existing payment";
+  document.getElementById("paymentModalSave").textContent="Update Payment";
 
   /* Pre-fill read-only flat context */
   document.getElementById("editPayBlock").value=p.block||"";
@@ -2908,54 +3073,73 @@ function openPaymentEditModal(idx){
   /* Pre-fill editable fields */
   document.getElementById("editPayAmount").value=p.amount||"";
   document.getElementById("editPayMode").value=(p.paymentMode||"ONLINE").toUpperCase()==="CASH"?"CASH":"ONLINE";
+  document.getElementById("editPayRecv").value=p.receivedBy||"";
+  setPayRecvVisibility();
   document.getElementById("editPayDate").value=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
   document.getElementById("editPayDate").max=todayInputDate();
   document.getElementById("editPayRemarks").value=p.remarks||"";
 
-  /* Pre-fill month picker from existing record */
-  const pm=paidMonthsForRecord(p);
-  setPayMonthOptions(pm.length?pm:[p.month||""]);
+  /* Pre-fill month picker from existing record (anchored on its payment
+     date); grey out exact Month-Year combos already covered by this flat's
+     OTHER payment records, across all years. */
+  setPayMonthOptions(paidMonthsForRecord(p),alreadyPaidMonthsFor(p),Number(p.year));
 
   openModal("paymentModal");
 }
 
-async function savePaymentEdit(){
-  if(editingPaymentIdx<0)return;
-  const records=paymentFiltered;
-  if(editingPaymentIdx>=records.length)return;
-  const p=records[editingPaymentIdx];
 
+async function savePaymentForm(){
+  const isAdd=modalPaymentAction==="create";
+  const records=paymentFiltered;
+  const p=isAdd?null:records[editingPaymentIdx];
+  if(!isAdd&&(editingPaymentIdx<0||editingPaymentIdx>=records.length))return;
+
+  const block=isAdd?(currentFlatData?.block||""):p.block;
+  const flat=isAdd?(currentFlatData?.flat||""):p.flat;
   const amount=Number(document.getElementById("editPayAmount").value);
   const payDate=document.getElementById("editPayDate").value;
   const mode=document.getElementById("editPayMode").value;
+  const receivedBy=document.getElementById("editPayRecv").value.trim();
+  // Read the selection fresh (not cached) so a month checked right before
+  // clicking Save is never dropped.
   const paidMonths=getSelectedPayMonths();
   const rawRemarks=document.getElementById("editPayRemarks").value.trim();
-  // Build audit note: "Payment added on DD/MM/YYYY for amount ₹XXX"
+
+  if(!block||!flat){ setPayFormMsg("Missing flat context — please reopen this flat's profile and try again."); return; }
+  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
+  if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
+  if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
+  if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
+  const disabled=isAdd?alreadyPaidMonthsFor(null):alreadyPaidMonthsFor(p);
+  const clash=paidMonths.find(k=>disabled.has(k));
+  if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
+
+  // Build audit note + "who made this change" note (see getStaffEmail).
   const auditDate=(()=>{
     if(!payDate)return "";
     const [y,m,d]=payDate.split("-");
     return`${d}/${m}/${y}`;
   })();
-  const auditNote=auditDate?`Payment added on ${auditDate} for amount ₹${amount}`:"";
-  const remarks=rawRemarks?(rawRemarks+(auditNote?` | ${auditNote}`:"")):auditNote;
-
-  if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid whole number amount."); return; }
-  if(!payDate){ setPayFormMsg("Please select a valid payment date."); return; }
-  if(payDate>todayInputDate()){ setPayFormMsg("Payment date cannot be in the future."); return; }
-  if(!paidMonths.length){ setPayFormMsg("Please select at least one month."); return; }
+  const auditNote= "₹"+amount +" received on "+auditDate;
+  //const auditNote=auditDate?`Payment ${isAdd?"added":"updated"} on ${auditDate} for amount ₹${amount}`:"";
+  const staffEmail=await getStaffEmail();
+  const attribNote=staffEmail?`${isAdd?"Added":"Updated"} by: ${staffEmail}`:"";
+  const remarks=[rawRemarks,auditNote,attribNote].filter(Boolean).join(" | ");
 
   const payload={
     secret:WRITE_SECRET,
-    actionType:"update",
-    block:p.block,
-    flatNo:p.flat,
+    actionType:isAdd?"create":"update",
+    block,
+    flatNo:flat,
     amount,
     paymentMode:mode,
-    receivedBy:p.receivedBy||"",
+    receivedBy,
     paymentDate:fmtSheetDate(payDate),
     paymentDateInput:payDate,
-    paymentMonthSheet:paymentMonthCode(document.getElementById("editPayDate").value),
-    paidMonths,
+    paymentMonthSheet:paymentMonthCode(payDate),
+    // Send a plain, de-duplicated array of "YYYY-MM" keys — read fresh
+    // above so it always reflects exactly what's checked at Save time.
+    paidMonths:Array.from(new Set(paidMonths)),
     notes:remarks,
     paymentStatus:"DONE"
   };
@@ -2970,7 +3154,7 @@ async function savePaymentEdit(){
     setTimeout(()=>{
       closeModal("paymentModal");
       if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);
-      showToast("Payment updated ✓");
+      showToast(isAdd?"Payment added ✓":"Payment updated ✓");
       editingPaymentIdx=-1;
     },600);
   }catch(ex){
@@ -2988,7 +3172,7 @@ async function deletePaymentRecord(){
 
   // Build payload directly from the record object (no modal field dependency)
   const payDate=toPaymentInputDate(p.paymentDate,p)||todayInputDate();
-  const paidMonths=paidMonthsForRecord(p).length?paidMonthsForRecord(p):[p.month||""];
+  const paidMonths=paidMonthsForRecord(p);
 
   const payload={
     secret:WRITE_SECRET,
@@ -3044,11 +3228,12 @@ function closeConfirmDelete(){
   document.getElementById("confirmDeleteOverlay").classList.remove("open");
 }
 
+document.getElementById("addPaymentBtn").addEventListener("click",openPaymentAddModal);
 document.getElementById("editPaymentBtn").addEventListener("click",()=>{
   if(paymentFiltered.length>0)openPaymentEditModal(0);
   else showToast("No payment records to edit");
 });
-document.getElementById("paymentModalSave").addEventListener("click",savePaymentEdit);
+document.getElementById("paymentModalSave").addEventListener("click",savePaymentForm);
 document.getElementById("paymentModalClose").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("paymentModalCancel").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("confirmDeleteConfirm").addEventListener("click",deletePaymentRecord);
@@ -3136,7 +3321,7 @@ document.addEventListener("click",()=>document.querySelectorAll(".profile-dropdo
 
 ["logoutDesk","logoutMob","logoutDeskNew","logoutDeskMenuNew","drawerLogoutBtn"].forEach(id=>{
   const b=document.getElementById(id);
-  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";});
+  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(STAFF_EMAIL_KEY);window.location.href="index.html";});
 });
 
 /* ═══════════════════════════════════════════════
