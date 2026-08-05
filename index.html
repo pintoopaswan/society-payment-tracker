@@ -1476,7 +1476,7 @@ const fmt$=v=>`₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN=v=>Number(v||0).toLocaleString("en-IN");
 const hiIdx=(h,inc,exc=[])=>h.findIndex(x=>{const l=norm(x);return inc.some(p=>l.includes(p))&&!exc.some(p=>l.includes(p));});
 const personI=(h,person,fb=[])=>{const i=h.findIndex(x=>{const l=norm(x);return person.some(p=>l.includes(p))&&!l.includes("contact")&&!l.includes("mobile")&&!l.includes("phone");});return i>=0?i:(fb.length?hiIdx(h,fb):-1);};
-const parseD=v=>{const p=String(v||"").trim().split(/[\/-]/).map(Number);if(p.length!==3||p.some(Number.isNaN))return null;const[a,b,c]=p,yr=c<100?2000+c:c,mo=a>12?b:a,dy=a>12?a:b,d=new Date(yr,mo-1,dy);return Number.isNaN(d.getTime())?null:d;};
+const parseD=v=>{const p=String(v||"").trim().split(/[\/-]/).map(Number);if(p.length!==3||p.some(Number.isNaN))return null;const[dy,mo,c]=p,yr=c<100?2000+c:c,d=new Date(yr,mo-1,dy);if(dy<1||dy>31||mo<1||mo>12)return null;return Number.isNaN(d.getTime())?null:d;};
 const fmtDate=v=>{const d=parseD(v);if(!d)return String(v||"-");return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});};
 const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
 const rmSk=id=>{const el=document.getElementById(id);if(el)el.classList.remove("sk");};
