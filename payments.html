@@ -1432,16 +1432,51 @@ function resetState(){
 }
 
 /* ── Process row ── */
+/* Parses a raw payment-date cell from the Google Sheet CSV export into
+   {dy, mo, yr}. This does NOT trust a fixed field order or separator —
+   Google Sheets silently reformats date exports whenever the sheet's
+   locale changes (this is exactly what broke payment loading: the sheet
+   switched from exporting dates as MM/DD/YYYY to DD/MM/YYYY, and the old
+   parser had that order hardcoded, so every row's date became malformed
+   and no payments rendered). Instead:
+     1. Accepts "/", "-", or "." as the separator, in case the export
+        format changes again.
+     2. Recognizes ISO "YYYY-MM-DD" (year-first) directly.
+     3. For a D/M/Y-shaped value, disambiguates day vs month using
+        whichever field is a valid month (<=12) — if only one of the two
+        could be a month, that one wins regardless of position. If both
+        are ambiguously <=12, defaults to DAY/MONTH/YEAR order, since
+        this app's sheets are configured for India.
+   Returns null if the value can't be parsed as a real calendar date. */
+function parseSheetDateParts(raw){
+  const s=String(raw||"").trim();
+  if(!s)return null;
+  let m=/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/.exec(s);
+  if(m){
+    const yr=parseInt(m[1]),mo=parseInt(m[2]),dy=parseInt(m[3]);
+    return(mo>=1&&mo<=12&&dy>=1&&dy<=31)?{dy,mo,yr}:null;
+  }
+  m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(s);
+  if(!m)return null;
+  const a=parseInt(m[1]),b=parseInt(m[2]);
+  let yr=parseInt(m[3]);
+  if(yr<100)yr+=2000;
+  let dy,mo;
+  if(a>12&&b<=12){dy=a;mo=b;}
+  else if(b>12&&a<=12){mo=a;dy=b;}
+  else{dy=a;mo=b;} // ambiguous (or both invalid) — default to DD/MM
+  return(mo>=1&&mo<=12&&dy>=1&&dy<=31&&!isNaN(yr))?{dy,mo,yr}:null;
+}
+
 function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw,recvRaw,notesRaw){
   if(!isValidPaymentFlatRow(block,flat)||!amount)return;
   const nb=blockName(block);
   const rid=`${year}-${monthIndex}-${nb}-${flat}`;
   if(processedRecords.has(rid))return;
   processedRecords.add(rid);
-  let p=String(date).trim().split("/");
-  if(p.length!==3)return;
-  let [mo,dy,yr]=[parseInt(p[0]),parseInt(p[1]),parseInt(p[2])];
-  if(isNaN(dy)||isNaN(mo)||isNaN(yr)||monthIndex<0||monthIndex>11)return;
+  const parsedDate=parseSheetDateParts(date);
+  if(!parsedDate||monthIndex<0||monthIndex>11)return;
+  const {dy,mo,yr}=parsedDate;
   const key=`${nb}-${flat}`;
   if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
   if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{},paidMonthIndices:new Set()};
