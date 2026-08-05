@@ -279,7 +279,8 @@ function savePaymentPayload(payload) {
     lock.releaseLock();
   }
 
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow };
+  const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, submittedPaidMonths, true);
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, guardSync: guardSync };
 }
 
 function updatePaymentPayload(payload) {
@@ -312,6 +313,7 @@ function updatePaymentPayload(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   let targetRow = 0;
+  let previousPaidMonths = [];
   try {
     targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
     if (!targetRow) {
@@ -320,6 +322,9 @@ function updatePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
+
+    const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
+    previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
 
     const updatedRemarks = String(payload.notes || "").trim();
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
@@ -335,7 +340,9 @@ function updatePaymentPayload(payload) {
     lock.releaseLock();
   }
 
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "update" };
+  const guardCleared = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, previousPaidMonths, false);
+  const guardSet = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, submittedPaidMonths, true);
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "update", guardSync: { cleared: guardCleared, set: guardSet } };
 }
 
 function deletePaymentPayload(payload) {
@@ -356,6 +363,7 @@ function deletePaymentPayload(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   let targetRow = 0;
+  let removedPaidMonths = [];
   try {
     targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
     if (!targetRow) {
@@ -364,12 +372,15 @@ function deletePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
+    const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
+    removedPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, MONTHS.indexOf(sheetName));
     sheet.getRange(targetRow, 3, 1, 7).clearContent();
   } finally {
     lock.releaseLock();
   }
 
-  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete" };
+  const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, removedPaidMonths, false);
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete", guardSync: guardSync };
 }
 
 function saveResidentPayload(payload) {
@@ -887,6 +898,134 @@ function recomputeAllBalances(sheet) {
     balance      = close;
   }
   dataRange.setValues(data);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GUARD PAYMENT MATRIX — Flat-wise Security Guard Collection Sync
+// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8 (same file as the
+//             Fund Ledger / EXPENSE_SPREADSHEET_ID above — just different tabs)
+// Tabs      : one per year, e.g. "2025", "2026" — chosen from the payment's
+//             year, taken from payload.paymentDateInput (format YYYY-MM-DD)
+// Layout    : Row 1 = title, Row 2 = "Guard Amount Per Month" + total, Row 3
+//             blank, Row 4 = headers (A=Flat No, B=Tenant Name, C..N=Jan..Dec,
+//             O=Total, P=Flat Status, Q=Paid By). Data starts Row 5.
+//             Flat No column holds "<block>-<flatNo>", e.g. "1-101".
+// Behaviour : Whatever month(s) a maintenance payment covers, this writes (or
+//             clears) the FIXED per-month guard fee (GUARD_MONTHLY_AMOUNT) in
+//             that month's column for the matching flat row — it does NOT
+//             write the actual maintenance amount, only the flat 200/month
+//             guard-fee marker. Every guard sync is wrapped so it can never
+//             throw and break the main maintenance-payment save/update/delete.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const GUARD_SPREADSHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+const GUARD_MONTHLY_AMOUNT = 200;
+const GUARD_HEADER_ROW = 4; // header labels live on row 4; data starts row 5
+const GUARD_FLAT_COL = 1;   // column A holds "<block>-<flatNo>"
+// Column order on the guard sheet, starting at column C (index 3)
+const GUARD_MONTH_COLUMNS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+// ── Open the year tab (throws if that year's tab doesn't exist yet) ─────────
+function openGuardSheetForYear(year) {
+  const ss = SpreadsheetApp.openById(GUARD_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(String(year));
+  if (!sheet) {
+    throw new Error("Missing guard payment sheet tab for year: " + year);
+  }
+  return sheet;
+}
+
+// ── Build the "<block>-<flatNo>" key used in the guard sheet's Flat No column ─
+function guardFlatKey(block, flatNo) {
+  const blockDigits = String(block || "").replace(/[^0-9]/g, "");
+  return blockDigits + "-" + normalizeFlat(flatNo);
+}
+
+// ── Find the data row for a given block/flat (returns 0 if not found) ──────
+function findGuardRow(sheet, block, flatNo) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= GUARD_HEADER_ROW) return 0;
+  const targetKey = guardFlatKey(block, flatNo).toUpperCase();
+  const values = sheet.getRange(GUARD_HEADER_ROW + 1, GUARD_FLAT_COL, lastRow - GUARD_HEADER_ROW, 1).getValues();
+  for (let i = 0; i < values.length; i++) {
+    if (String(values[i][0] || "").trim().toUpperCase() === targetKey) {
+      return GUARD_HEADER_ROW + 1 + i;
+    }
+  }
+  return 0;
+}
+
+// ── Map a PAID_MONTH_LABELS-style label (JAN, ..., JUNE, JULY, ..., DEC) to the
+//    guard sheet's plain 3-letter column label (JUN, JUL) ───────────────────
+function toGuardMonthLabel(label) {
+  const value = String(label || "").trim().toUpperCase();
+  if (value === "JUNE") return "JUN";
+  if (value === "JULY") return "JUL";
+  return value.substring(0, 3);
+}
+
+function guardMonthColumn(monthLabel3) {
+  const idx = GUARD_MONTH_COLUMNS.indexOf(monthLabel3);
+  return idx >= 0 ? 3 + idx : 0; // column C = 3
+}
+
+// ── Pull a YYYY year out of a payload date string (YYYY-MM-DD) ─────────────
+function extractGuardYear(paymentDateInput) {
+  const parts = String(paymentDateInput || "").split("-");
+  return /^\d{4}$/.test(parts[0]) ? parts[0] : "";
+}
+
+// ── Write (markPaid=true) or clear (markPaid=false) the fixed guard fee for
+//    the given months, for one flat, on the year tab derived from the
+//    payment date. Never throws — failures are reported in the return value
+//    so a guard-sheet hiccup never blocks the main maintenance-payment save.
+function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid) {
+  const year = extractGuardYear(paymentDateInput);
+  if (!year) {
+    return { ok: false, error: "Could not determine year from payment date: " + paymentDateInput };
+  }
+  // paidMonths comes in as normalized "YYYY-MM" keys, extract month labels
+  const normalized = normalizePaidMonths(paidMonths);
+  
+  // DEBUG: Log what we're receiving
+  const debugInfo = {
+    inputPaidMonths: paidMonths,
+    normalizedKeys: normalized,
+    year: year,
+    block: block,
+    flatNo: flatNo
+  };
+  
+  const months = normalized.map(function(key) {
+    // key format: "YYYY-MM", extract month number and convert to label
+    const parts = String(key || "").split("-");
+    const monthIdx = Number(parts[1]) - 1;
+    const monthLabel = monthIdx >= 0 && monthIdx < MONTHS.length ? MONTHS[monthIdx].substring(0, 3) : "";
+    return monthLabel;
+  }).filter(function(m) { return m && GUARD_MONTH_COLUMNS.indexOf(m) >= 0; });
+  
+  if (!months.length) {
+    return { ok: true, sheet: year, months: [], note: "No months to sync.", debug: debugInfo };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = openGuardSheetForYear(year);
+    const row = findGuardRow(sheet, block, flatNo);
+    if (!row) {
+      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + ".", debug: debugInfo };
+    }
+    months.forEach(function(m) {
+      const col = guardMonthColumn(m);
+      if (col) sheet.getRange(row, col).setValue(markPaid ? GUARD_MONTHLY_AMOUNT : "");
+    });
+    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid, debug: debugInfo };
+  } catch (err) {
+    return { ok: false, sheet: year, error: err.message, debug: debugInfo };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
