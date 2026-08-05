@@ -1114,6 +1114,30 @@ function doLogin(){
   }
 }
 
+/* Parses a raw payment-date cell from the Google Sheet CSV export into
+   {dy, mo, yr}. Does NOT trust a fixed field order or separator — see the
+   comment at its call site in loadData() for why. Kept in sync with the
+   identical helper in payments.html. */
+function parseSheetDateParts(raw){
+  const s=String(raw||"").trim();
+  if(!s)return null;
+  let m=/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/.exec(s);
+  if(m){
+    const yr=parseInt(m[1]),mo=parseInt(m[2]),dy=parseInt(m[3]);
+    return(mo>=1&&mo<=12&&dy>=1&&dy<=31)?{dy,mo,yr}:null;
+  }
+  m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(s);
+  if(!m)return null;
+  const a=parseInt(m[1]),b=parseInt(m[2]);
+  let yr=parseInt(m[3]);
+  if(yr<100)yr+=2000;
+  let dy,mo;
+  if(a>12&&b<=12){dy=a;mo=b;}
+  else if(b>12&&a<=12){mo=a;dy=b;}
+  else{dy=a;mo=b;} // ambiguous (or both invalid) — default to DD/MM
+  return(mo>=1&&mo<=12&&dy>=1&&dy<=31&&!isNaN(yr))?{dy,mo,yr}:null;
+}
+
 /* ── Fetch CSV ── */
 async function fetchCsv(sid, tab){
   const urls=[
@@ -1158,17 +1182,24 @@ async function loadData(){
         const nb = blockName(block);
         /* Only include DONE records */
         if(!amount || String(status||"").trim().toUpperCase()!=="DONE") return;
-        /* Parse date: MM/DD/YYYY */
-        const dateParts = String(date||"").split("/");
-        let displayDate = date;
-        if(dateParts.length===3){
-          displayDate = `${String(dateParts[0]).padStart(2,"0")}/${String(dateParts[1]).padStart(2,"0")}/${dateParts[2]}`;
-        }
-        /* Raw date as sortable: YYYY-MM-DD */
-        let sortableDate = "";
-        if(dateParts.length===3){
-          sortableDate = `${dateParts[2]}-${String(dateParts[0]).padStart(2,"0")}-${String(dateParts[1]).padStart(2,"0")}`;
-        }
+        /* Parse date robustly — do NOT trust a fixed field order or
+           separator. Google Sheets silently reformats date exports
+           whenever the sheet's locale changes (this is exactly what broke
+           "latest on top": the sheet switched from MM/DD/YYYY to
+           DD/MM/YYYY, but sortDate below was still built assuming the
+           first field was always the month, so for any day > 12 the sort
+           key became a malformed non-date string and history stopped
+           sorting chronologically). Disambiguates day vs month using
+           whichever field is a valid month (<=12); if both are
+           ambiguously <=12, defaults to DAY/MONTH/YEAR since this app's
+           sheets are configured for India. */
+        const parsedDate = parseSheetDateParts(date);
+        const displayDate = parsedDate
+          ? `${String(parsedDate.dy).padStart(2,"0")}/${String(parsedDate.mo).padStart(2,"0")}/${parsedDate.yr}`
+          : String(date||"");
+        const sortableDate = parsedDate
+          ? `${parsedDate.yr}-${String(parsedDate.mo).padStart(2,"0")}-${String(parsedDate.dy).padStart(2,"0")}`
+          : "";
         const paidMonthKeys = PaymentMonths.parseField(paidMonths, Number(yr), mi);
         allRecords.push({
           block:      nb,
