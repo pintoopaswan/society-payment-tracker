@@ -1307,7 +1307,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxwXw3rQJtm6MmgOV-qih7JyH4siWZGLV03X7-0DG6iojo_dSAsAtzZoqZtOe7oaYOckw/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwdU7oUDgm8t-g2ONk5q9GIERvuOpFo9TFBZN0kLy43c6Oi9Rnj-2He5gvDn6MsKFHVnA/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -2359,8 +2359,18 @@ async function savePayment(e){
   try{
     const r=await submitPayload(payload);
     if(!r.ok)throw new Error(r.error||"Save failed.");
-    setFormMsg("Saved!",true);
-    showAlert(modalAction==="update"?"Payment updated.":"Payment saved.",true);
+    if(r.guardSync && !r.guardSync.ok){
+      const detail = r.guardSync.error || JSON.stringify(r.guardSync.debug || r.guardSync);
+      setFormMsg("Saved, but guard sheet sync failed.",false);
+      showAlert(`Payment saved, but guard sheet sync failed: ${detail}`);
+    } else if(r.guardSync && r.guardSync.ok && Array.isArray(r.guardSync.months) && r.guardSync.months.length === 0){
+      const detail = JSON.stringify(r.guardSync.debug || r.guardSync);
+      setFormMsg("Saved, but no guard months were synced.",false);
+      showAlert(`Payment saved, but no guard months were synced: ${detail}`);
+    } else {
+      setFormMsg("Saved!",true);
+      showAlert(modalAction==="update"?"Payment updated.":"Payment saved.",true);
+    }
     await fetchAllMonthData();
     closeModal(); window.scrollTo(scroll.x,scroll.y);
   }catch(ex){ setFormMsg(ex.message||"Unable to save."); showAlert(ex.message||"Unable to save."); }

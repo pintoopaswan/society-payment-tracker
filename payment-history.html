@@ -1076,9 +1076,9 @@ function yearsToLoad(){
 }
 
 function getMonthIndex(dateStr){
-  /* sheet date is stored as MM/DD/YYYY */
+  /* sheet date is now stored as DD/MM/YYYY */
   const p = String(dateStr||"").split("/");
-  if(p.length===3){ const idx=parseInt(p[0])-1; if(idx>=0&&idx<12) return idx; }
+  if(p.length===3){ const idx=parseInt(p[1])-1; if(idx>=0&&idx<12) return idx; }
   return -1;
 }
 

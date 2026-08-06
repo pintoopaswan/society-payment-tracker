@@ -48,9 +48,15 @@
   const TOGGLE_SVG ='<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,2 4,6 8,10"/></svg>';
   const LOGOUT_SVG ='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>';
 
+  function normalizePageName(value){
+    const raw = String(value||"").toLowerCase();
+    const stripped = raw.replace(/[#?].*$/g,"").replace(/^.*\//g,"").replace(/\.html$/g,"");
+    return stripped || "index";
+  }
+
   function currentPage(){
-    const file=(location.pathname.split("/").pop()||"").toLowerCase();
-    return file===""?"index.html":file;
+    const file = location.pathname.split("/").pop() || "index.html";
+    return normalizePageName(file);
   }
 
   function svgIcon(pathData){
@@ -68,10 +74,11 @@
         html+=`<div class="sb-section-label">${item.section}</div>`;
         lastSection=item.section;
       }
-      const isActive=item.href.toLowerCase()===active;
-      const tooltip=drawer?"":` data-tooltip="${item.tooltip}"`;
-      const badge=item.badge?`<span class="sb-badge" id="${drawer?"drawerNav":"nav"}${item.badge}">0</span>`:"";
-      html+=`<a class="sb-item${isActive?" active":""}" href="${item.href}"${tooltip}>`
+      const itemName = normalizePageName(item.href);
+      const isActive = itemName === active;
+      const tooltip = drawer ? "" : ` data-tooltip="${item.tooltip}"`;
+      const badge = item.badge ? `<span class="sb-badge" id="${drawer?"drawerNav":"nav"}${item.badge}">0</span>` : "";
+      html += `<a class="sb-item${isActive?" active":""}" href="${item.href}"${tooltip}>`
           +`<div class="sb-icon">${svgIcon(item.icon)}</div>`
           +`<span class="sb-label">${item.label}</span>${badge}`
           +`</a>`;
