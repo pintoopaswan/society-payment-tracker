@@ -36,6 +36,8 @@
       icon:'<path d="M3 6h14M3 10h14M3 14h14"/><path d="M7 3.5L5.5 16.5M14.5 3.5L13 16.5"/>' },
     { href:"flat-search.html",       label:"Flat Search",  tooltip:"Flat Search",
       icon:'<circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/>' },
+    { href:"payment-verification.html", label:"Verify Payment", tooltip:"Payment Verification",
+      icon:'<path d="M8 3H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><rect x="8" y="2" width="4" height="3" rx="1"/><path d="M7 11l2 2 4-5"/>' },
     { href:"owner-tenant.html",      label:"Residents",    tooltip:"Residents",  section:"Directory", badge:"Residents",
       icon:'<circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/>' },
     { href:"vehicles.html",          label:"Vehicles",     tooltip:"Vehicles",   badge:"Vehicles",

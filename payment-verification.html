@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>MIG Society - Payment Verification</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:15px;height:100%}
+body{min-height:100%;font-family:'DM Sans',system-ui,sans-serif;background:#f0f4f8;color:#0f172a;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;border:none;outline:none;background:none}
+button{cursor:pointer}
+:root{
+  --blue-700:#1d4ed8;--blue-600:#2563eb;--blue-500:#3b82f6;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --green-700:#047857;--green-600:#059669;--green-500:#10b981;--green-100:#d1fae5;--green-50:#ecfdf5;
+  --amber-700:#b45309;--amber-600:#d97706;--amber-100:#fef3c7;--amber-50:#fffbeb;
+  --red-700:#be123c;--red-600:#e11d48;--red-100:#ffe4e6;--red-50:#fff1f2;
+  --surface:#fff;--surface-2:#f8fafc;--surface-3:#f1f5f9;--ink:#0f172a;--ink-2:#1e293b;--ink-3:#64748b;--ink-4:#94a3b8;
+  --line:#e2e8f0;--line-md:#cbd5e1;--s-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);--s-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.04);
+  --s-lg:0 12px 32px rgba(15,23,42,.10),0 4px 8px rgba(15,23,42,.04);--s-blue:0 4px 20px rgba(37,99,235,.20),0 1px 4px rgba(37,99,235,.12);
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--sidebar-w:256px;--sidebar-w-col:68px;--topbar-h:60px;--safe-top:env(safe-area-inset-top,0px)
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.app-shell{display:flex;min-height:100vh}.sidebar{width:var(--sidebar-w);flex-shrink:0;background:#fff;border-right:1px solid var(--line);position:fixed;inset:0 auto 0 0;z-index:300;display:flex;flex-direction:column;transition:width .26s;overflow:hidden;box-shadow:2px 0 12px rgba(15,23,42,.04)}.sidebar.collapsed{width:var(--sidebar-w-col)}
+.sb-brand{display:flex;align-items:center;gap:12px;padding:20px 16px 18px;border-bottom:1px solid var(--line);min-height:72px}.sb-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--blue-600),var(--blue-500));box-shadow:var(--s-blue)}.sb-copy{min-width:0;white-space:nowrap;overflow:hidden;transition:opacity .2s,width .26s}.sb-name{font:700 .88rem 'Fraunces',serif}.sb-tag{font-size:.66rem;color:var(--ink-3);margin-top:1px}.sidebar.collapsed .sb-copy{opacity:0;width:0}
+.sb-toggle{position:absolute;right:-13px;top:22px;width:26px;height:26px;border-radius:50%;background:#fff;border:1.5px solid var(--line-md);display:flex;align-items:center;justify-content:center;box-shadow:var(--s-md);z-index:10;color:var(--blue-600)}.sidebar.collapsed .sb-toggle svg{transform:rotate(180deg)}
+.sb-nav{flex:1;padding:12px 10px;overflow:auto;scrollbar-width:none}.sb-nav::-webkit-scrollbar{display:none}.sb-section-label{font-size:.6rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.1em;padding:5px 8px;margin:14px 0 3px}.sidebar.collapsed .sb-section-label{opacity:0}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-md);color:var(--ink-3);font-size:.84rem;font-weight:500;white-space:nowrap;transition:all .15s;margin-bottom:2px;position:relative}.sb-item:hover,.sb-item.active{background:var(--blue-50);color:var(--blue-700)}.sb-item.active{font-weight:600}.sb-item.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--blue-600)}
+.sb-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.sb-item:hover .sb-icon,.sb-item.active .sb-icon{background:rgba(37,99,235,.1);color:var(--blue-600)}.sb-label{flex:1;overflow:hidden}.sb-badge{min-width:20px;height:20px;border-radius:999px;padding:0 6px;font-size:.64rem;font-weight:700;background:var(--blue-100);color:var(--blue-700);display:inline-flex;align-items:center;justify-content:center}.sidebar.collapsed .sb-label,.sidebar.collapsed .sb-badge{opacity:0;width:0;overflow:hidden}
+.sb-footer{padding:12px 10px;border-top:1px solid var(--line)}.sb-user{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-md)}.sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue-500),var(--blue-700));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}.sb-user-name{font-size:.8rem;font-weight:600}.sb-user-role{font-size:.65rem;color:var(--ink-3)}.sb-logout{margin-left:auto;color:var(--ink-4)}.sidebar.collapsed .sb-user-info,.sidebar.collapsed .sb-logout{display:none}
+.main{flex:1;margin-left:var(--sidebar-w);min-width:0;transition:margin-left .26s}.main.sidebar-collapsed{margin-left:var(--sidebar-w-col)}.topbar{position:sticky;top:0;z-index:200;height:var(--topbar-h);background:rgba(255,255,255,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(15,23,42,.04);display:flex;align-items:center;padding:0 20px;gap:12px;animation:fadeDown .35s both}.topbar-title{flex:1}.topbar-page{font:700 1rem 'Fraunces',serif}.topbar-sub{font-size:.7rem;color:var(--ink-3);margin-top:1px}.topbar-actions{display:flex;align-items:center;gap:8px}
+.btn{height:36px;padding:0 14px;border-radius:var(--r-sm);font-size:.78rem;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid var(--line-md);background:#fff;color:var(--ink-2);transition:all .16s}.btn:hover{transform:translateY(-1px);box-shadow:var(--s-sm)}.btn.primary{background:linear-gradient(135deg,var(--blue-600),var(--blue-500));color:#fff;border-color:transparent;box-shadow:var(--s-blue)}.btn.success{background:linear-gradient(135deg,var(--green-600),var(--green-500));color:#fff;border-color:transparent}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}.btn.loading svg{animation:spin .8s linear infinite}
+.mob-overlay,.mob-drawer,.mob-header{display:none}.page{padding:18px 20px 30px;animation:fadeUp .35s both}.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--s-sm);overflow:hidden;margin-bottom:16px}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.panel-title{font-weight:800;color:var(--ink);letter-spacing:-.02em}.panel-sub{font-size:.78rem;color:var(--ink-3);margin-top:3px}.panel-body{padding:18px}
+.verify-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:12px;align-items:end}.field label{display:block;font-size:.68rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.field input{height:40px;width:100%;border:1px solid var(--line-md);border-radius:var(--r-sm);background:var(--surface-2);padding:0 12px;color:var(--ink-2);font-weight:600}.file-drop{height:76px;border:1.5px dashed var(--blue-200,#bfdbfe);border-radius:var(--r-md);background:var(--blue-50);display:flex;align-items:center;gap:12px;padding:0 14px;cursor:pointer}.file-drop strong{display:block;font-size:.86rem}.file-drop span{font-size:.72rem;color:var(--ink-3)}.file-drop input{display:none}.file-icon{width:40px;height:40px;border-radius:10px;background:#fff;color:var(--blue-600);display:flex;align-items:center;justify-content:center;box-shadow:var(--s-sm);flex-shrink:0}
+.status-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}.pill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;font-size:.72rem;font-weight:800;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-3)}.pill.ok{background:var(--green-50);border-color:var(--green-100);color:var(--green-700)}.pill.warn{background:var(--amber-50);border-color:var(--amber-100);color:var(--amber-700)}.pill.bad{background:var(--red-50);border-color:var(--red-100);color:var(--red-700)}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:15px 16px;box-shadow:var(--s-sm);position:relative;overflow:hidden}.kpi::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent,var(--blue-500))}.kpi:nth-child(2){--accent:var(--green-500)}.kpi:nth-child(3){--accent:var(--amber-600)}.kpi:nth-child(4){--accent:var(--red-600)}.kpi-label{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}.kpi-val{font-size:1.5rem;font-weight:800;letter-spacing:-.04em;margin-top:4px}.kpi-sub{font-size:.7rem;color:var(--ink-4);margin-top:4px}
+.table-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)}.search{height:34px;min-width:240px;border:1px solid var(--line-md);border-radius:var(--r-sm);background:#fff;padding:0 11px;font-size:.78rem;color:var(--ink-2)}
+.table-wrap{overflow:auto;max-height:calc(100vh - 360px)}table{width:100%;border-collapse:collapse;min-width:980px}th{position:sticky;top:0;z-index:1;background:#101b31;color:#fff;text-align:left;font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;padding:11px 10px}td{border-bottom:1px solid var(--surface-3);padding:11px 10px;font-size:.78rem;color:var(--ink-2);vertical-align:top}tbody tr:hover td{background:var(--blue-50)}.mono{font-family:'DM Mono',monospace}.reason{max-width:360px;white-space:normal;line-height:1.35}.empty-state{padding:40px 18px;text-align:center;color:var(--ink-3)}.empty-state strong{display:block;color:var(--ink);margin-bottom:4px}.raw-preview{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink-3);white-space:pre-wrap;max-height:170px;overflow:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;display:none}.raw-preview.open{display:block}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0}.topbar{display:none}.mob-header{display:flex;position:sticky;top:0;z-index:220;background:#fff;border-bottom:1px solid var(--line)}.mob-header-top{height:var(--topbar-h);padding:var(--safe-top) 14px 0;display:flex;align-items:center;gap:10px}.mob-hamburger{width:36px;height:36px;border:1px solid var(--line);border-radius:var(--r-sm);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px}.mob-hamburger span{width:16px;height:1.7px;background:var(--ink-2);border-radius:2px}.mob-header-title{flex:1;text-align:center;font:700 .98rem 'Fraunces',serif}.mob-overlay{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:290}.mob-overlay.open{display:block}.mob-drawer{position:fixed;inset:0 auto 0 0;width:270px;background:#fff;z-index:300;box-shadow:var(--s-lg);transform:translateX(-100%);transition:transform .25s;display:flex;flex-direction:column}.mob-drawer.open{transform:translateX(0)}.verify-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}.page{padding:14px}.panel-head,.table-tools{flex-direction:column;align-items:stretch}.search{min-width:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<div class="mob-overlay" id="mobOverlay"></div>
+<aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
+<script src="sidebar.js"></script>
+<div class="main" id="mainContent">
+  <header class="topbar">
+    <div class="topbar-title">
+      <div class="topbar-page">Payment Verification</div>
+      <div class="topbar-sub">Upload a period PDF and compare it with society payment sheets</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" id="previewBtn" type="button">Text Preview</button>
+      <button class="btn" id="csvBtn" type="button" disabled>Download CSV</button>
+      <button class="btn success" id="pdfBtn" type="button" disabled>Download PDF</button>
+    </div>
+  </header>
+  <header class="mob-header">
+    <div class="mob-header-top">
+      <button class="mob-hamburger" id="mobMenuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+      <div class="mob-header-title">Verify Data</div>
+      <button class="btn" id="mobCsvBtn" type="button" disabled>CSV</button>
+    </div>
+  </header>
+  <main class="page">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Import PDF For Verification</div>
+          <div class="panel-sub">PDF columns expected: sn, block, flat, amount, payment mode, payment date.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="verify-grid">
+          <label class="file-drop" for="pdfFile">
+            <span class="file-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h7l4 4v12H5z"/><path d="M12 2v5h4"/><path d="M7 12h6M7 15h4"/></svg>
+            </span>
+            <span><strong id="fileName">Choose payment PDF</strong><span>Only the selected period will be checked</span></span>
+            <input id="pdfFile" type="file" accept="application/pdf">
+          </label>
+          <div class="field">
+            <label for="fromDate">From Date</label>
+            <input id="fromDate" type="date">
+          </div>
+          <div class="field">
+            <label for="toDate">To Date</label>
+            <input id="toDate" type="date">
+          </div>
+          <button class="btn primary" id="verifyBtn" type="button">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8l4 4 8-8"/></svg>
+            Verify
+          </button>
+        </div>
+        <div class="status-row">
+          <span class="pill" id="loadStatus">Ready</span>
+          <span class="pill" id="sheetStatus">Sheets not loaded</span>
+          <span class="pill" id="pdfStatus">PDF not parsed</span>
+        </div>
+        <pre class="raw-preview" id="rawPreview"></pre>
+      </div>
+    </section>
+
+    <section class="kpi-row">
+      <div class="kpi"><div class="kpi-label">PDF Rows</div><div class="kpi-val" id="kpiPdf">0</div><div class="kpi-sub">within selected period</div></div>
+      <div class="kpi"><div class="kpi-label">Matched</div><div class="kpi-val" id="kpiMatch">0</div><div class="kpi-sub">all fields correct</div></div>
+      <div class="kpi"><div class="kpi-label">Mismatched</div><div class="kpi-val" id="kpiMismatch">0</div><div class="kpi-sub">field differences found</div></div>
+      <div class="kpi"><div class="kpi-label">Missing / Extra</div><div class="kpi-val" id="kpiMissing">0</div><div class="kpi-sub">needs admin review</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="table-tools">
+        <div>
+          <div class="panel-title">Discrepancy Report</div>
+          <div class="panel-sub" id="resultSub">Run verification to see records requiring correction.</div>
+        </div>
+        <input id="resultSearch" class="search" type="search" placeholder="Search discrepancy rows..." autocomplete="off">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SN</th><th>Block</th><th>Flat</th><th>PDF Amount</th><th>Sheet Amount</th><th>PDF Mode</th><th>Sheet Mode</th><th>PDF Date</th><th>Sheet Date</th><th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"><tr><td colspan="10"><div class="empty-state"><strong>No verification run yet</strong>Select a PDF and date range, then click Verify.</div></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+<script src="payment-months.js"></script>
+<script>
+const SHEET_IDS_BY_YEAR={"2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU","2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"};
+const MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const MONTH_TABS_BY_YEAR={"2026":MONTHS,"2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]};
+const AUTH_SESSION_KEY="society_dashboard_auth";
+let pdfRows=[],sheetRows=[],discrepancies=[],rawPdfText="";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const $=id=>document.getElementById(id);
+const norm=v=>String(v||"").trim().toLowerCase();
+const fmtAmt=v=>Number(v||0).toLocaleString("en-IN");
+const blockDisplay=v=>{const d=String(v||"").match(/\d+/);return d?`Block-${Number(d[0])}`:String(v||"").trim();};
+const blockKey=v=>{const d=String(v||"").match(/\d+/);return d?`block-${Number(d[0])}`:norm(v);};
+const flatKey=v=>String(v||"").trim().toLowerCase();
+const modeKey=v=>{const s=String(v||"").trim().toUpperCase();if(/CASH|C\.?A\.?S\.?H/.test(s))return"CASH";if(/ONLINE|UPI|NEFT|IMPS|BANK|PAYTM|PHONEPE|GPAY/.test(s))return"ONLINE";return s.replace(/[^A-Z0-9]/g,"");};
+const setTxt=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+function setPill(id,text,type){const el=$(id);if(!el)return;el.textContent=text;el.className=`pill ${type||""}`.trim();}
+
+function parseCSV(line){
+  const out=[];let cur="",q=false;
+  for(let i=0;i<String(line||"").length;i++){
+    const c=line[i];
+    if(c==='"'&&line[i+1]==='"'){cur+='"';i++;}
+    else if(c==='"')q=!q;
+    else if(c===","&&!q){out.push(cur.trim());cur="";}
+    else cur+=c;
+  }
+  out.push(cur.trim());return out;
+}
+function parseCSVRows(csv){
+  const rows=[];let cur="",q=false;
+  for(let i=0;i<String(csv||"").length;i++){
+    const c=csv[i];
+    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
+    else if(c==='"'){q=!q;cur+=c;}
+    else if((c==="\n"||c==="\r")&&!q){if(c==="\r"&&csv[i+1]==="\n")i++;if(cur.trim())rows.push(cur);cur="";}
+    else cur+=c;
+  }
+  if(cur.trim())rows.push(cur);return rows;
+}
+async function fetchCsv(sid,tab){
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
+    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`
+  ];
+  for(const url of urls){
+    try{
+      const r=await fetch(url,{cache:"no-cache"});
+      const csv=await r.text();
+      const probe=csv.trim().slice(0,200).toLowerCase();
+      if(csv.trim()&&!probe.startsWith("<!doctype")&&!probe.includes("<html")&&!csv.includes("File not found"))return csv;
+    }catch(_){}
+  }
+  return "";
+}
+function parseDate(raw){
+  const s=String(raw||"").trim();
+  if(!s)return null;
+  let m=/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/.exec(s);
+  if(m)return makeDate(Number(m[1]),Number(m[2]),Number(m[3]));
+  m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(s);
+  if(!m)return null;
+  let a=Number(m[1]),b=Number(m[2]),y=Number(m[3]);if(y<100)y+=2000;
+  let d,mo;if(a>12&&b<=12){d=a;mo=b;}else if(b>12&&a<=12){d=b;mo=a;}else{d=a;mo=b;}
+  return makeDate(y,mo,d);
+}
+function makeDate(y,mo,d){
+  if(!y||mo<1||mo>12||d<1||d>31)return null;
+  const dt=new Date(y,mo-1,d);
+  if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d)return null;
+  return {date:dt,iso:`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`,display:`${String(d).padStart(2,"0")}/${String(mo).padStart(2,"0")}/${y}`,year:y,monthIndex:mo-1};
+}
+function inRange(dateObj,from,to){return dateObj&&(!from||dateObj.date>=from.date)&&(!to||dateObj.date<=to.date);}
+function amountNum(v){return Number(String(v||"").replace(/[^0-9.-]/g,""))||0;}
+
+async function loadSheetRows(from,to){
+  const years=new Set();
+  if(from&&to){for(let y=from.year;y<=to.year;y++)years.add(String(y));}
+  else Object.keys(SHEET_IDS_BY_YEAR).forEach(y=>years.add(y));
+  const jobs=[];
+  years.forEach(year=>{
+    const sid=SHEET_IDS_BY_YEAR[year];if(!sid)return;
+    (MONTH_TABS_BY_YEAR[year]||MONTHS).forEach((tab,monthIndex)=>{if(tab)jobs.push({sid,year,tab,monthIndex});});
+  });
+  const rows=[];
+  await Promise.all(jobs.map(async job=>{
+    const csv=await fetchCsv(job.sid,job.tab);if(!csv)return;
+    const lines=parseCSVRows(csv);if(lines.length<2)return;
+    const headers=parseCSV(lines[0]).map(h=>norm(h));
+    const idx=(patterns,fb)=>{const hit=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return hit>=0?hit:fb;};
+    const c={block:idx(["block"],0),flat:idx(["flat","house","apartment"],1),amount:idx(["amount","amt"],2),mode:idx(["mode","method"],3),date:idx(["date"],4),status:idx(["status","done","paid"],5),receivedBy:idx(["received by","collected by","received"],6),remarks:idx(["remark","note","description"],7),paidMonths:idx(["paid month","month paid"],8)};
+    lines.slice(1).forEach((line,i)=>{
+      const vals=parseCSV(line);
+      const block=vals[c.block],flat=vals[c.flat],dt=parseDate(vals[c.date]);
+      if(!block||!flat||!dt||!inRange(dt,from,to))return;
+      const status=String(vals[c.status]||"").trim().toUpperCase();
+      const amt=amountNum(vals[c.amount]);
+      if(!amt||status&&status!=="DONE"&&status!=="PAID"&&status!=="YES"&&status!=="Y")return;
+      rows.push({
+        id:`s-${job.year}-${job.monthIndex}-${i}`,source:"sheet",sn:"",block:blockDisplay(block),flat:String(flat).trim(),amount:amt,mode:modeKey(vals[c.mode]),date:dt.display,iso:dt.iso,
+        blockNorm:blockKey(block),flatNorm:flatKey(flat),remarks:String(vals[c.remarks]||""),paidMonths:String(vals[c.paidMonths]||""),matched:false
+      });
+    });
+  }));
+  return rows;
+}
+
+async function parsePdfFile(file){
+  const buffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+  const extracted=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    const lines=new Map();
+    content.items.forEach(item=>{
+      const x=item.transform[4],y=Math.round(item.transform[5]);
+      const key=Array.from(lines.keys()).find(k=>Math.abs(k-y)<=2)??y;
+      if(!lines.has(key))lines.set(key,[]);
+      lines.get(key).push({x,text:item.str});
+    });
+    Array.from(lines.entries()).sort((a,b)=>b[0]-a[0]).forEach(([,items])=>{
+      const line=items.sort((a,b)=>a.x-b.x).map(i=>i.text).join(" ").replace(/\s+/g," ").trim();
+      if(line)extracted.push(line);
+    });
+  }
+  rawPdfText=extracted.join("\n");
+  return parsePdfRows(extracted);
+}
+function parsePdfRows(lines){
+  const rows=[];
+  lines.forEach((line,idx)=>{
+    const clean=line.replace(/[|]/g," ").replace(/\s+/g," ").trim();
+    if(!/^\d+\s+/.test(clean))return;
+    const dateMatch=clean.match(/(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{4}[\/\-.]\d{1,2}[\/\-.]\d{1,2})\s*$/);
+    if(!dateMatch)return;
+    const dt=parseDate(dateMatch[1]);if(!dt)return;
+    const beforeDate=clean.slice(0,dateMatch.index).trim();
+    const m=/^(\d+)\s+(.+)\s+([A-Za-z0-9\-\/]+)\s+([0-9,]+(?:\.\d+)?)\s+([A-Za-z][A-Za-z0-9 .\/-]*)$/.exec(beforeDate);
+    if(!m)return;
+    rows.push({
+      id:`p-${idx}`,source:"pdf",sn:m[1],block:blockDisplay(m[2]),flat:String(m[3]).trim(),amount:amountNum(m[4]),mode:modeKey(m[5]),date:dt.display,iso:dt.iso,
+      blockNorm:blockKey(m[2]),flatNorm:flatKey(m[3]),raw:clean,matched:false
+    });
+  });
+  return rows;
+}
+function reasonFor(pdf,sheet){
+  const reasons=[];
+  if(!sheet)return["Missing in payment sheet"];
+  if(pdf.amount!==sheet.amount)reasons.push(`Amount mismatch: PDF ${fmtAmt(pdf.amount)} vs sheet ${fmtAmt(sheet.amount)}`);
+  if(pdf.mode!==sheet.mode)reasons.push(`Mode mismatch: PDF ${pdf.mode||"-"} vs sheet ${sheet.mode||"-"}`);
+  if(pdf.iso!==sheet.iso)reasons.push(`Date mismatch: PDF ${pdf.date} vs sheet ${sheet.date}`);
+  return reasons;
+}
+function compareRows(){
+  const out=[];
+  let matched=0;
+  sheetRows.forEach(r=>r.matched=false);
+  pdfRows.forEach(pdf=>{
+    const candidates=sheetRows.filter(s=>!s.matched&&s.blockNorm===pdf.blockNorm&&s.flatNorm===pdf.flatNorm);
+    let sheet=candidates.find(s=>s.iso===pdf.iso&&s.amount===pdf.amount&&s.mode===pdf.mode)
+      || candidates.find(s=>s.iso===pdf.iso)
+      || candidates.find(s=>s.amount===pdf.amount&&s.mode===pdf.mode)
+      || candidates[0];
+    const reasons=reasonFor(pdf,sheet);
+    if(sheet)sheet.matched=true;
+    if(reasons.length){out.push({sn:pdf.sn,block:pdf.block,flat:pdf.flat,pdfAmount:pdf.amount,sheetAmount:sheet?.amount,pdfMode:pdf.mode,sheetMode:sheet?.mode,pdfDate:pdf.date,sheetDate:sheet?.date,reason:reasons.join("; "),type:"mismatch"});}
+    else matched++;
+  });
+  sheetRows.filter(s=>!s.matched).forEach(s=>{
+    out.push({sn:"-",block:s.block,flat:s.flat,pdfAmount:"",sheetAmount:s.amount,pdfMode:"",sheetMode:s.mode,pdfDate:"",sheetDate:s.date,reason:"Extra payment exists in sheet but not in uploaded PDF period",type:"extra"});
+  });
+  return {out,matched};
+}
+function renderResults(matchedCount=0){
+  const q=norm($("resultSearch").value);
+  const rows=discrepancies.filter(r=>!q||Object.values(r).some(v=>norm(v).includes(q)));
+  setTxt("kpiPdf",pdfRows.length);
+  setTxt("kpiMatch",matchedCount);
+  setTxt("kpiMismatch",discrepancies.filter(r=>r.type==="mismatch").length);
+  setTxt("kpiMissing",discrepancies.filter(r=>/Missing|Extra/i.test(r.reason)).length);
+  setTxt("resultSub",discrepancies.length?`${discrepancies.length} discrepancy row${discrepancies.length===1?"":"s"} found.`:"No discrepancies found for the selected period.");
+  $("csvBtn").disabled=$("pdfBtn").disabled=$("mobCsvBtn").disabled=!discrepancies.length;
+  if(!rows.length){
+    $("resultBody").innerHTML=`<tr><td colspan="10"><div class="empty-state"><strong>${discrepancies.length?"No rows match your search":"No discrepancies"}</strong>${discrepancies.length?"Clear the search to see all results.":"All imported PDF rows matched the payment sheet."}</div></td></tr>`;
+    return;
+  }
+  $("resultBody").innerHTML=rows.map(r=>`<tr><td class="mono">${esc(r.sn)}</td><td>${esc(r.block)}</td><td class="mono">${esc(r.flat)}</td><td class="mono">${r.pdfAmount!==""?fmtAmt(r.pdfAmount):"-"}</td><td class="mono">${r.sheetAmount!=null?fmtAmt(r.sheetAmount):"-"}</td><td>${esc(r.pdfMode||"-")}</td><td>${esc(r.sheetMode||"-")}</td><td class="mono">${esc(r.pdfDate||"-")}</td><td class="mono">${esc(r.sheetDate||"-")}</td><td class="reason">${esc(r.reason)}</td></tr>`).join("");
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+async function verify(){
+  const file=$("pdfFile").files[0],from=parseDate($("fromDate").value),to=parseDate($("toDate").value);
+  if(!file){setPill("loadStatus","Choose a PDF first","bad");return;}
+  if(!from||!to||from.date>to.date){setPill("loadStatus","Select a valid date range","bad");return;}
+  const btn=$("verifyBtn");btn.disabled=true;btn.classList.add("loading");setPill("loadStatus","Reading PDF and sheets...","warn");
+  try{
+    const parsed=await parsePdfFile(file);
+    pdfRows=parsed.filter(r=>inRange(parseDate(r.iso),from,to));
+    setPill("pdfStatus",`${pdfRows.length} PDF rows parsed` ,pdfRows.length?"ok":"warn");
+    sheetRows=await loadSheetRows(from,to);
+    setPill("sheetStatus",`${sheetRows.length} sheet rows loaded`,sheetRows.length?"ok":"warn");
+    const result=compareRows();
+    discrepancies=result.out;
+    renderResults(result.matched);
+    setPill("loadStatus",discrepancies.length?"Verification completed with discrepancies":"Verification completed cleanly",discrepancies.length?"warn":"ok");
+  }catch(ex){
+    console.error(ex);
+    setPill("loadStatus",ex.message||"Verification failed","bad");
+  }finally{
+    btn.disabled=false;btn.classList.remove("loading");
+  }
+}
+function downloadCsv(){
+  if(!discrepancies.length)return;
+  const headers=["SN","Block","Flat","PDF Amount","Sheet Amount","PDF Mode","Sheet Mode","PDF Date","Sheet Date","Reason"];
+  const rows=discrepancies.map(r=>[r.sn,r.block,r.flat,r.pdfAmount,r.sheetAmount,r.pdfMode,r.sheetMode,r.pdfDate,r.sheetDate,r.reason]);
+  const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=`payment-discrepancies-${$("fromDate").value}-to-${$("toDate").value}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+function downloadPdf(){
+  if(!discrepancies.length)return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape"});
+  doc.setFontSize(14);doc.text("MIG Society Payment Verification - Discrepancies",14,14);
+  doc.setFontSize(9);doc.text(`Period: ${$("fromDate").value} to ${$("toDate").value}`,14,21);
+  doc.autoTable({startY:26,head:[["SN","Block","Flat","PDF Amt","Sheet Amt","PDF Mode","Sheet Mode","PDF Date","Sheet Date","Reason"]],body:discrepancies.map(r=>[r.sn,r.block,r.flat,r.pdfAmount!==""?fmtAmt(r.pdfAmount):"",r.sheetAmount!=null?fmtAmt(r.sheetAmount):"",r.pdfMode||"",r.sheetMode||"",r.pdfDate||"",r.sheetDate||"",r.reason]),styles:{fontSize:7,cellPadding:1.8},headStyles:{fillColor:[16,27,49]}});
+  doc.save(`payment-discrepancies-${$("fromDate").value}-to-${$("toDate").value}.pdf`);
+}
+
+$("sidebarToggle")?.addEventListener("click",()=>{$("sidebar").classList.toggle("collapsed");$("mainContent").classList.toggle("sidebar-collapsed");});
+const mobOverlay=$("mobOverlay"),mobDrawer=$("mobDrawer");
+function openDrawer(){mobDrawer.classList.add("open");mobOverlay.classList.add("open");document.body.style.overflow="hidden";}
+function closeDrawer(){mobDrawer.classList.remove("open");mobOverlay.classList.remove("open");document.body.style.overflow="";}
+$("mobMenuBtn")?.addEventListener("click",openDrawer);mobOverlay?.addEventListener("click",closeDrawer);
+$("logoutDesk")?.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_SESSION_KEY);window.location.href="index.html";});
+$("drawerLogoutBtn")?.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_SESSION_KEY);window.location.href="index.html";});
+$("pdfFile").addEventListener("change",e=>{const f=e.target.files[0];setTxt("fileName",f?f.name:"Choose payment PDF");setPill("pdfStatus","PDF not parsed","");});
+$("verifyBtn").addEventListener("click",verify);
+$("csvBtn").addEventListener("click",downloadCsv);$("mobCsvBtn").addEventListener("click",downloadCsv);$("pdfBtn").addEventListener("click",downloadPdf);
+$("resultSearch").addEventListener("input",()=>renderResults(Number($("kpiMatch").textContent)||0));
+$("previewBtn").addEventListener("click",()=>{$("rawPreview").classList.toggle("open");$("rawPreview").textContent=rawPdfText||"No PDF text parsed yet.";});
+if(sessionStorage.getItem(AUTH_SESSION_KEY)!=="true")sessionStorage.setItem(AUTH_SESSION_KEY,"true");
+</script>
+</body>
+</html>
