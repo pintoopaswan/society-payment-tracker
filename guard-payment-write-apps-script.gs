@@ -250,7 +250,9 @@ function savePaymentPayload(payload) {
 
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
-    const existingRemarks = String(existingValues[5] || "").trim();
+    // oneLineRemarks_ also cleans up any \n that made it into older rows
+    // before this fix, so legacy line breaks don't keep propagating forward.
+    const existingRemarks = oneLineRemarks_(existingValues[5]);
     const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
     const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
@@ -260,8 +262,9 @@ function savePaymentPayload(payload) {
     // note here (buildPaymentRemark) on top of it; doing so produced a
     // duplicated, mode-less "<amount> received on <date>" line stacked in
     // front of the client's own note on every Add. The server's only job is
-    // to preserve prior remarks and append whatever the client sent.
-    const submittedNotes = String(payload.notes || "").trim();
+    // to preserve prior remarks and append whatever the client sent — as a
+    // single line, never with a line break.
+    const submittedNotes = oneLineRemarks_(payload.notes);
     const remarksParts = [];
     if (existingRemarks) remarksParts.push(existingRemarks);
     if (submittedNotes) remarksParts.push(submittedNotes);
@@ -326,7 +329,7 @@ function updatePaymentPayload(payload) {
     const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
 
-    const updatedRemarks = String(payload.notes || "").trim();
+    const updatedRemarks = oneLineRemarks_(payload.notes);
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
       amount,
       payload.paymentMode || "",
@@ -487,6 +490,15 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/* Collapses any line breaks in a remarks/notes string into a single space,
+   so the Remarks column is always written as one line — never with a \n —
+   whether the text came fresh from the client or was already stored (with
+   a stray line break) in the sheet from before this fix. Used by both
+   addPaymentPayload() and updatePaymentPayload(). */
+function oneLineRemarks_(raw) {
+  return String(raw || "").replace(/\r\n|\r|\n/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /* buildPaymentRemark() was removed — it built a mode-less "<amount> received

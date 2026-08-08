@@ -1966,7 +1966,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbwdU7oUDgm8t-g2ONk5q9GIERvuOpFo9TFBZN0kLy43c6Oi9Rnj-2He5gvDn6MsKFHVnA/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbzoPJN2pXUj0jaOFCpOQz2MgC-bfIW1cpET0oblux3OSvl-jFsAO5ooiV3AeaLTtMmoVQ/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2709,8 +2709,15 @@ function buildChangeNotes(oldVals,newVals,staffLabel){
   return lines;
 }
 
+/* Collapses any line breaks (from pasted text or the user pressing Enter
+   in the Remarks textarea) into a single space, so remarks are always
+   stored as one line — no \n is ever written for Add or Update. */
+function oneLine(s){
+  return String(s||"").replace(/\r\n|\r|\n/g," ").replace(/\s+/g," ").trim();
+}
+
 function appendNoteLines(existing,lines){
-  return [String(existing||"").trim(),...lines.map(s=>String(s||"").trim())]
+  return [oneLine(existing),...lines.map(s=>oneLine(s))]
     .filter(Boolean)
     .join(" | ");
 }
@@ -3281,7 +3288,7 @@ async function savePaymentForm(){
   // Read the selection fresh (not cached) so a month checked right before
   // clicking Save is never dropped.
   const paidMonths=getSelectedPayMonths();
-  const rawRemarks=document.getElementById("editPayRemarks").value.trim();
+  const rawRemarks=oneLine(document.getElementById("editPayRemarks").value);
 
   if(!block||!flat){ setPayFormMsg("Missing flat context — please reopen this flat's profile and try again."); return; }
   if(!Number.isInteger(amount)||amount<=0){ setPayFormMsg("Please enter a valid amount."); return; }
