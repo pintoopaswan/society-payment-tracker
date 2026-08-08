@@ -1995,8 +1995,8 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           <input id="flatStatusMonth" type="text" readonly placeholder="—">
         </div>
         <div class="pay-form-field full">
-          <label for="flatStatusReason">Justification<span class="required-mark">*</span></label>
-          <textarea id="flatStatusReason" placeholder="Enter reason for this action..." rows="4"></textarea>
+          <label for="flatStatusReason">Justification <span class="readonly-badge">optional</span></label>
+          <textarea id="flatStatusReason" placeholder="Enter reason for this action (optional)..." rows="4"></textarea>
         </div>
         <div class="pay-form-field full">
           <div class="pay-form-msg" id="flatStatusMsg"></div>
@@ -3029,13 +3029,9 @@ async function saveFlatStatusModal(){
   if(!flatStatusCtx)return;
   const {record,locked}=flatStatusCtx;
   const reason=document.getElementById("flatStatusReason").value.trim();
-  if(!reason){
-    setFlatStatusMsg("Please enter a justification.");
-    return;
-  }
   const staffEmail=await getStaffEmail();
   const actionLabel=locked?"Flat locked":"Flat unlocked";
-  const note=`${actionLabel} for ${record.month} ${record.year}. Reason: ${reason}${staffEmail?` | Updated by: ${staffEmail}`:""} | Updated on: ${todayDMY()}`;
+  const note=`${actionLabel} for ${record.month} ${record.year}.${reason?` Reason: ${reason}`:""}${staffEmail?` | Updated by: ${staffEmail}`:""} | Updated on: ${todayDMY()}`;
   const payload={
     secret:WRITE_SECRET,
     actionType:"setFlatStatus",
