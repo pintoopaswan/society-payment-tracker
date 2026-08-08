@@ -562,6 +562,12 @@ td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-l
 tr:hover td.empty{background:#ffe4e6}
 td.empty:hover{background:var(--blue-50);color:var(--blue-600)}
 td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid var(--red-200)}
+td.locked{
+  background:var(--red-50);color:var(--red-500);cursor:not-allowed;
+  border-left:2px solid var(--red-100);
+  overflow:visible;
+}
+td.locked:hover{background:#ffe4e6;transform:none}
 
 .total-row td{
   background:var(--amber-50)!important;color:var(--amber-700);
@@ -586,6 +592,22 @@ td.empty.has-tx{background:var(--red-50);cursor:pointer}
 td.empty.has-tx:hover{background:#ffe4e6}
 td.empty.has-tx .cell-amount{color:var(--red-600)}
 .cell-mode{font-size:0.58rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.cell-lock-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:var(--amber-700);background:#fef3c7;border:1px solid #fde68a;position:relative}
+.cell-lock-badge svg{flex-shrink:0}
+.cell-lock-badge::after{
+  content:attr(data-tooltip);
+  position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+  background:var(--ink);color:#fff;font-size:0.68rem;font-weight:700;
+  padding:5px 8px;border-radius:7px;white-space:nowrap;
+  box-shadow:var(--s-md);opacity:0;pointer-events:none;z-index:30;
+  transition:opacity 0.15s;
+}
+.cell-lock-badge::before{
+  content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--ink);
+  opacity:0;pointer-events:none;z-index:30;transition:opacity 0.15s;
+}
+.cell-lock-badge:hover::after,.cell-lock-badge:hover::before{opacity:1}
 .mt-paid-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--green-700);background:var(--green-100);border:1px solid var(--green-200);border-radius:999px;padding:2px 8px;margin-top:4px}
 .mt-pending-badge{display:inline-flex;align-items:center;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--red-600);background:var(--red-50);border:1px solid var(--red-100);border-radius:999px;padding:2px 8px;margin-top:4px}
 .mt-amount-red{color:var(--red-600)!important}
@@ -667,6 +689,10 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 .month-tile.no-data .mt-empty{color:var(--red-400);font-weight:600}
 .month-tile.no-data:hover{background:var(--blue-50);border-color:var(--blue-200)}
 .month-tile.no-data:hover .mt-empty{color:var(--blue-600)}
+.month-tile.locked{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100);cursor:not-allowed}
+.month-tile.locked:hover{background:#ffe4e6;transform:none;box-shadow:none}
+.month-tile.locked .mt-name,.month-tile.locked .mt-empty{color:var(--red-500)}
+.month-tile.locked .cell-lock-badge{margin-top:6px}
 .mt-name{font-size:0.72rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.06em}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--green-700);font-family:'DM Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
@@ -1316,7 +1342,7 @@ const monthSheetNamesByYear = { "2026":months,"2025":[null,null,null,null,null,"
 const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 
 /* ── State ── */
-let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={};
+let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={}, lockedFlatMonths={};
 let modalAction="create", editCtx=null;
 let selectedPaidMonthKeys=new Set(); // "YYYY-MM" keys selected across ALL years, not just the one currently shown
 
@@ -1377,6 +1403,7 @@ function parseCSVRows(csv){
 }
 const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
+const flatKey = v => String(v||"").trim();
 const isValidPaymentFlatRow = (block,flat) => {
   const b=norm(block), f=norm(flat);
   if(!b||!f||b==="block"||f==="flat"||b==="total")return false;
@@ -1427,8 +1454,39 @@ function unlockScroll(){
 /* ── Data reset ── */
 function resetState(){
   groupedData={};monthlyTotals=new Array(12).fill(0);
-  processedRecords=new Set();allBlocks=new Set();allFlats={};
+  processedRecords=new Set();allBlocks=new Set();allFlats={};lockedFlatMonths={};
   document.getElementById("tableBody").innerHTML="";
+}
+
+function isLockedStatus(value){
+  return /\blocked\b/i.test(String(value||"").trim());
+}
+function lockedKey(block,flat){
+  return `${blockName(block)}-${flatKey(flat)}`;
+}
+function ensureFlatRecord(block,flat){
+  const nb=blockName(block), fk=flatKey(flat), key=`${nb}-${fk}`;
+  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(fk,10),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
+  if(!groupedData[key].paidMonthIndices)groupedData[key].paidMonthIndices=new Set();
+  if(!groupedData[key].paidMonthYears)groupedData[key].paidMonthYears=new Set();
+  if(!groupedData[key].coverageByKey)groupedData[key].coverageByKey={};
+  return groupedData[key];
+}
+function markFlatLocked(block,flat,year,monthIndex,statusRaw){
+  if(monthIndex<0||monthIndex>11)return;
+  const nb=blockName(block), fk=flatKey(flat), key=`${nb}-${fk}`, monthKey=PaymentMonths.toKey(year,monthIndex);
+  if(!monthKey)return;
+  if(!lockedFlatMonths[key])lockedFlatMonths[key]={};
+  lockedFlatMonths[key][monthKey]=String(statusRaw||"LOCKED").trim()||"LOCKED";
+  const row=ensureFlatRecord(nb,fk);
+  if(!row.years[year])row.years[year]={total:0,months:{},paidMonthIndices:new Set()};
+}
+function isFlatMonthLocked(block,flat,year,monthIndex){
+  const monthKey=PaymentMonths.toKey(year,monthIndex);
+  return !!(lockedFlatMonths[lockedKey(block,flat)]&&lockedFlatMonths[lockedKey(block,flat)][monthKey]);
+}
+function lockedBadge(){
+  return `<span class="cell-lock-badge" data-tooltip="Flat Locked" title="Flat Locked" aria-label="Flat Locked"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg></span>`;
 }
 
 /* ── Process row ── */
@@ -1477,8 +1535,8 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
   const parsedDate=parseSheetDateParts(date);
   if(!parsedDate||monthIndex<0||monthIndex>11)return;
   const {dy,mo,yr}=parsedDate;
-  const key=`${nb}-${flat}`;
-  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
+  const key=`${nb}-${flatKey(flat)}`;
+  ensureFlatRecord(nb,flat);
   if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{},paidMonthIndices:new Set()};
   const fmtDate=`${String(dy).padStart(2,"0")}/${String(mo).padStart(2,"0")}/${yr}`;
   const amtN=Number(amount||0);
@@ -1546,10 +1604,11 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
    edited from consideration (so Update Payment doesn't lock out its own
    already-selected months). */
 function computeDisabledMonthYears(block,flat,excludeKeys=[]){
-  const key=`${block}-${flat}`;
+  const key=lockedKey(block,flat);
   const row=groupedData[key];
   const disabled=new Set(row?row.paidMonthYears:[]);
   excludeKeys.forEach(k=>disabled.delete(k));
+  Object.keys(lockedFlatMonths[key]||{}).forEach(k=>disabled.add(k));
   return disabled;
 }
 
@@ -1559,6 +1618,36 @@ function entryCoversMonth(entry,year,mi){
     ?entry.paidMonthKeys
     :PaymentMonths.parseField(entry?.paidMonths,Number(year),Number(mi));
   return keys.includes(key);
+}
+
+function resolvePaymentCsvLayout(lines){
+  const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8,flatStatus:9};
+  let headerRowIndex=0, headers=[];
+  for(let i=0;i<Math.min(lines.length,12);i++){
+    const parsed=parseCSV(lines[i]).map(h=>norm(h));
+    const joined=parsed.join(" ");
+    if(joined.includes("payment status")||joined.includes("paid month")||joined.includes("flat status")){
+      headerRowIndex=i;
+      headers=parsed;
+      break;
+    }
+  }
+  if(!headers.length)headers=parseCSV(lines[0]||"").map(h=>norm(h));
+  const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
+  const flatIdx=headers.findIndex(h=>/^(flat|flat no|flat no\.|flat number|room|house|apartment)$/.test(h));
+  return {
+    startRow: headerRowIndex + 1,
+    block: idx(["block"],fallback.block),
+    flat: flatIdx>=0?flatIdx:fallback.flat,
+    amount: idx(["amount","amt"],fallback.amount),
+    mode: idx(["mode","method"],fallback.mode),
+    date: idx(["date"],fallback.date),
+    status: idx(["status","done","paid"],fallback.status),
+    recv: idx(["received by","collected by","received"],fallback.recv),
+    notes: idx(["remark","note","description"],fallback.notes),
+    paid: idx(["paid month","month paid"],fallback.paid),
+    flatStatus: idx(["flat status","flatstatus"],fallback.flatStatus)
+  };
 }
 
 /* ── Fetch CSV ── */
@@ -1606,26 +1695,16 @@ async function fetchAllMonthData(){
       // matching header text; this mirrors that approach, keeping the old
       // fixed positions only as a last-resort fallback for tabs with no
       // recognizable header row.
-      const headers=parseCSV(lines[0]).map(h=>norm(h));
-      const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8};
-      const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
-      const blockIdx=idx(["block"],fallback.block);
-      const flatIdx=idx(["flat","room","house","apartment"],fallback.flat);
-      const amtIdx=idx(["amount","amt"],fallback.amount);
-      const modeIdx=idx(["mode","method"],fallback.mode);
-      const dateIdx=idx(["date"],fallback.date);
-      const statusIdx=idx(["status","done","paid"],fallback.status);
-      const recvIdx=idx(["received by","collected by","received"],fallback.recv);
-      const notesIdx=idx(["remark","note","description"],fallback.notes);
-      const paidIdx=idx(["paid month","month paid"],fallback.paid);
-      lines.slice(1).forEach(row=>{
+      const layout=resolvePaymentCsvLayout(lines);
+      lines.slice(layout.startRow).forEach(row=>{
         const c=parseCSV(row);
-        const block=c[blockIdx],flat=c[flatIdx],amount=c[amtIdx],mode=c[modeIdx],date=c[dateIdx],status=c[statusIdx],recv=c[recvIdx],notes=c[notesIdx],paid=c[paidIdx];
+        const block=c[layout.block],flat=c[layout.flat],amount=c[layout.amount],mode=c[layout.mode],date=c[layout.date],status=c[layout.status],recv=c[layout.recv],notes=c[layout.notes],paid=c[layout.paid],flatStatus=layout.flatStatus>=0?c[layout.flatStatus]:"";
         if(!isValidPaymentFlatRow(block,flat))return;
         const nb=blockName(block);
         allBlocks.add(nb);
         if(!allFlats[nb])allFlats[nb]=new Set();
         allFlats[nb].add(flat);
+        if(isLockedStatus(flatStatus))markFlatLocked(block,flat,yr,mi,flatStatus);
         if(!amount||String(status||"").trim().toUpperCase()!=="DONE")return;
         processRow(block,flat,amount,date,yr,mi,paid,mode,recv,notes);
       });
@@ -1677,7 +1756,8 @@ function renderAll(){
         // same month, so a real payment amount stays visible and editable.
         txEntry=row.years?.[year]?.months?.[i]||row.coverageByKey?.[PaymentMonths.toKey(year,i)]||null;
       }
-      const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+      const locked=canEdit&&isFlatMonthLocked(row.Block,row.Flat,Number(year),i);
+      const ea=(canEdit&&!locked)?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
       if(txEntry){
         // A single payment can cover multiple months (coverageByKey maps every
         // covered month to the same entry). Only the month the payment was
@@ -1691,13 +1771,13 @@ function renderAll(){
           const cellKey=PaymentMonths.toKey(cellYear,i);
           const isCovered=entryCoversMonth(txEntry,cellYear,i)||!!row.coverageByKey?.[cellKey];
           const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
-          html+=`<td class="${isCovered?"paid":"empty has-tx"} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
+          html+=`<td class="${locked?"locked":(isCovered?"paid":"empty has-tx")} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span>${locked?lockedBadge():""}</div></td>`;
         }else{
-          html+=`<td class="paid covered month-cell"><div class="month-cell-content"><span class="cell-paid-badge">PAID</span></div></td>`;
+          html+=`<td class="${locked?"locked":"paid covered"} month-cell"><div class="month-cell-content">${locked?lockedBadge():`<span class="cell-paid-badge">PAID</span>`}</div></td>`;
         }
       }else{
-        const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
-        html+=`<td class="empty month-cell"${aa}>—</td>`;
+        const aa=(canEdit&&!locked)?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
+        html+=`<td class="${locked?"locked":"empty"} month-cell"${aa}>${locked?`<div class="month-cell-content">${lockedBadge()}</div>`:"—"}</td>`;
       }
     });
     html+=`<td><strong style="font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></td></tr>`;
@@ -1761,10 +1841,18 @@ function renderAll(){
           // actually recorded, and a plain Paid mark for other months it
           // covers — no repeated amount/date and no "via" label.
           const coverageEntry=row.coverageByKey?.[PaymentMonths.toKey(yr,i)]||null;
-          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:(coverageEntry?"":` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`);
+          const locked=isFlatMonthLocked(row.Block,row.Flat,Number(yr),i);
+          const ea=locked?"":(txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:(coverageEntry?"":` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`));
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent,tileStateClass;
-          if(txMd){
+          if(locked){
+            if(txMd){
+              tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${lockedBadge()}`;
+            }else{
+              tileContent=lockedBadge();
+            }
+            tileStateClass="locked";
+          }else if(txMd){
             const cellKey=PaymentMonths.toKey(Number(yr),i);
             const isCovered=entryCoversMonth(txMd,Number(yr),i)||!!row.coverageByKey?.[cellKey];
             tileContent=`<div class="mt-amount${isCovered?"":" mt-amount-red"}">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
@@ -2031,8 +2119,9 @@ function renderMonthGrid(){
   grid.innerHTML=PaymentMonths.MONTH_DISPLAY.map((lbl,mi)=>{
     const k=PaymentMonths.toKey(year,mi);
     const active=selectedPaidMonthKeys.has(k);
-    const locked=disabled.has(k)&&!active;
-    return`<label class="month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${lbl}</span><span class="mo-tag">Paid</span></label>`;
+    const lockedForStatus=isFlatMonthLocked(block,flat,year,mi);
+    const locked=lockedForStatus||(disabled.has(k)&&!active);
+    return`<label class="month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${lbl}</span><span class="mo-tag">${lockedForStatus?"Locked":"Paid"}</span></label>`;
   }).join("");
   updateMonthTrigger();
   updateAmountMonthsValidation();
@@ -2149,6 +2238,10 @@ function openEditModal(ctx){
 
 function openAddModalForCell(block,flat,year,mi){
   if(!block||!flat||!year||mi<0)return;
+  if(isFlatMonthLocked(block,flat,Number(year),Number(mi))){
+    showAlert(`${months[Number(mi)]} ${year} is locked for ${block} / Flat ${flat}. Payment cannot be added for this month.`);
+    return;
+  }
   openModal({mode:"web",block,flat});
   populateBlockOptions(block);
   populateFlatOptions(block,flat);
@@ -2316,6 +2409,11 @@ function validatePayload(p){
   if(p.paymentMode==="CASH"&&!p.receivedBy)return"Please enter who received the cash payment.";
   const feeErr=PaymentMonths.validateAmountMonths(p.amount,p.paidMonths.length);
   if(feeErr)return feeErr;
+  const lockedMonth=p.paidMonths.find(k=>{
+    const parsed=PaymentMonths.parseKey(k);
+    return parsed&&isFlatMonthLocked(p.block,p.flatNo,parsed.year,parsed.monthIndex);
+  });
+  if(lockedMonth)return`${PaymentMonths.label(lockedMonth)} is locked for this flat, so payment cannot be added for that month.`;
   // Defense in depth: re-check against the current disabled set in case the
   // in-form state went stale (e.g. data refreshed while the modal was open).
   const excludeKeys=(modalAction==="update"&&editCtx)?(editCtx.paidMonths||[]):[];
