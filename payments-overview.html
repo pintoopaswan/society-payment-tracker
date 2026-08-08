@@ -720,7 +720,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 .po-block-group.collapsed .po-chevron{transform:rotate(-90deg)}
 .po-block-name{font-size:0.9rem;font-weight:800;color:var(--ink);font-family:'Fraunces',serif}
 .po-block-meta{font-size:0.7rem;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:6px}
-.po-block-meta .po-block-collected{color:var(--blue-700);font-weight:800}
+.po-block-meta .po-block-collected{color:var(--green-600);font-weight:800}
 .po-block-meta .po-meta-dot{color:var(--line-md)}
 .po-progress-wrap{display:flex;align-items:center;gap:8px}
 .po-progress-bar{width:84px;height:6px;border-radius:3px;background:var(--line-md);overflow:hidden}
@@ -794,12 +794,19 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
 @media(max-width:900px){
   .po-block-group{display:none}
   .po-mob-view{display:block}
-  .po-mob-block-group{margin-bottom:4px}
-  .po-mob-block-title{display:flex;align-items:center;gap:8px;font-family:'Fraunces',serif;font-weight:800;font-size:0.86rem;color:var(--ink);padding:14px 4px 8px;cursor:pointer;user-select:none}
+  .po-mob-block-group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--s-sm);margin-bottom:12px;overflow:hidden}
+  .po-mob-block-title{display:flex;flex-direction:column;gap:7px;font-family:'Fraunces',serif;font-weight:800;font-size:0.86rem;color:var(--ink);padding:13px 14px;cursor:pointer;user-select:none;background:var(--surface-2);border-bottom:1px solid var(--line)}
+  .po-mob-block-group.collapsed .po-mob-block-title{border-bottom:none}
+  .po-mob-block-title:active{background:var(--blue-50)}
+  .po-mob-block-title-top{display:flex;align-items:center;gap:8px}
   .po-mob-block-title .po-chevron{width:15px;height:15px;color:var(--ink-3);flex-shrink:0;transition:transform 0.2s var(--ease-out)}
   .po-mob-block-group.collapsed .po-mob-block-title .po-chevron{transform:rotate(-90deg)}
   .po-mob-block-title-text{flex:1}
-  .po-mob-block-title .po-block-collected{font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:800;color:var(--blue-700)}
+  .po-mob-block-title .po-block-collected{font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:800;color:var(--green-600)}
+  .po-mob-block-title-progress{padding-left:23px}
+  .po-mob-block-title-progress .po-progress-wrap{width:100%}
+  .po-mob-block-title-progress .po-progress-bar{flex:1;width:auto}
+  .po-mob-block-body{padding:10px 10px 2px}
   .po-mob-block-group.collapsed .po-mob-block-body{display:none}
   .po-mob-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:8px;overflow:hidden;box-shadow:var(--s-sm)}
   .po-mob-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px}
@@ -1432,11 +1439,20 @@ function renderMobile(byBlock, blockNames){
     const bf = byBlock[bn];
     const stats = computeBlockStats(bf);
     const collapsed = collapsedBlocks.has(bn);
+    const pct = Math.round((stats.paidCount/bf.length)*100);
     return `<div class="po-mob-block-group${collapsed?" collapsed":""}">
       <div class="po-mob-block-title" data-toggle="${escapeHtml(bn)}">
-        ${svgChevron}
-        <span class="po-mob-block-title-text">${escapeHtml(bn)}</span>
-        <span class="po-block-collected">${fmt$(stats.collected)} collected</span>
+        <div class="po-mob-block-title-top">
+          ${svgChevron}
+          <span class="po-mob-block-title-text">${escapeHtml(bn)}</span>
+          <span class="po-block-collected">${fmt$(stats.collected)} collected</span>
+        </div>
+        <div class="po-mob-block-title-progress">
+          <div class="po-progress-wrap">
+            <div class="po-progress-bar"><div class="po-progress-fill" style="width:${pct}%"></div></div>
+            <div class="po-progress-pct">${pct}%</div>
+          </div>
+        </div>
       </div>
       <div class="po-mob-block-body">
         ${bf.map(f=>{
