@@ -2292,7 +2292,7 @@ function stripAutoStampedNotes(raw){
 function appendNoteLines(existing,lines){
   return [String(existing||"").trim(),...lines.map(s=>String(s||"").trim())]
     .filter(Boolean)
-    .join("\n");
+    .join(" | ");
 }
 
 /* Human-friendly date formatter used only for changelog lines, e.g.
