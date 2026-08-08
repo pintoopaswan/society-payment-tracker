@@ -255,7 +255,7 @@ function savePaymentPayload(payload) {
 
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
-    const existingRemarks = String(existingValues[5] || "").trim();
+    const existingRemarks = oneLineRemarks_(existingValues[5]);
     const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
     const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
@@ -266,7 +266,7 @@ function savePaymentPayload(payload) {
     // duplicated, mode-less "<amount> received on <date>" line stacked in
     // front of the client's own note on every Add. The server's only job is
     // to preserve prior remarks and append whatever the client sent.
-    const submittedNotes = String(payload.notes || "").trim();
+    const submittedNotes = oneLineRemarks_(payload.notes);
     const remarksParts = [];
     if (existingRemarks) remarksParts.push(existingRemarks);
     if (submittedNotes) remarksParts.push(submittedNotes);
@@ -335,7 +335,7 @@ function updatePaymentPayload(payload) {
     const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
 
-    const updatedRemarks = String(payload.notes || "").trim();
+    const updatedRemarks = oneLineRemarks_(payload.notes);
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
       amount,
       payload.paymentMode || "",
@@ -423,10 +423,10 @@ function setFlatStatusPayload(payload) {
     const status = String(payload.flatStatus || "").trim().toUpperCase() === "LOCKED" ? "LOCKED" : "";
     sheet.getRange(targetRow, statusCol).setValue(status);
     remarksCol = findPaymentHeaderColumn(sheet, ["remarks", "remark", "notes", "note", "description"]);
-    const submittedNotes = String(payload.notes || "").trim();
+    const submittedNotes = oneLineRemarks_(payload.notes);
     if (remarksCol && submittedNotes) {
-      const existingRemarks = String(sheet.getRange(targetRow, remarksCol).getValue() || "").trim();
-      sheet.getRange(targetRow, remarksCol).setValue(existingRemarks ? existingRemarks + "\n" + submittedNotes : submittedNotes);
+      const existingRemarks = oneLineRemarks_(sheet.getRange(targetRow, remarksCol).getValue());
+      sheet.getRange(targetRow, remarksCol).setValue(existingRemarks ? existingRemarks + " | " + submittedNotes : submittedNotes);
     }
   } finally {
     lock.releaseLock();
@@ -539,6 +539,16 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/* Collapses any line breaks in a remarks/notes string into a single space,
+   so the Remarks column is always written as one line — never with a \n —
+   whether the text came fresh from the client or was already stored (with
+   a stray line break) in the sheet from before this fix. Used by
+   addPaymentPayload(), updatePaymentPayload(), and the flat-status/lock
+   remarks append below. */
+function oneLineRemarks_(raw) {
+  return String(raw || "").replace(/\r\n|\r|\n/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /* buildPaymentRemark() was removed — it built a mode-less "<amount> received
@@ -1077,16 +1087,18 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
   }
   // paidMonths comes in as normalized "YYYY-MM" keys, extract month labels
   const normalized = normalizePaidMonths(paidMonths);
-  
-  // DEBUG: Log what we're receiving
-  const debugInfo = {
+
+  // Server-side only (visible in the Apps Script execution log, never sent
+  // to the client) — useful for diagnosing a sync issue without leaking
+  // internal state into the payment-save response shown to staff.
+  Logger.log("syncGuardPayment: " + JSON.stringify({
     inputPaidMonths: paidMonths,
     normalizedKeys: normalized,
     year: year,
     block: block,
     flatNo: flatNo
-  };
-  
+  }));
+
   const months = normalized.map(function(key) {
     // key format: "YYYY-MM", extract month number and convert to label
     const parts = String(key || "").split("-");
@@ -1094,9 +1106,9 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
     const monthLabel = monthIdx >= 0 && monthIdx < MONTHS.length ? MONTHS[monthIdx].substring(0, 3) : "";
     return monthLabel;
   }).filter(function(m) { return m && GUARD_MONTH_COLUMNS.indexOf(m) >= 0; });
-  
+
   if (!months.length) {
-    return { ok: true, sheet: year, months: [], note: "No months to sync.", debug: debugInfo };
+    return { ok: true, sheet: year, months: [], note: "No months to sync." };
   }
 
   const lock = LockService.getScriptLock();
@@ -1105,15 +1117,15 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
     const sheet = openGuardSheetForYear(year);
     const row = findGuardRow(sheet, block, flatNo);
     if (!row) {
-      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + ".", debug: debugInfo };
+      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + "." };
     }
     months.forEach(function(m) {
       const col = guardMonthColumn(m);
       if (col) sheet.getRange(row, col).setValue(markPaid ? GUARD_MONTHLY_AMOUNT : "");
     });
-    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid, debug: debugInfo };
+    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid };
   } catch (err) {
-    return { ok: false, sheet: year, error: err.message, debug: debugInfo };
+    return { ok: false, sheet: year, error: err.message };
   } finally {
     lock.releaseLock();
   }
