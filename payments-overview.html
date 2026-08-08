@@ -719,13 +719,20 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 .po-chevron{width:18px;height:18px;color:var(--ink-3);transition:transform 0.2s var(--ease-out);flex-shrink:0}
 .po-block-group.collapsed .po-chevron{transform:rotate(-90deg)}
 .po-block-name{font-size:0.9rem;font-weight:800;color:var(--ink);font-family:'Fraunces',serif}
-.po-block-meta{font-size:0.7rem;color:var(--ink-3);font-weight:600}
+.po-block-meta{font-size:0.7rem;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:6px}
+.po-block-meta .po-block-collected{color:var(--blue-700);font-weight:800}
+.po-block-meta .po-meta-dot{color:var(--line-md)}
 .po-progress-wrap{display:flex;align-items:center;gap:8px}
 .po-progress-bar{width:84px;height:6px;border-radius:3px;background:var(--line-md);overflow:hidden}
 .po-progress-fill{height:100%;background:linear-gradient(90deg,var(--green-500),var(--green-600));border-radius:3px}
 .po-progress-pct{font-size:0.7rem;font-weight:800;color:var(--green-600);min-width:32px;text-align:right}
 .po-block-body{overflow-x:auto}
 .po-block-group.collapsed .po-block-body{display:none}
+
+/* ── Month header amount (shown under month label) ── */
+table.po-matrix thead th .po-th-month{display:block}
+table.po-matrix thead th .po-month-sum{display:block;margin-top:3px;font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:800;letter-spacing:0;text-transform:none;color:var(--blue-700)}
+table.po-matrix thead th .po-month-sum.zero{color:var(--ink-4);font-weight:600}
 
 table.po-matrix{border-collapse:collapse;width:100%;min-width:980px}
 table.po-matrix thead th{position:sticky;top:0;background:var(--surface);font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-3);padding:9px 5px;text-align:center;border-bottom:1.5px solid var(--line);white-space:nowrap}
@@ -787,10 +794,18 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
 @media(max-width:900px){
   .po-block-group{display:none}
   .po-mob-view{display:block}
-  .po-mob-block-title{font-family:'Fraunces',serif;font-weight:800;font-size:0.86rem;color:var(--ink);padding:14px 4px 8px}
+  .po-mob-block-group{margin-bottom:4px}
+  .po-mob-block-title{display:flex;align-items:center;gap:8px;font-family:'Fraunces',serif;font-weight:800;font-size:0.86rem;color:var(--ink);padding:14px 4px 8px;cursor:pointer;user-select:none}
+  .po-mob-block-title .po-chevron{width:15px;height:15px;color:var(--ink-3);flex-shrink:0;transition:transform 0.2s var(--ease-out)}
+  .po-mob-block-group.collapsed .po-mob-block-title .po-chevron{transform:rotate(-90deg)}
+  .po-mob-block-title-text{flex:1}
+  .po-mob-block-title .po-block-collected{font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:800;color:var(--blue-700)}
+  .po-mob-block-group.collapsed .po-mob-block-body{display:none}
   .po-mob-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:8px;overflow:hidden;box-shadow:var(--s-sm)}
   .po-mob-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px}
   .po-mob-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:0 13px 12px}
+  .po-mob-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .po-mob-cell-month{font-size:0.56rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.03em}
   .po-mob-strip .po-chip{width:100%;height:32px;font-size:0.6rem}
   .po-mob-status{font-size:0.6rem;font-weight:800;padding:2px 8px;border-radius:999px}
   .po-mob-status.ok{background:var(--green-50);color:var(--green-600)}
@@ -933,6 +948,7 @@ const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`
 const fmt$ = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN = v => Number(v||0).toLocaleString("en-IN");
 function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const blockNum = b => String(b||"").replace(/^Block-/,"");
 
 function parseSheetDateParts(raw){
   const s=String(raw||"").trim();
@@ -1329,6 +1345,26 @@ function renderEmptyState(){
   document.getElementById("mobWrap").innerHTML = "";
 }
 
+function computeBlockStats(bf){
+  let collected = 0;
+  let paidCount = 0, unpaidCount = 0, lockedCount = 0;
+  const monthSums = MDISP.map(()=>0);
+  bf.forEach(f=>{
+    const total = f.months.reduce((s,m)=>s+(m.amount||0),0) + (f.unattributed||0);
+    collected += total;
+    const bucket = flatStatusBucket(f);
+    if(bucket==="ok") paidCount++;
+    else if(bucket==="locked") lockedCount++;
+    else unpaidCount++; // "due" or "irregular" both count as unpaid/needs-attention
+    f.months.forEach((m,mi)=>{
+      if(m.type==="paid" || m.type==="partial" || m.type==="irregular" || m.type==="locked-paid"){
+        monthSums[mi] += (m.amount||0);
+      }
+    });
+  });
+  return {collected, paidCount, unpaidCount, lockedCount, monthSums};
+}
+
 function renderMatrix(){
   const flats = getFilteredFlats();
   const byBlock = {};
@@ -1342,13 +1378,14 @@ function renderMatrix(){
     const paidCount = bf.filter(f=>flatStatusBucket(f)==="ok").length;
     const pct = Math.round((paidCount/bf.length)*100);
     const collapsed = collapsedBlocks.has(bn);
+    const stats = computeBlockStats(bf);
     return `<div class="po-block-group${collapsed?" collapsed":""}" data-block="${escapeHtml(bn)}">
       <div class="po-block-head" data-toggle="${escapeHtml(bn)}">
         <div class="po-block-head-left">
           ${svgChevron}
           <div>
             <div class="po-block-name">${escapeHtml(bn)}</div>
-            <div class="po-block-meta">${bf.length} flats</div>
+            <div class="po-block-meta">${bf.length} flats<span class="po-meta-dot">·</span><span class="po-block-collected">${fmt$(stats.collected)} collected</span></div>
           </div>
         </div>
         <div class="po-progress-wrap">
@@ -1360,7 +1397,10 @@ function renderMatrix(){
         <table class="po-matrix">
           <thead><tr>
             <th class="po-flat-col">Flat</th>
-            ${MDISP.map((m,i)=>`<th class="${i===CURRENT_MONTH_INDEX && SELECTED_YEAR===CURRENT_YEAR ? 'po-current' : ''}">${m}</th>`).join("")}
+            ${MDISP.map((m,i)=>{
+              const s = stats.monthSums[i];
+              return `<th class="${i===CURRENT_MONTH_INDEX && SELECTED_YEAR===CURRENT_YEAR ? 'po-current' : ''}"><span class="po-th-month">${m}</span><span class="po-month-sum${s?"":" zero"}">${s?fmt$(s):"—"}</span></th>`;
+            }).join("")}
             <th class="po-total-col">Total</th>
           </tr></thead>
           <tbody>
@@ -1369,7 +1409,7 @@ function renderMatrix(){
               const dueCount = f.months.filter(m=>m.type==="due"||m.type==="partial").length;
               return `<tr>
                 <td class="po-flat-cell">
-                  <div class="po-flat-num">${escapeHtml(f.flat)}${f.unattributed ? `<span class="po-warn-ico" data-unattr="${escapeHtml(f.block)}|${escapeHtml(f.flat)}">${svgWarnIco}</span>` : ""}</div>
+                  <div class="po-flat-num">${escapeHtml(blockNum(f.block))}-${escapeHtml(f.flat)}${f.unattributed ? `<span class="po-warn-ico" data-unattr="${escapeHtml(f.block)}|${escapeHtml(f.flat)}">${svgWarnIco}</span>` : ""}</div>
                 </td>
                 ${f.months.map((m,mi)=>`<td data-cell="${escapeHtml(f.block)}|${escapeHtml(f.flat)}|${mi}">${renderChip(m)}</td>`).join("")}
                 <td class="po-total-col">
@@ -1383,36 +1423,43 @@ function renderMatrix(){
     </div>`;
   }).join("");
 
-  wireMatrixEvents();
   renderMobile(byBlock, blockNames);
+  wireMatrixEvents();
 }
 
 function renderMobile(byBlock, blockNames){
   document.getElementById("mobWrap").innerHTML = blockNames.map(bn=>{
     const bf = byBlock[bn];
-    return `<div>
-      <div class="po-mob-block-title">${escapeHtml(bn)}</div>
-      ${bf.map(f=>{
-        const bucket = flatStatusBucket(f);
-        const total = f.months.reduce((s,m)=>s+(m.amount||0),0) + (f.unattributed||0);
-        const badgeCls = bucket==="ok" ? "ok" : bucket==="locked" ? "locked" : "due";
-        const badgeLabel = bucket==="ok" ? "Up to date" : bucket==="irregular" ? "Needs review" : bucket==="locked" ? "Locked" : "Has dues";
-        return `<div class="po-mob-card">
-          <div class="po-mob-head">
-            <div class="po-flat-num">${escapeHtml(f.flat)}${f.unattributed ? `<span class="po-warn-ico" data-unattr="${escapeHtml(f.block)}|${escapeHtml(f.flat)}">${svgWarnIco}</span>` : ""}</div>
-            <div style="text-align:right">
-              <div style="font-weight:800;font-size:0.86rem">${fmt$(total)}</div>
-              <span class="po-mob-status ${badgeCls}">${badgeLabel}</span>
+    const stats = computeBlockStats(bf);
+    const collapsed = collapsedBlocks.has(bn);
+    return `<div class="po-mob-block-group${collapsed?" collapsed":""}">
+      <div class="po-mob-block-title" data-toggle="${escapeHtml(bn)}">
+        ${svgChevron}
+        <span class="po-mob-block-title-text">${escapeHtml(bn)}</span>
+        <span class="po-block-collected">${fmt$(stats.collected)} collected</span>
+      </div>
+      <div class="po-mob-block-body">
+        ${bf.map(f=>{
+          const bucket = flatStatusBucket(f);
+          const total = f.months.reduce((s,m)=>s+(m.amount||0),0) + (f.unattributed||0);
+          const badgeCls = bucket==="ok" ? "ok" : bucket==="locked" ? "locked" : "due";
+          const badgeLabel = bucket==="ok" ? "Up to date" : bucket==="irregular" ? "Needs review" : bucket==="locked" ? "Locked" : "Has dues";
+          return `<div class="po-mob-card">
+            <div class="po-mob-head">
+              <div class="po-flat-num">${escapeHtml(blockNum(f.block))}-${escapeHtml(f.flat)}${f.unattributed ? `<span class="po-warn-ico" data-unattr="${escapeHtml(f.block)}|${escapeHtml(f.flat)}">${svgWarnIco}</span>` : ""}</div>
+              <div style="text-align:right">
+                <div style="font-weight:800;font-size:0.86rem">${fmt$(total)}</div>
+                <span class="po-mob-status ${badgeCls}">${badgeLabel}</span>
+              </div>
             </div>
-          </div>
-          <div class="po-mob-strip">
-            ${f.months.map((m,mi)=>`<div data-cell="${escapeHtml(f.block)}|${escapeHtml(f.flat)}|${mi}">${renderChip(m)}</div>`).join("")}
-          </div>
-        </div>`;
-      }).join("")}
+            <div class="po-mob-strip">
+              ${f.months.map((m,mi)=>`<div class="po-mob-cell" data-cell="${escapeHtml(f.block)}|${escapeHtml(f.flat)}|${mi}"><span class="po-mob-cell-month">${MDISP[mi]}</span>${renderChip(m)}</div>`).join("")}
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
     </div>`;
   }).join("");
-  wireMatrixEvents();
 }
 
 function wireMatrixEvents(){
