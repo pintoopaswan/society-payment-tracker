@@ -248,11 +248,6 @@ function savePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
-    const lockedMonth = findLockedPaidMonth_(spreadsheet, payload.block, payload.flatNo, submittedPaidMonths);
-    if (lockedMonth) {
-      return { ok: false, error: lockedMonth.label + " is locked for this flat. Unlock it before adding payment." };
-    }
-
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
     const existingRemarks = oneLineRemarks_(existingValues[5]);
@@ -327,11 +322,6 @@ function updatePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
-    const lockedMonth = findLockedPaidMonth_(spreadsheet, payload.block, payload.flatNo, submittedPaidMonths);
-    if (lockedMonth) {
-      return { ok: false, error: lockedMonth.label + " is locked for this flat. Unlock it before updating payment." };
-    }
-
     const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
 
@@ -748,25 +738,6 @@ function findPaymentHeaderColumn(sheet, patterns) {
     }
   }
   return 0;
-}
-
-function findLockedPaidMonth_(spreadsheet, block, flatNo, paidMonthKeys) {
-  const keys = Array.isArray(paidMonthKeys) ? paidMonthKeys : [];
-  for (let i = 0; i < keys.length; i++) {
-    const parsed = parseMonthYearKey(keys[i]);
-    if (!parsed || parsed.year !== PAYMENT_SHEET_YEAR) continue;
-    const sheet = spreadsheet.getSheetByName(MONTHS[parsed.monthIndex]);
-    if (!sheet) continue;
-    const row = findPaymentRow(sheet, block, flatNo);
-    if (!row) continue;
-    const statusCol = findFlatStatusColumn(sheet);
-    if (!statusCol) continue;
-    const status = String(sheet.getRange(row, statusCol).getValue() || "").trim().toUpperCase();
-    if (status === "LOCKED") {
-      return { key: keys[i], label: PAID_MONTH_LABELS[parsed.monthIndex] + " " + parsed.year };
-    }
-  }
-  return null;
 }
 
 function normalizeBlock(value) {
