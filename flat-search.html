@@ -706,6 +706,15 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
   transition:all 0.12s;
 }
 .pay-row-add-btn:hover{background:var(--green-100);border-color:var(--green-400);color:var(--green-700)}
+.pay-row-lock-btn,.pay-row-unlock-btn{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;
+}
+.pay-row-lock-btn{background:var(--amber-50);border:1px solid var(--amber-100);color:var(--amber-700)}
+.pay-row-lock-btn:hover{background:var(--amber-100);border-color:var(--amber-400);color:var(--amber-700)}
+.pay-row-unlock-btn{background:var(--green-50);border:1px solid var(--green-100);color:var(--green-700)}
+.pay-row-unlock-btn:hover{background:var(--green-100);border-color:var(--green-400);color:var(--green-700)}
 
 /* Payment table */
 .pay-table-wrap{overflow-x:auto;margin-top:4px}
@@ -743,8 +752,9 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
   transition:box-shadow 0.15s;
 }
 .pay-card:active{box-shadow:var(--s-sm)}
-.pay-card[data-status="PAID"]{border-top:3px solid var(--green-500)}
+.pay-card[data-status="DONE"],.pay-card[data-status="PAID"]{border-top:3px solid var(--green-500)}
 .pay-card[data-status="PENDING"]{border-top:3px solid var(--red-500)}
+.pay-card[data-status="LOCKED"]{border-top:3px solid var(--amber-500)}
 .pay-card[data-status="PARTIAL"]{border-top:3px solid var(--amber-500)}
 .pay-card[data-status="OVERDUE"]{border-top:3px solid #ec4899}
 .pay-card-top{
@@ -785,6 +795,8 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
 .status-paid::before{background:var(--green-500)}
 .status-pending{background:var(--red-50);color:var(--red-600);border:1px solid var(--red-100)}
 .status-pending::before{background:var(--red-500)}
+.status-locked{background:var(--amber-50);color:var(--amber-700);border:1px solid var(--amber-100)}
+.status-locked::before{background:var(--amber-500)}
 .status-partial{background:var(--amber-50);color:var(--amber-600);border:1px solid var(--amber-100)}
 .status-partial::before{background:var(--amber-500)}
 .status-overdue{background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8}
@@ -969,6 +981,10 @@ body.dark .form-input{background:var(--surface-3)}
 }
 .btn-save:hover{background:var(--blue-700);transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,99,235,0.35)}
 .btn-save:active{transform:translateY(0)}
+.btn-save.btn-save-unlock{background:var(--green-600);box-shadow:0 4px 14px rgba(22,163,74,0.28)}
+.btn-save.btn-save-unlock:hover{background:var(--green-700);box-shadow:0 6px 18px rgba(22,163,74,0.35)}
+.btn-save.btn-save-lock{background:var(--amber-600);box-shadow:0 4px 14px rgba(217,119,6,0.28)}
+.btn-save.btn-save-lock:hover{background:var(--amber-700);box-shadow:0 6px 18px rgba(217,119,6,0.35)}
 .btn-save:disabled{opacity:0.55;cursor:not-allowed;transform:none}
 .btn-delete{
   height:40px;padding:0 16px;border-radius:var(--r-sm);
@@ -1638,11 +1654,11 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
       </div>
       <div class="kpi-cell kpi-partial">
         <div class="kpi-label">
-          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2l8 15H2z"/><line x1="10" y1="9" x2="10" y2="13"/></svg>
-          Partial
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V7a3 3 0 0 1 6 0v2"/></svg>
+          Locked
         </div>
         <div class="kpi-val" id="sumPartial">—</div>
-        <div class="kpi-sub">partial payments</div>
+        <div class="kpi-sub">flat locked</div>
       </div>
       <div class="kpi-cell kpi-total">
         <div class="kpi-label">
@@ -1680,10 +1696,9 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           </select>
           <select class="pay-filter-select" id="payStatusFilter">
             <option value="">All Statuses</option>
-            <option value="PAID">Paid</option>
+            <option value="DONE">Done</option>
             <option value="PENDING">Pending</option>
-            <option value="PARTIAL">Partial</option>
-            <option value="OVERDUE">Overdue</option>
+            <option value="LOCKED">Locked</option>
           </select>
           <span class="pay-count-badge" id="payCountBadge">0 records</span>
         </div>
@@ -1955,6 +1970,48 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
   </div>
 </div>
 
+<!-- ════ FLAT LOCK STATUS MODAL ════ -->
+<div class="modal-overlay" id="flatStatusModal" role="dialog" aria-modal="true" aria-labelledby="flatStatusTitle">
+  <div class="modal-box" style="max-width:520px">
+    <div class="pay-modal-head">
+      <div class="pay-modal-head-copy">
+        <div class="pay-modal-title" id="flatStatusTitle">Lock Flat</div>
+        <div class="pay-modal-subtitle" id="flatStatusSubtitle">Record justification</div>
+      </div>
+      <button class="pay-modal-close" id="flatStatusClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="pay-form-grid">
+        <div class="pay-form-field">
+          <label for="flatStatusBlock">Block <span class="readonly-badge">read-only</span></label>
+          <input id="flatStatusBlock" type="text" readonly placeholder="—">
+        </div>
+        <div class="pay-form-field">
+          <label for="flatStatusFlat">Flat Number <span class="readonly-badge">read-only</span></label>
+          <input id="flatStatusFlat" type="text" readonly placeholder="—">
+        </div>
+        <div class="pay-form-field full">
+          <label for="flatStatusMonth">Month <span class="readonly-badge">read-only</span></label>
+          <input id="flatStatusMonth" type="text" readonly placeholder="—">
+        </div>
+        <div class="pay-form-field full">
+          <label for="flatStatusReason">Justification<span class="required-mark">*</span></label>
+          <textarea id="flatStatusReason" placeholder="Enter reason for this action..." rows="4"></textarea>
+        </div>
+        <div class="pay-form-field full">
+          <div class="pay-form-msg" id="flatStatusMsg"></div>
+        </div>
+        <div class="pay-form-field full">
+          <div class="pay-form-actions">
+            <button class="btn-cancel" id="flatStatusCancel" type="button">Cancel</button>
+            <button class="btn-save" id="flatStatusSave" type="button">Lock Flat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1966,7 +2023,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbwdU7oUDgm8t-g2ONk5q9GIERvuOpFo9TFBZN0kLy43c6Oi9Rnj-2He5gvDn6MsKFHVnA/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxXZPdd8cy6Ru0RYaPUq4bZ09bNQ8IDmcDx-qmxml8lFfPqsGDMPjcwyVXrNJ4i6NO90Q/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2180,51 +2237,67 @@ function normFlat(v){
   return String(v||"").trim().toLowerCase();
 }
 
+function isLockedStatus(value){
+  return /\blocked\b/i.test(String(value||"").trim());
+}
+
+function resolvePaymentCsvLayout(lines){
+  const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,receivedBy:6,remarks:7,paidMonths:8,flatStatus:9};
+  let headerRowIndex=0,headers=[];
+  for(let i=0;i<Math.min(lines.length,12);i++){
+    const parsed=parseCSV(lines[i]).map(h=>norm(h));
+    const joined=parsed.join(" ");
+    if(joined.includes("payment status")||joined.includes("paid month")||joined.includes("flat status")){
+      headerRowIndex=i;
+      headers=parsed;
+      break;
+    }
+  }
+  if(!headers.length)headers=parseCSV(lines[0]||"").map(h=>norm(h));
+  const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
+  const flatIdx=headers.findIndex(h=>/^(flat|flat no|flat no\.|flat number|room|house|apartment)$/.test(h));
+  return {
+    startRow: headerRowIndex + 1,
+    block: idx(["block"],fallback.block),
+    flat: flatIdx>=0?flatIdx:fallback.flat,
+    amount: idx(["amount","amt"],fallback.amount),
+    mode: idx(["mode","method"],fallback.mode),
+    date: idx(["date"],fallback.date),
+    status: idx(["status","done","paid"],fallback.status),
+    receivedBy: idx(["received by","collected by","received"],fallback.receivedBy),
+    remarks: idx(["remark","note","description"],fallback.remarks),
+    paidMonths: idx(["paid month","month paid"],fallback.paidMonths),
+    flatStatus: idx(["flat status","flatstatus"],fallback.flatStatus)
+  };
+}
+
 function parsePaymentTab({year,tab,monthIndex,csv}){
   const lines=parseCSVRows(csv);
   if(lines.length<2)return;
-  const headers=parseCSV(lines[0]).map(h=>norm(h));
-  const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,receivedBy:6,remarks:7,paidMonths:8};
-  const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
-  const blockIdx=idx(["block"],fallback.block);
-  const flatIdx=idx(["flat","house","apartment"],fallback.flat);
-  const amtIdx=idx(["amount","amt"],fallback.amount);
-  const modeIdx=idx(["mode","method"],fallback.mode);
-  const dateIdx=idx(["date"],fallback.date);
-  const statusIdx=idx(["status","done","paid"],fallback.status);
-  const receivedByIdx=idx(["received by","collected by","received"],fallback.receivedBy);
-  const remarksIdx=idx(["remark","note","description"],fallback.remarks);
-  const paidMonthsIdx=idx(["paid month","month paid"],fallback.paidMonths);
+  const layout=resolvePaymentCsvLayout(lines);
 
-  lines.slice(1).forEach(line=>{
+  lines.slice(layout.startRow).forEach(line=>{
     const cols=parseCSV(line);
     if(!cols.some(c=>c.trim()))return;
-    const rawBlock=blockIdx>=0?String(cols[blockIdx]||"").trim():"";
-    const rawFlat=flatIdx>=0?String(cols[flatIdx]||"").trim():"";
+    const rawBlock=layout.block>=0?String(cols[layout.block]||"").trim():"";
+    const rawFlat=layout.flat>=0?String(cols[layout.flat]||"").trim():"";
     if(!rawBlock&&!rawFlat)return;
 
-    const amount=amtIdx>=0?Number(String(cols[amtIdx]||"0").replace(/[^\d.]/g,""))||0:0;
-    const paymentDate=dateIdx>=0?String(cols[dateIdx]||"").trim():"";
-    const paymentMode=modeIdx>=0?String(cols[modeIdx]||"").trim():"";
-    const rawStatus=statusIdx>=0?String(cols[statusIdx]||"").trim().toUpperCase():"";
-    const remarks=remarksIdx>=0?String(cols[remarksIdx]||"").trim():"";
-    const paidMonths=paidMonthsIdx>=0?String(cols[paidMonthsIdx]||"").trim():"";
-    const receivedBy=receivedByIdx>=0?String(cols[receivedByIdx]||"").trim():"";
+    const amount=layout.amount>=0?Number(String(cols[layout.amount]||"0").replace(/[^\d.]/g,""))||0:0;
+    const paymentDate=layout.date>=0?String(cols[layout.date]||"").trim():"";
+    const paymentMode=layout.mode>=0?String(cols[layout.mode]||"").trim():"";
+    const rawStatus=layout.status>=0?String(cols[layout.status]||"").trim().toUpperCase():"";
+    const remarks=layout.remarks>=0?String(cols[layout.remarks]||"").trim():"";
+    const paidMonths=layout.paidMonths>=0?String(cols[layout.paidMonths]||"").trim():"";
+    const receivedBy=layout.receivedBy>=0?String(cols[layout.receivedBy]||"").trim():"";
+    const flatStatus=layout.flatStatus>=0?String(cols[layout.flatStatus]||"").trim():"";
 
     const month=MONTH_LABELS[monthIndex] || tab;
 
-    let status=rawStatus;
-    if(!status){
-      if(amount>0&&paymentDate)status="PAID";
-      else if(amount>0)status="PARTIAL";
-      else status="PENDING";
-    }
-    if(status==="DONE"||status==="YES"||status==="Y")status="PAID";
-    if(!["PAID","PENDING","PARTIAL","OVERDUE"].includes(status)){
-      if(amount>0&&paymentDate)status="PAID";
-      else if(amount>0)status="PARTIAL";
-      else status="PENDING";
-    }
+    let status="PENDING";
+    if(isLockedStatus(flatStatus))status="LOCKED";
+    else if(amount>0&&paymentDate)status="DONE";
+    else if(rawStatus==="DONE"||rawStatus==="PAID"||rawStatus==="YES"||rawStatus==="Y")status="DONE";
 
     // Store both display and normalized keys for matching
     allPaymentRecords.push({
@@ -2233,7 +2306,7 @@ function parsePaymentTab({year,tab,monthIndex,csv}){
       flat:rawFlat,                      // raw flat from payment sheet
       blockNorm:normBlock(rawBlock),     // normalized e.g. "block-1"
       flatNorm:normFlat(rawFlat),        // normalized flat
-      amount,paymentDate,paymentMode,status,remarks,paidMonths,receivedBy
+      amount,paymentDate,paymentMode,status,remarks,paidMonths,receivedBy,flatStatus
     });
   });
 }
@@ -2511,19 +2584,19 @@ function renderProfile(block,flat,row){
   paymentFiltered=flatPayments;
 
   // Payment summary KPI strip
-  const paid=flatPayments.filter(p=>p.status==="PAID").length;
+  const paid=flatPayments.filter(p=>p.status==="DONE").length;
   const pending=flatPayments.filter(p=>p.status==="PENDING").length;
-  const partial=flatPayments.filter(p=>p.status==="PARTIAL").length;
-  const overdue=flatPayments.filter(p=>p.status==="OVERDUE").length;
+  const locked=flatPayments.filter(p=>p.status==="LOCKED").length;
+  const overdue=0;
   document.getElementById("sumPaid").textContent=paid;
-  document.getElementById("sumPending").textContent=pending+overdue;
-  document.getElementById("sumPartial").textContent=partial;
+  document.getElementById("sumPending").textContent=pending;
+  document.getElementById("sumPartial").textContent=locked;
   document.getElementById("sumTotal").textContent=flatPayments.length;
 
   // Alerts
   let alertsHtml="";
-  if(overdue>0)alertsHtml+=`<div class="pay-alert danger"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><circle cx="10" cy="14" r="0.5" fill="currentColor"/></svg>${overdue} overdue payment${overdue>1?"s":""} — immediate attention required</div>`;
   if(pending>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2l8 15H2z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="16" r="0.5" fill="currentColor"/></svg>${pending} pending payment${pending>1?"s":""} need to be collected</div>`;
+  if(locked>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V7a3 3 0 0 1 6 0v2"/></svg>${locked} locked month${locked>1?"s":""} must be unlocked before payment can be recorded</div>`;
   document.getElementById("payAlerts").innerHTML=alertsHtml;
 
   // Populate year filter
@@ -2645,6 +2718,11 @@ function displayPaidMonths(record){
   return keys.length?PaymentMonths.formatList(keys).join(", "):"";
 }
 
+function paymentRecordMonthKey(record){
+  if(!record||!record.year||!Number.isFinite(Number(record.monthIndex)))return"";
+  return PaymentMonths.toKey(Number(record.year),Number(record.monthIndex));
+}
+
 /* Human-friendly date formatter used only for changelog lines, e.g.
    "2026-07-30" → "30 Jul 2026". */
 function humanDateFromISO(iso){
@@ -2754,7 +2832,7 @@ function renderPaymentTable(records){
   document.getElementById("payCountBadge").textContent=`${records.length} record${records.length!==1?"s":""}`;
 
   if(!records.length){
-    const noData=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-3);font-size:0.82rem">No payment records found for this flat</td></tr>`;
+    const noData=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-3);font-size:0.82rem">No payment records found for this flat</td></tr>`;
     tbody.innerHTML=noData;
     cardList.innerHTML=`<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/></svg></div><div class="empty-title">No Payment Records</div><div class="empty-sub">No payment history found for this flat</div></div>`;
     return;
@@ -2765,17 +2843,28 @@ function renderPaymentTable(records){
     const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
     const realIdx=paymentFiltered.indexOf(p);
     const isPending=p.status==="PENDING";
-    const actionsHtml=isPending
-      ?`<button class="pay-row-add-btn" data-action="add" type="button" title="Add payment for this month">
+    const isLocked=p.status==="LOCKED";
+    let actionsHtml;
+    if(isLocked){
+      actionsHtml=`<button class="pay-row-unlock-btn" data-action="unlock" type="button" title="Unlock flat for this month" aria-label="Unlock flat for this month">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M6.3 7V5.3a2.5 2.5 0 0 1 4.9-1.4"/><circle cx="11.7" cy="3.3" r="0.4" fill="currentColor" stroke="none"/></svg>
+        </button>`;
+    }else if(isPending){
+      actionsHtml=`<button class="pay-row-add-btn" data-action="add" type="button" title="Add payment for this month" aria-label="Add payment for this month">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        </button>
+        <button class="pay-row-lock-btn" data-action="lock" type="button" title="Lock flat for this month" aria-label="Lock flat for this month">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg>
         </button>`
-      :`<button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit">
+    }else{
+      actionsHtml=`<button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit" aria-label="Edit payment">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
         </button>
-        <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete">
+        <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete" aria-label="Delete payment">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="2,4 4,4 14,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M13 4l-1 9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L3 4"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/></svg>
         </button>`;
-    return`<tr data-pay-idx="${realIdx>=0?realIdx:idx}" class="pay-row-editable" title="${isPending?'Click to add a payment for this month':'Click to edit this record'}">
+    }
+    return`<tr data-pay-idx="${realIdx>=0?realIdx:idx}" class="pay-row-editable" title="${isLocked?'Unlock this flat before adding payment':(isPending?'Click to add a payment for this month':'Click to edit this record')}">
       <td class="month-col">${esc(p.month)} ${esc(p.year)}</td>
       <td class="amount-col">${esc(amt)}</td>
       <td class="mono">${esc(displayPaymentDateDMY(p.paymentDate,p))||"—"}</td>
@@ -2795,7 +2884,7 @@ function renderPaymentTable(records){
       if(e.target.closest("[data-action]"))return;
       const i=Number(tr.dataset.payIdx);
       if(paymentFiltered[i]?.status==="PENDING")openPaymentAddModal(paymentFiltered[i]);
-      else openPaymentEditModal(i);
+      else if(paymentFiltered[i]?.status!=="LOCKED")openPaymentEditModal(i);
     });
     tr.querySelector("[data-action='add']")?.addEventListener("click",e=>{
       e.stopPropagation();
@@ -2809,12 +2898,21 @@ function renderPaymentTable(records){
       e.stopPropagation();
       openConfirmDeleteDirect(Number(tr.dataset.payIdx));
     });
+    tr.querySelector("[data-action='lock']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openFlatStatusModal(paymentFiltered[Number(tr.dataset.payIdx)],true);
+    });
+    tr.querySelector("[data-action='unlock']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openFlatStatusModal(paymentFiltered[Number(tr.dataset.payIdx)],false);
+    });
   });
 
   cardList.innerHTML=records.map((p,idx)=>{
     const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
     const realIdx=paymentFiltered.indexOf(p);
     const isPending=p.status==="PENDING";
+    const isLocked=p.status==="LOCKED";
     const dateChip=p.paymentDate
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="2" y1="7" x2="14" y2="7"/></svg>${esc(displayPaymentDateDMY(p.paymentDate,p))}</span>`:"";
     const modeChip=p.paymentMode
@@ -2822,16 +2920,26 @@ function renderPaymentTable(records){
     const paidMonthsDisplay=displayPaidMonths(p);
     const monthsChip=paidMonthsDisplay
       ?`<span class="pay-card-chip"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3,8 6,11 13,5"/></svg>${esc(paidMonthsDisplay)}</span>`:"";
-    const cardActionsHtml=isPending
-      ?`<button class="pay-row-add-btn" data-action="add" type="button" title="Add payment for this month">
+    let cardActionsHtml;
+    if(isLocked){
+      cardActionsHtml=`<button class="pay-row-unlock-btn" data-action="unlock" type="button" title="Unlock flat for this month" aria-label="Unlock flat for this month">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M6.3 7V5.3a2.5 2.5 0 0 1 4.9-1.4"/><circle cx="11.7" cy="3.3" r="0.4" fill="currentColor" stroke="none"/></svg>
+        </button>`;
+    }else if(isPending){
+      cardActionsHtml=`<button class="pay-row-add-btn" data-action="add" type="button" title="Add payment for this month" aria-label="Add payment for this month">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        </button>
+        <button class="pay-row-lock-btn" data-action="lock" type="button" title="Lock flat for this month" aria-label="Lock flat for this month">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7"/></svg>
         </button>`
-      :`<button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit">
+    }else{
+      cardActionsHtml=`<button class="pay-row-edit-btn" data-action="edit" type="button" title="Edit" aria-label="Edit payment">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 2l3 3L5 14l-4 1 1-4z"/><line x1="9" y1="4" x2="12" y2="7"/></svg>
         </button>
-        <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete">
+        <button class="pay-row-del-btn" data-action="delete" type="button" title="Delete" aria-label="Delete payment">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="2,4 4,4 14,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M13 4l-1 9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L3 4"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="9" y1="7" x2="9" y2="11"/></svg>
         </button>`;
+    }
     return`<div class="pay-card" data-pay-idx="${realIdx>=0?realIdx:idx}" data-status="${esc(p.status||'PENDING')}" style="cursor:pointer">
       <div class="pay-card-top">
         <div class="pay-card-month-wrap">
@@ -2855,7 +2963,7 @@ function renderPaymentTable(records){
       if(e.target.closest("[data-action]"))return;
       const i=Number(card.dataset.payIdx);
       if(paymentFiltered[i]?.status==="PENDING")openPaymentAddModal(paymentFiltered[i]);
-      else openPaymentEditModal(i);
+      else if(paymentFiltered[i]?.status!=="LOCKED")openPaymentEditModal(i);
     });
     card.querySelector("[data-action='add']")?.addEventListener("click",e=>{
       e.stopPropagation();
@@ -2869,14 +2977,93 @@ function renderPaymentTable(records){
       e.stopPropagation();
       openConfirmDeleteDirect(Number(card.dataset.payIdx));
     });
+    card.querySelector("[data-action='lock']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openFlatStatusModal(paymentFiltered[Number(card.dataset.payIdx)],true);
+    });
+    card.querySelector("[data-action='unlock']")?.addEventListener("click",e=>{
+      e.stopPropagation();
+      openFlatStatusModal(paymentFiltered[Number(card.dataset.payIdx)],false);
+    });
   });
 }
 
 function statusBadge(status){
-  const map={PAID:"status-paid",PENDING:"status-pending",PARTIAL:"status-partial",OVERDUE:"status-overdue"};
+  const map={DONE:"status-paid",PAID:"status-paid",PENDING:"status-pending",LOCKED:"status-locked",PARTIAL:"status-partial",OVERDUE:"status-overdue"};
   const cls=map[status]||"status-pending";
-  const label=status?status.charAt(0)+status.slice(1).toLowerCase():"Unknown";
+  const label=status==="DONE"?"Done":(status?status.charAt(0)+status.slice(1).toLowerCase():"Unknown");
   return`<span class="status-badge ${cls}" role="status" aria-label="Payment status: ${label}">${label}</span>`;
+}
+
+let flatStatusCtx=null;
+
+function setFlatStatusMsg(msg,ok=false){
+  const el=document.getElementById("flatStatusMsg");
+  if(!el)return;
+  el.textContent=msg;
+  el.className="pay-form-msg"+(ok?" success":"");
+}
+
+function openFlatStatusModal(record,locked){
+  if(!record||!currentFlatData)return;
+  if(locked&&record.status!=="PENDING"){
+    showToast("Only pending months can be locked");
+    return;
+  }
+  flatStatusCtx={record,locked};
+  setFlatStatusMsg("");
+  document.getElementById("flatStatusTitle").textContent=locked?"Lock Flat":"Unlock Flat";
+  document.getElementById("flatStatusSubtitle").textContent=locked?"Flat will be unavailable for payment":"Flat will become available for payment";
+  const flatStatusSaveBtn=document.getElementById("flatStatusSave");
+  flatStatusSaveBtn.textContent=locked?"Lock Flat":"Unlock Flat";
+  flatStatusSaveBtn.classList.toggle("btn-save-lock",locked);
+  flatStatusSaveBtn.classList.toggle("btn-save-unlock",!locked);
+  document.getElementById("flatStatusBlock").value=record.block||currentFlatData.block||"";
+  document.getElementById("flatStatusFlat").value=record.flat||currentFlatData.flat||"";
+  document.getElementById("flatStatusMonth").value=`${record.month} ${record.year}`;
+  document.getElementById("flatStatusReason").value="";
+  openModal("flatStatusModal");
+}
+
+async function saveFlatStatusModal(){
+  if(!flatStatusCtx)return;
+  const {record,locked}=flatStatusCtx;
+  const reason=document.getElementById("flatStatusReason").value.trim();
+  if(!reason){
+    setFlatStatusMsg("Please enter a justification.");
+    return;
+  }
+  const staffEmail=await getStaffEmail();
+  const actionLabel=locked?"Flat locked":"Flat unlocked";
+  const note=`${actionLabel} for ${record.month} ${record.year}. Reason: ${reason}${staffEmail?` | Updated by: ${staffEmail}`:""} | Updated on: ${todayDMY()}`;
+  const payload={
+    secret:WRITE_SECRET,
+    actionType:"setFlatStatus",
+    block:record.block||currentFlatData.block,
+    flatNo:record.flat||currentFlatData.flat,
+    year:Number(record.year),
+    monthIndex:Number(record.monthIndex),
+    flatStatus:locked?"LOCKED":"",
+    notes:note
+  };
+  setButtonBusy("flatStatusSave",true,locked?"Locking...":"Unlocking...");
+  setFlatStatusMsg(locked?"Locking flat...":"Unlocking flat...");
+  try{
+    const result=await submitWriteJsonp("savePayment",payload,20000);
+    if(!result.ok)throw new Error(result.error||"Unable to update flat status.");
+    await loadPayments();
+    setFlatStatusMsg(locked?"Flat locked":"Flat unlocked",true);
+    if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);
+    setTimeout(()=>{
+      closeModal("flatStatusModal");
+      showToast(locked?"Flat locked":"Flat unlocked");
+      flatStatusCtx=null;
+    },600);
+  }catch(ex){
+    setFlatStatusMsg(ex.message||"Unable to update flat status");
+  }finally{
+    setButtonBusy("flatStatusSave",false);
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -3089,8 +3276,23 @@ function alreadyPaidMonthsFor(record){
   paymentFiltered.forEach(rec=>{
     if(rec===record)return;
     paidMonthsForRecord(rec).forEach(k=>disabled.add(k));
+    if(rec.status==="LOCKED"){
+      const key=paymentRecordMonthKey(rec);
+      if(key)disabled.add(key);
+    }
   });
   return disabled;
+}
+
+function lockedMonthsForCurrentFlat(){
+  const locked=new Set();
+  paymentFiltered.forEach(rec=>{
+    if(rec.status==="LOCKED"){
+      const key=paymentRecordMonthKey(rec);
+      if(key)locked.add(key);
+    }
+  });
+  return locked;
 }
 
 function buildPayMonthYearOptions(preferredYear){
@@ -3108,7 +3310,8 @@ function renderPayMonthGrid(){
   grid.innerHTML=PaymentMonths.yearMonthKeys(year).map((k,mi)=>{
     const active=payMonthSelected.has(k);
     const locked=payMonthDisabled.has(k)&&!active;
-    return`<label class="pay-month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${PaymentMonths.MONTH_DISPLAY[mi]}</span><span class="pmo-tag">Paid</span></label>`;
+    const lockedByStatus=lockedMonthsForCurrentFlat().has(k);
+    return`<label class="pay-month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${PaymentMonths.MONTH_DISPLAY[mi]}</span><span class="pmo-tag">${lockedByStatus?"Locked":"Paid"}</span></label>`;
   }).join("");
   updatePayMonthTrigger();
   updatePayAmountMonthsValidation();
@@ -3292,7 +3495,11 @@ async function savePaymentForm(){
   if(feeErr){ setPayFormMsg(feeErr); return; }
   const disabled=isAdd?alreadyPaidMonthsFor(null):alreadyPaidMonthsFor(p);
   const clash=paidMonths.find(k=>disabled.has(k));
-  if(clash){ setPayFormMsg(`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`); return; }
+  if(clash){
+    const lockedClash=lockedMonthsForCurrentFlat().has(clash);
+    setPayFormMsg(lockedClash?`${PaymentMonths.label(clash)} is locked for this flat. Unlock it before adding payment.`:`${PaymentMonths.label(clash)} is already covered by another payment for this flat.`);
+    return;
+  }
 
   // Creates get the original receipt audit notes. Updates append only the
   // field-specific change notes, so editing mode/date/etc. does not create
@@ -3422,6 +3629,9 @@ document.getElementById("editPaymentBtn").addEventListener("click",()=>{
 document.getElementById("paymentModalSave").addEventListener("click",savePaymentForm);
 document.getElementById("paymentModalClose").addEventListener("click",()=>closeModal("paymentModal"));
 document.getElementById("paymentModalCancel").addEventListener("click",()=>closeModal("paymentModal"));
+document.getElementById("flatStatusSave").addEventListener("click",saveFlatStatusModal);
+document.getElementById("flatStatusClose").addEventListener("click",()=>closeModal("flatStatusModal"));
+document.getElementById("flatStatusCancel").addEventListener("click",()=>closeModal("flatStatusModal"));
 document.getElementById("confirmDeleteConfirm").addEventListener("click",deletePaymentRecord);
 document.getElementById("confirmDeleteCancel").addEventListener("click",closeConfirmDelete);
 document.getElementById("confirmDeleteOverlay").addEventListener("click",e=>{

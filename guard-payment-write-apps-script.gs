@@ -165,6 +165,7 @@ function parseApiPayload(payloadParam) {
 
 function handlePaymentMutation(payload) {
   const actionType = String(payload.actionType || "create").trim().toLowerCase();
+  if (actionType === "setflatstatus") return setFlatStatusPayload(payload);
   if (actionType === "update") return updatePaymentPayload(payload);
   if (actionType === "delete") return deletePaymentPayload(payload);
   return savePaymentPayload(payload);
@@ -247,6 +248,10 @@ function savePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
+    const lockedMonth = findLockedPaidMonth_(spreadsheet, payload.block, payload.flatNo, submittedPaidMonths);
+    if (lockedMonth) {
+      return { ok: false, error: lockedMonth.label + " is locked for this flat. Unlock it before adding payment." };
+    }
 
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
@@ -322,6 +327,10 @@ function updatePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
+    const lockedMonth = findLockedPaidMonth_(spreadsheet, payload.block, payload.flatNo, submittedPaidMonths);
+    if (lockedMonth) {
+      return { ok: false, error: lockedMonth.label + " is locked for this flat. Unlock it before updating payment." };
+    }
 
     const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
@@ -381,6 +390,49 @@ function deletePaymentPayload(payload) {
 
   const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, removedPaidMonths, false);
   return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete", guardSync: guardSync };
+}
+
+function setFlatStatusPayload(payload) {
+  const year = Number(payload.year || PAYMENT_SHEET_YEAR);
+  const monthIndex = Number(payload.monthIndex);
+  if (!payload.block || !payload.flatNo || !isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return { ok: false, error: "Block, flat number, and valid month are required." };
+  }
+  if (year !== PAYMENT_SHEET_YEAR) {
+    return { ok: false, error: "Flat status updates are currently enabled only for " + PAYMENT_SHEET_YEAR + "." };
+  }
+
+  const sheetName = MONTHS[monthIndex];
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, error: "Missing sheet tab: " + sheetName };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  let statusCol = 0;
+  let remarksCol = 0;
+  try {
+    targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
+    if (!targetRow) {
+      return { ok: false, error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + "." };
+    }
+    statusCol = findFlatStatusColumn(sheet);
+    if (!statusCol) return { ok: false, error: "Missing FLAT STATUS column in " + sheetName + "." };
+
+    const status = String(payload.flatStatus || "").trim().toUpperCase() === "LOCKED" ? "LOCKED" : "";
+    sheet.getRange(targetRow, statusCol).setValue(status);
+    remarksCol = findPaymentHeaderColumn(sheet, ["remarks", "remark", "notes", "note", "description"]);
+    const submittedNotes = String(payload.notes || "").trim();
+    if (remarksCol && submittedNotes) {
+      const existingRemarks = String(sheet.getRange(targetRow, remarksCol).getValue() || "").trim();
+      sheet.getRange(targetRow, remarksCol).setValue(existingRemarks ? existingRemarks + "\n" + submittedNotes : submittedNotes);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, statusColumn: statusCol, remarksColumn: remarksCol, flatStatus: String(payload.flatStatus || "").trim().toUpperCase() === "LOCKED" ? "LOCKED" : "" };
 }
 
 function saveResidentPayload(payload) {
@@ -666,6 +718,45 @@ function findHeaderIndex(headers, patterns) {
     }
   }
   return -1;
+}
+
+function findFlatStatusColumn(sheet) {
+  return findPaymentHeaderColumn(sheet, ["flat status", "flatstatus"]);
+}
+
+function findPaymentHeaderColumn(sheet, patterns) {
+  const lastCol = sheet.getLastColumn();
+  const scanRows = Math.min(sheet.getLastRow(), 12);
+  if (lastCol < 1 || scanRows < 1) return 0;
+  const values = sheet.getRange(1, 1, scanRows, lastCol).getValues();
+  for (let r = 0; r < values.length; r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      const value = String(values[r][c] || "").trim().toLowerCase().replace(/\s+/g, " ");
+      for (let p = 0; p < patterns.length; p++) {
+        if (value === patterns[p] || value.indexOf(patterns[p]) >= 0) return c + 1;
+      }
+    }
+  }
+  return 0;
+}
+
+function findLockedPaidMonth_(spreadsheet, block, flatNo, paidMonthKeys) {
+  const keys = Array.isArray(paidMonthKeys) ? paidMonthKeys : [];
+  for (let i = 0; i < keys.length; i++) {
+    const parsed = parseMonthYearKey(keys[i]);
+    if (!parsed || parsed.year !== PAYMENT_SHEET_YEAR) continue;
+    const sheet = spreadsheet.getSheetByName(MONTHS[parsed.monthIndex]);
+    if (!sheet) continue;
+    const row = findPaymentRow(sheet, block, flatNo);
+    if (!row) continue;
+    const statusCol = findFlatStatusColumn(sheet);
+    if (!statusCol) continue;
+    const status = String(sheet.getRange(row, statusCol).getValue() || "").trim().toUpperCase();
+    if (status === "LOCKED") {
+      return { key: keys[i], label: PAID_MONTH_LABELS[parsed.monthIndex] + " " + parsed.year };
+    }
+  }
+  return null;
 }
 
 function normalizeBlock(value) {
