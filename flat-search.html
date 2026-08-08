@@ -2023,7 +2023,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbyzgvftDUIlGNdbF1b-mHC2nJqqy9laBUDpoFBNumsU5q7EINXReGXEaeYfzKV0G0XMBA/exec";
+const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxXZPdd8cy6Ru0RYaPUq4bZ09bNQ8IDmcDx-qmxml8lFfPqsGDMPjcwyVXrNJ4i6NO90Q/exec";
 const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_KEY            = "society_dashboard_auth";
 
@@ -2049,11 +2049,18 @@ const norm = v => String(v||"").trim().toLowerCase();
 const normPhone = v => String(v||"").replace(/[^\d]/g,"");
 const blockDisp = v => { const d=String(v||"").match(/\d+/); return d?`Block-${Number(d[0])}`:String(v||""); };
 
+/* The escape check below must only fire while already inside a quoted
+   field (inQ===true). Without that guard, an empty quoted field — `""`,
+   e.g. a genuinely blank "Received By" cell that Google Sheets exports as
+   two quote characters — gets misread as an *escaped quote* (open quote
+   immediately followed by "escaped" quote) and turns into a literal `"`
+   character instead of an empty string. With the guard, `""` at the start
+   of a field is correctly read as open-quote then close-quote → "". */
 function parseCSV(line){
   const result=[];let cur="",inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
-    if(c==='"'&&line[i+1]==='"'){cur+='"';i++}
+    if(inQ&&c==='"'&&line[i+1]==='"'){cur+='"';i++}
     else if(c==='"'){inQ=!inQ}
     else if(c===','&&!inQ){result.push(cur.trim());cur="";}
     else{cur+=c;}

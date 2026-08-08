@@ -317,7 +317,9 @@ body.modal-open{overflow:hidden}
   padding:16px 18px;box-shadow:var(--s-sm);margin-bottom:18px;
   animation:fadeUp 0.42s 0.06s var(--ease-out) both;
   position:relative;z-index:50;
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;
 }
+.filter-panel .filter-field{min-width:150px;flex:0 0 auto}
 .filter-panel-head{
   display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;
 }
@@ -703,6 +705,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 .po-legend-dot.paid{background:var(--green-500)}
 .po-legend-dot.due{background:var(--surface-2);border:1.5px dashed var(--line-lg)}
 .po-legend-dot.irregular{background:var(--red-500)}
+.po-legend-dot.partial{background:var(--amber-500)}
 .po-legend-dot.locked{background:var(--midnight-400,#5b7bb8)}
 .po-legend-dot.future{background:var(--surface-2);border:1px dashed var(--line)}
 .po-bulk-btn{margin-left:auto;height:32px;padding:0 13px;border-radius:var(--r-sm);border:1px solid var(--line-md);background:var(--surface);color:var(--ink-2);font-size:0.74rem;font-weight:700;display:flex;align-items:center;gap:6px}
@@ -740,6 +743,8 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
 .po-chip.paid{background:var(--green-50);color:var(--green-600);border:1.5px solid var(--green-100)}
 .po-chip.due{background:var(--surface-2);color:var(--ink-4);border:1.5px dashed var(--line-lg)}
 .po-chip.irregular{background:var(--red-50);color:var(--red-700);border:1.5px solid var(--red-100)}
+.po-chip.partial{background:var(--amber-50);color:var(--amber-700);border:1.5px solid var(--amber-100)}
+.po-chip.partial .po-dot{background:var(--amber-500)}
 .po-chip.locked{background:var(--midnight-50);color:var(--midnight-600);border:1.5px solid var(--midnight-100)}
 .po-chip.locked-paid{background:var(--green-50);color:var(--green-600);border:1.5px solid var(--midnight-200,var(--midnight-100))}
 .po-chip.future{background:transparent;border:1px dashed var(--line);color:var(--ink-4);cursor:default}
@@ -764,6 +769,7 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
 .po-pop-status.paid{background:var(--green-50);color:var(--green-600)}
 .po-pop-status.due{background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line-md)}
 .po-pop-status.irregular{background:var(--red-50);color:var(--red-700)}
+.po-pop-status.partial{background:var(--amber-50);color:var(--amber-700)}
 .po-pop-status.locked{background:var(--midnight-50);color:var(--midnight-600)}
 .po-pop-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;font-size:0.8rem}
 .po-pop-row .po-pr-label{color:var(--ink-3);font-weight:600;font-size:0.72rem}
@@ -878,6 +884,7 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
     <div class="po-legend">
       <div class="po-legend-item"><span class="po-legend-dot paid"></span>Paid</div>
       <div class="po-legend-item"><span class="po-legend-dot due"></span>Due</div>
+      <div class="po-legend-item"><span class="po-legend-dot partial"></span>Pending balance</div>
       <div class="po-legend-item"><span class="po-legend-dot irregular"></span>Needs review</div>
       <div class="po-legend-item"><span class="po-legend-dot locked"></span>Locked</div>
       <div class="po-legend-item"><span class="po-legend-dot future"></span>Not yet due</div>
@@ -1117,14 +1124,29 @@ function buildMatrix(year, rawRows){
       unattributed.set(fk, entry);
       return;
     }
-    const share = r.amount / keys.length;
-    const coveredLabels = keys.map(k => PaymentMonths.label(k));
-    keys.forEach(k => {
+    /* Fill each covered month in chronological order up to the standard
+       FEE, rather than splitting the transaction evenly across all the
+       months it covers. So a single ₹500 payment tagged Jan–Mar fills
+       Jan (₹200) and Feb (₹200) in full, leaving Mar short by ₹100 —
+       that last month is flagged as a genuine partial/pending balance
+       instead of every month being marked "irregular" because ₹166.67
+       doesn't match the ₹200 fee. Any amount left over after every
+       covered month has been filled to FEE (an overpayment) is piled
+       onto the last covered month instead of being silently dropped. */
+    // Keys are "YYYY-MM" (zero-padded), so a plain string sort is chronological.
+    const sortedKeys = [...keys].sort();
+    const coveredLabels = sortedKeys.map(k => PaymentMonths.label(k));
+    let remaining = r.amount;
+    sortedKeys.forEach((k, idx) => {
+      const isLast = idx === sortedKeys.length - 1;
+      let allocated = Math.min(remaining, FEE);
+      if(isLast) allocated = remaining; // last month absorbs any overpayment leftover too
+      remaining -= allocated;
       const p = PaymentMonths.parseKey(k);
       if(!p || p.year !== year) return; // this contribution lands outside the year in view
       const fk = `${r.block}|${r.flat}|${k}`;
       const list = contribMap.get(fk) || [];
-      list.push({ amount:share, date:r.date, mode:r.mode, receivedBy:r.receivedBy, notes:r.notes,
+      list.push({ amount:allocated, date:r.date, mode:r.mode, receivedBy:r.receivedBy, notes:r.notes,
                    txnAmount:r.amount, covered:coveredLabels });
       contribMap.set(fk, list);
     });
@@ -1153,16 +1175,24 @@ function buildMatrix(year, rawRows){
       }
 
       const total = contribs.reduce((s,c)=>s+c.amount, 0);
-      const irregular = contribs.length > 1 || Math.abs(total - FEE) > 0.01;
+      const duplicateSuspected = contribs.length > 1;
+      const isOverpaid = !duplicateSuspected && total > FEE + 0.01;
+      const isPartial = !duplicateSuspected && total < FEE - 0.01;
+      const irregular = duplicateSuspected || isOverpaid;
       let note = "";
-      if(contribs.length > 1){
+      if(duplicateSuspected){
         note = `${contribs.length} separate transactions were recorded for ${monthLabel} — this may be a duplicate entry. Total attributed here: ${fmt$(total)}.`;
-      } else if(irregular){
-        note = `${fmt$(total)} was attributed to ${monthLabel}, not the usual ${fmt$(FEE)} — the transaction's amount didn't divide evenly across its covered months. Flagged for review rather than assumed correct.`;
+      } else if(isOverpaid){
+        note = `${fmt$(total)} was attributed to ${monthLabel}, more than the usual ${fmt$(FEE)} — the extra came from a payment that overshot its covered months. Flagged for review rather than assumed correct.`;
+      } else if(isPartial){
+        note = `Only ${fmt$(total)} of the ${fmt$(FEE)} due for ${monthLabel} has been covered so far — ${fmt$(FEE-total)} is still pending, since the payment covering this month ran short.`;
       }
 
       if(lockReason){
         return { type:"locked-paid", amount:total, contribs, reason:lockReason, monthLabel };
+      }
+      if(isPartial){
+        return { type:"partial", amount:total, remaining:FEE-total, contribs, note, monthLabel };
       }
       return { type: irregular ? "irregular" : "paid", amount:total, contribs, note, monthLabel };
     });
@@ -1198,9 +1228,9 @@ function computeKpis(flats){
   flats.forEach(f=>{
     let flatTotal = f.unattributed||0, hasDue=false, hasIrregular=false, hasLocked=false;
     f.months.forEach(m=>{
-      if(m.type==="paid" || m.type==="irregular" || m.type==="locked-paid") flatTotal += m.amount;
+      if(m.type==="paid" || m.type==="irregular" || m.type==="locked-paid" || m.type==="partial") flatTotal += m.amount;
       if(m.type==="irregular") hasIrregular=true;
-      if(m.type==="due") hasDue=true;
+      if(m.type==="due" || m.type==="partial") hasDue=true;
       if(m.type==="locked" || m.type==="locked-paid") hasLocked=true;
     });
     totalCollected += flatTotal;
@@ -1258,7 +1288,7 @@ function populateBlockOptions(){
 
 function flatStatusBucket(f){
   const hasIrregular = f.months.some(m=>m.type==="irregular");
-  const hasDue = f.months.some(m=>m.type==="due");
+  const hasDue = f.months.some(m=>m.type==="due"||m.type==="partial");
   const hasLocked = f.months.some(m=>m.type==="locked"||m.type==="locked-paid");
   if(hasIrregular) return "irregular";
   if(hasDue) return "due";
@@ -1284,6 +1314,7 @@ function renderChip(m){
   if(m.type==="locked") return `<span class="po-chip locked" data-kind="locked">${svgLockIco}<span class="po-sub">Locked</span></span>`;
   if(m.type==="locked-paid") return `<span class="po-chip locked-paid" data-kind="locked-paid"><span class="po-dot"></span>${fmt$(m.amount)}<span class="po-sub">Locked</span></span>`;
   if(m.type==="paid") return `<span class="po-chip paid" data-kind="paid">${fmt$(m.amount)}</span>`;
+  if(m.type==="partial") return `<span class="po-chip partial" data-kind="partial"><span class="po-dot"></span>${fmt$(m.amount)}<span class="po-sub">Pending</span></span>`;
   if(m.type==="irregular") return `<span class="po-chip irregular" data-kind="irregular"><span class="po-dot"></span>${fmt$(m.amount)}<span class="po-sub">Review</span></span>`;
   return "—";
 }
@@ -1335,7 +1366,7 @@ function renderMatrix(){
           <tbody>
             ${bf.map(f=>{
               const total = f.months.reduce((s,m)=>s+(m.amount||0),0) + (f.unattributed||0);
-              const dueCount = f.months.filter(m=>m.type==="due").length;
+              const dueCount = f.months.filter(m=>m.type==="due"||m.type==="partial").length;
               return `<tr>
                 <td class="po-flat-cell">
                   <div class="po-flat-num">${escapeHtml(f.flat)}${f.unattributed ? `<span class="po-warn-ico" data-unattr="${escapeHtml(f.block)}|${escapeHtml(f.flat)}">${svgWarnIco}</span>` : ""}</div>
@@ -1451,6 +1482,21 @@ function openPopover(block, flat, mi){
       ${alsoCovers.length ? `<div class="po-pop-note">This single ${fmt$(c.txnAmount)} payment made on <b>${escapeHtml(c.date)}</b> also covered <b>${escapeHtml(alsoCovers.join(", "))}</b> — shown separately in ${alsoCovers.length>1?"those months'":"that month's"} own cell${alsoCovers.length>1?"s":""}, not duplicated here.</div>` : ""}
       ${m.type==="locked-paid" ? `<div class="po-pop-note locked">${escapeHtml(m.reason)} A payment was still recorded for this month despite the lock.</div>` : ""}
     `;
+  } else if(m.type==="partial"){
+    const c = m.contribs[0];
+    const alsoCovers = c.covered.filter(x=>x!==monthLabel);
+    bodyHtml = `
+      <span class="po-pop-status partial">Pending Balance</span>
+      <div class="po-pop-row"><span class="po-pr-label">Covered month</span><span class="po-pr-val">${monthLabel}</span></div>
+      <div class="po-pop-row"><span class="po-pr-label">Paid so far for this month</span><span class="po-pr-val">${fmt$(m.amount)}</span></div>
+      <div class="po-pop-row"><span class="po-pr-label">Still pending</span><span class="po-pr-val">${fmt$(m.remaining)}</span></div>
+      <div class="po-pop-divider"></div>
+      <div class="po-pop-row"><span class="po-pr-label">Actual payment date</span><span class="po-pr-val">${escapeHtml(c.date)}</span></div>
+      <div class="po-pop-row"><span class="po-pr-label">Transaction amount</span><span class="po-pr-val">${fmt$(c.txnAmount)}</span></div>
+      <div class="po-pop-row"><span class="po-pr-label">Mode</span><span class="po-pr-val">${escapeHtml(c.mode)}</span></div>
+      <div class="po-pop-row"><span class="po-pr-label">Received by</span><span class="po-pr-val">${escapeHtml(c.receivedBy)||"—"}</span></div>
+      ${alsoCovers.length ? `<div class="po-pop-note">This single ${fmt$(c.txnAmount)} payment made on <b>${escapeHtml(c.date)}</b> also covered <b>${escapeHtml(alsoCovers.join(", "))}</b> — each month was filled up to ${fmt$(FEE)} in order, so ${escapeHtml(monthLabel)} only received what was left over.</div>` : ""}
+      <div class="po-pop-note warn">${escapeHtml(m.note)}</div>`;
   } else if(m.type==="irregular"){
     bodyHtml = `
       <span class="po-pop-status irregular">Needs Review</span>

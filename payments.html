@@ -1333,7 +1333,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbyzgvftDUIlGNdbF1b-mHC2nJqqy9laBUDpoFBNumsU5q7EINXReGXEaeYfzKV0G0XMBA/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbwdU7oUDgm8t-g2ONk5q9GIERvuOpFo9TFBZN0kLy43c6Oi9Rnj-2He5gvDn6MsKFHVnA/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -1374,11 +1374,18 @@ function getStaffEmail(){
    real data. Character-by-character parsing (matching flat-search.html's
    already-correct implementation) handles spaces inside unquoted fields
    correctly. */
+/* The escape check below must only fire while already inside a quoted
+   field (inQ===true). Without that guard, an empty quoted field — `""`,
+   e.g. a genuinely blank "Received By" cell that Google Sheets exports as
+   two quote characters — gets misread as an *escaped quote* (open quote
+   immediately followed by "escaped" quote) and turns into a literal `"`
+   character instead of an empty string. With the guard, `""` at the start
+   of a field is correctly read as open-quote then close-quote → "". */
 function parseCSV(line){
   const result=[];let cur="",inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
-    if(c==='"'&&line[i+1]==='"'){cur+='"';i++}
+    if(inQ&&c==='"'&&line[i+1]==='"'){cur+='"';i++}
     else if(c==='"'){inQ=!inQ}
     else if(c===','&&!inQ){result.push(cur.trim());cur="";}
     else{cur+=c;}
