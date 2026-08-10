@@ -1316,7 +1316,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbx8Hl2dfWnbTOK-gUhTI-K5bi6ndD9TNl3aQFSyPo5d5bZZl-bmg3KIjxATTTFWIWE3bQ/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbzM8fdp3XOUhmSBlylSrRnuKyVPL1Sv0_8U-r866fpyvauBkMwOvk7-0VNtkDd4r5YD8g/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -2307,7 +2307,7 @@ function todayDMY(){
    line per field that actually changed (Amount, Payment Mode, Received
    By, Payment Date, Paid Months) — e.g. "Amount updated to ₹400 from
    ₹200 by Pintoo Paswan on 03/08/2026" or "Paid month changed from Jun
-   2026 to Jul 2026, Aug 2026 by Pintoo Paswan on 03/08/2026". Each line
+   2026 to Jul 2026 / Aug 2026 by Pintoo Paswan on 03/08/2026". Each line
    is stamped with today's date (the date the edit was made), not the
    payment date. Diffs the record's pre-edit values (oldVals) against the
    values currently in the form (newVals). Unlike the audit/attribution
@@ -2342,8 +2342,16 @@ function buildChangeNotes(oldVals,newVals,staffLabel){
   const oldSet=new Set(oldKeys),newSet=new Set(newKeys);
   const monthsSame=oldSet.size===newSet.size&&oldKeys.every(k=>newSet.has(k));
   if(!monthsSame){
-    const oldLabel=oldKeys.length?PaymentMonths.formatList(oldKeys).join(", "):"none";
-    const newLabel=newKeys.length?PaymentMonths.formatList(newKeys).join(", "):"none";
+    // NOTE: joined with " / ", not ", " — this text is written into the
+    // Notes cell in the sheet, immediately to the LEFT of the Paid Months
+    // cell. A bare comma here is indistinguishable from a CSV field
+    // separator: if this cell is ever exported/parsed without being
+    // perfectly quote-escaped, every column after it (including Paid
+    // Months) silently shifts out of position. That's exactly why this
+    // bug only ever showed up for multi-month payments (2+ months means
+    // 1+ commas in the note) and never for single-month ones (0 commas).
+    const oldLabel=oldKeys.length?PaymentMonths.formatList(oldKeys).join(" / "):"none";
+    const newLabel=newKeys.length?PaymentMonths.formatList(newKeys).join(" / "):"none";
     lines.push(`Paid month changed from ${oldLabel} to ${newLabel} by ${staffLabel}${stamp}`);
   }
   return lines;
