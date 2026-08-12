@@ -895,15 +895,15 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 /* ══════════════════════════════════════════════════
    CONFIGURATION
    ─ EXPENSE_WRITE_URL: Deploy a Google Apps Script
-     for the expense sheet (12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8)
+     for the expense sheet (1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo)
      and paste its /exec URL here to enable Add/Edit/Delete.
      Leave empty for read-only mode.
 ══════════════════════════════════════════════════ */
-const EXPENSE_SHEET_ID   = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
-const EXPENSE_WRITE_URL  = "https://script.google.com/macros/s/AKfycbxaqNI0m9sfKzxPIrhZ-Wn0yE9Jzx8S4x-O6TadIZncQ8jcPUNNOEgNlZJq4shN49RUmQ/exec"; // <- Paste your Apps Script /exec URL here after deploying
+const EXPENSE_SHEET_ID   = "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
+const EXPENSE_WRITE_URL  = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec"; // <- Paste your Apps Script /exec URL here after deploying
 const EXPENSE_SECRET     = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const AUTH_SESSION_KEY   = "society_dashboard_auth";
-const SHEET_TABS         = ["EXPENSE"];
+const SHEET_TABS         = ["Sheet1"];
 
 /* ── Auth guard ── */
 if(sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
@@ -993,16 +993,15 @@ async function fetchSheetCsv(){
 }
 
 /* ── Parse CSV into entries ── */
-/* Sheet column schema (0-based):
-   0: TRANSACTION DATE
-   1: TRANSACTION TYPE  (CREDIT / DEBIT)
-   2: DESCRIPTION
-   3: AMOUNT
-   4: PAYMENT MODE
-   5: OPENING BALANCE
-   6: CLOSING BALANCE
-   7: PAID BY
-   8: BILL (URL to PDF/image)
+/* Sheet column schema (0-based) — matches the "expense-ledger" sheet, tab Sheet1:
+   0: DATE
+   1: AMOUNT
+   2: PAYMENT MODE
+   3: DESCRIPTION
+   4: TYPE          (CREDIT / DEBIT)
+   5: PAID BY
+   6: BILL           (URL to PDF/image receipt)
+   7: BALANCE        (running balance after this row)
    The parser auto-detects columns by header name then falls back to these positions.
 */
 function parseEntries(csv){
@@ -1019,14 +1018,14 @@ function parseEntries(csv){
   // Column map — keyed to the actual sheet schema
   const C = {
     date:    colIdx(["transaction date","date","dt"],                0),
-    type:    colIdx(["transaction type","type","cr","debit","credit","txn type"], 1),
-    desc:    colIdx(["description","desc","particulars","narration","detail"],    2),
-    amt:     colIdx(["amount","amt","sum","inr","rs","rupee"],                    3),
-    paymode: colIdx(["payment mode","pay mode","mode","payment method"],          4),
+    type:    colIdx(["transaction type","txn type","payment type","type"], 4),
+    desc:    colIdx(["description","desc","particulars","narration","detail"],    3),
+    amt:     colIdx(["amount","amt","sum","inr","rs","rupee"],                    1),
+    paymode: colIdx(["payment mode","pay mode","mode","payment method"],          2),
     openbal: colIdx(["opening balance","open bal","opening"],                     5),
-    closebal:colIdx(["closing balance","close bal","closing"],                    6),
-    paidby:  colIdx(["paid by","paidby","paid_by","received by","collector"],    7),
-    bill:    colIdx(["bill","receipt","ref","attachment","link","url"],           8),
+    closebal:colIdx(["closing balance","close bal","closing","balance"],          7),
+    paidby:  colIdx(["paid by","paidby","paid_by","received by","collector"],    5),
+    bill:    colIdx(["bill","receipt","ref","attachment","link","url"],           6),
   };
 
   const entries = [];

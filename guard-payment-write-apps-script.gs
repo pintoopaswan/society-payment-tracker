@@ -1,16 +1,42 @@
 const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
-const SPREADSHEET_ID = "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU";
+// Each calendar year's guard-payment data lives in its OWN spreadsheet (one
+// spreadsheet only ever contains tabs for a single year). Every payment
+// write must open the spreadsheet matching the YEAR of payload.paymentDateInput
+// — never a single hardcoded spreadsheet — otherwise an edit to an older
+// year's payment silently gets written into the current year's sheet
+// instead of updating the original row. Keep this in sync with
+// SHEET_IDS_BY_YEAR in payments.html / flat-search.html.
+const SHEET_IDS_BY_YEAR = {
+  "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
+  "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
+};
+const DEFAULT_PAYMENT_YEAR = "2026";
 const DIRECTORY_SPREADSHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
 const VEHICLE_TAB_NAME = "vehicles";
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const PAID_MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
-// This spreadsheet (SPREADSHEET_ID) only ever contains tabs for ONE calendar
-// year. Legacy "Paid Months" cells only ever stored a bare month name with
-// no year (e.g. "NOV"), so when a bare token needs a year inferred, this is
-// the anchor year — see inferYearForBareMonth() below.
+// Legacy "Paid Months" cells sometimes stored a bare month name with no
+// year (e.g. "NOV"). When a bare token needs a year inferred, the payment's
+// own year (derived from paymentDateInput at call time) is used as the
+// anchor — see inferYearForBareMonth() below. This constant is now only a
+// last-resort fallback for code paths that have no date context at all.
 const PAYMENT_SHEET_YEAR = 2026;
+
+// Extracts "YYYY" from a "YYYY-MM-DD" payload date string.
+function getPaymentYear_(paymentDateInput) {
+  const parts = String(paymentDateInput || "").split("-");
+  return /^\d{4}$/.test(parts[0]) ? parts[0] : "";
+}
+
+// Resolves the correct year-specific spreadsheet ID for a payment date.
+// Returns null (instead of silently falling back to a default year) so
+// callers can surface a clear error rather than writing to the wrong sheet.
+function getPaymentSpreadsheetId_(paymentDateInput) {
+  const yr = getPaymentYear_(paymentDateInput);
+  return yr && SHEET_IDS_BY_YEAR[yr] ? SHEET_IDS_BY_YEAR[yr] : null;
+}
 
 function doGet(e) {
   if (isPingRequest(e)) {
@@ -165,6 +191,7 @@ function parseApiPayload(payloadParam) {
 
 function handlePaymentMutation(payload) {
   const actionType = String(payload.actionType || "create").trim().toLowerCase();
+  if (actionType === "setflatstatus") return setFlatStatusPayload(payload);
   if (actionType === "update") return updatePaymentPayload(payload);
   if (actionType === "delete") return deletePaymentPayload(payload);
   return savePaymentPayload(payload);
@@ -215,13 +242,18 @@ function savePaymentPayload(payload) {
     return { ok: false, error: "Invalid payment date." };
   }
   const contextMonthIndex = MONTHS.indexOf(sheetName);
+  const paymentYear = getPaymentYear_(payload.paymentDateInput);
+  const spreadsheetId = getPaymentSpreadsheetId_(payload.paymentDateInput);
+  if (!spreadsheetId) {
+    return { ok: false, error: "No spreadsheet configured for year: " + (paymentYear || "unknown") };
+  }
 
   const amount = Number(payload.amount || 0);
   if (!payload.block || !payload.flatNo || !amount || amount % 1 !== 0) {
     return { ok: false, error: "Block, flat number, and whole-number amount are required." };
   }
 
-  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
+  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], Number(paymentYear), contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
   }
@@ -230,10 +262,10 @@ function savePaymentPayload(payload) {
     return { ok: false, error: feeErr };
   }
 
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   const sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
-    return { ok: false, error: "Missing sheet tab: " + sheetName };
+    return { ok: false, error: "Missing sheet tab: " + sheetName + " in " + paymentYear + " spreadsheet." };
   }
 
   const lock = LockService.getScriptLock();
@@ -247,13 +279,10 @@ function savePaymentPayload(payload) {
         error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
       };
     }
-
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
     const existingAmount = Number(existingValues[0] || 0);
-    // oneLineRemarks_ also cleans up any \n that made it into older rows
-    // before this fix, so legacy line breaks don't keep propagating forward.
     const existingRemarks = oneLineRemarks_(existingValues[5]);
-    const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
+    const existingPaidMonths = normalizePaidMonths(existingValues[6] || "", Number(paymentYear), contextMonthIndex);
     const mergedPaidMonths = mergePaidMonths(existingPaidMonths, submittedPaidMonths).join(",");
     const newTotalAmount = existingAmount + amount;
     // NOTE: the client (payments.html / flat-search.html) already builds a
@@ -262,8 +291,7 @@ function savePaymentPayload(payload) {
     // note here (buildPaymentRemark) on top of it; doing so produced a
     // duplicated, mode-less "<amount> received on <date>" line stacked in
     // front of the client's own note on every Add. The server's only job is
-    // to preserve prior remarks and append whatever the client sent — as a
-    // single line, never with a line break.
+    // to preserve prior remarks and append whatever the client sent.
     const submittedNotes = oneLineRemarks_(payload.notes);
     const remarksParts = [];
     if (existingRemarks) remarksParts.push(existingRemarks);
@@ -292,13 +320,18 @@ function updatePaymentPayload(payload) {
     return { ok: false, error: "Invalid payment date." };
   }
   const contextMonthIndex = MONTHS.indexOf(sheetName);
+  const paymentYear = getPaymentYear_(payload.paymentDateInput);
+  const spreadsheetId = getPaymentSpreadsheetId_(payload.paymentDateInput);
+  if (!spreadsheetId) {
+    return { ok: false, error: "No spreadsheet configured for year: " + (paymentYear || "unknown") };
+  }
 
   const amount = Number(payload.amount || 0);
   if (!payload.block || !payload.flatNo || !amount || amount % 1 !== 0) {
     return { ok: false, error: "Block, flat number, and whole-number amount are required." };
   }
 
-  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], PAYMENT_SHEET_YEAR, contextMonthIndex);
+  const submittedPaidMonths = normalizePaidMonths(payload.paidMonths || [], Number(paymentYear), contextMonthIndex);
   if (!submittedPaidMonths.length) {
     return { ok: false, error: "Paid months are required." };
   }
@@ -307,10 +340,10 @@ function updatePaymentPayload(payload) {
     return { ok: false, error: feeErr };
   }
 
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   const sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
-    return { ok: false, error: "Missing sheet tab: " + sheetName };
+    return { ok: false, error: "Missing sheet tab: " + sheetName + " in " + paymentYear + " spreadsheet." };
   }
 
   const lock = LockService.getScriptLock();
@@ -322,12 +355,11 @@ function updatePaymentPayload(payload) {
     if (!targetRow) {
       return {
         ok: false,
-        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
+        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + " (" + paymentYear + ").",
       };
     }
-
     const previousValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
-    previousPaidMonths = normalizePaidMonths(previousValues[6] || "", PAYMENT_SHEET_YEAR, contextMonthIndex);
+    previousPaidMonths = normalizePaidMonths(previousValues[6] || "", Number(paymentYear), contextMonthIndex);
 
     const updatedRemarks = oneLineRemarks_(payload.notes);
     sheet.getRange(targetRow, 3, 1, 7).setValues([[
@@ -356,11 +388,16 @@ function deletePaymentPayload(payload) {
   if (!payload.block || !payload.flatNo) {
     return { ok: false, error: "Block and flat number are required." };
   }
+  const paymentYear = getPaymentYear_(payload.paymentDateInput);
+  const spreadsheetId = getPaymentSpreadsheetId_(payload.paymentDateInput);
+  if (!spreadsheetId) {
+    return { ok: false, error: "No spreadsheet configured for year: " + (paymentYear || "unknown") };
+  }
 
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   const sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
-    return { ok: false, error: "Missing sheet tab: " + sheetName };
+    return { ok: false, error: "Missing sheet tab: " + sheetName + " in " + paymentYear + " spreadsheet." };
   }
 
   const lock = LockService.getScriptLock();
@@ -372,11 +409,11 @@ function deletePaymentPayload(payload) {
     if (!targetRow) {
       return {
         ok: false,
-        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + ".",
+        error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + " (" + paymentYear + ").",
       };
     }
     const existingValues = sheet.getRange(targetRow, 3, 1, 7).getValues()[0];
-    removedPaidMonths = normalizePaidMonths(existingValues[6] || "", PAYMENT_SHEET_YEAR, MONTHS.indexOf(sheetName));
+    removedPaidMonths = normalizePaidMonths(existingValues[6] || "", Number(paymentYear), MONTHS.indexOf(sheetName));
     sheet.getRange(targetRow, 3, 1, 7).clearContent();
   } finally {
     lock.releaseLock();
@@ -384,6 +421,50 @@ function deletePaymentPayload(payload) {
 
   const guardSync = syncGuardPayment(payload.block, payload.flatNo, payload.paymentDateInput, removedPaidMonths, false);
   return { ok: true, sheetName: sheetName, updatedRow: targetRow, actionType: "delete", guardSync: guardSync };
+}
+
+function setFlatStatusPayload(payload) {
+  const year = Number(payload.year || DEFAULT_PAYMENT_YEAR);
+  const monthIndex = Number(payload.monthIndex);
+  if (!payload.block || !payload.flatNo || !isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return { ok: false, error: "Block, flat number, and valid month are required." };
+  }
+  const spreadsheetId = SHEET_IDS_BY_YEAR[String(year)];
+  if (!spreadsheetId) {
+    return { ok: false, error: "No spreadsheet configured for year: " + year + "." };
+  }
+
+  const sheetName = MONTHS[monthIndex];
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, error: "Missing sheet tab: " + sheetName + " in " + year + " spreadsheet." };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  let targetRow = 0;
+  let statusCol = 0;
+  let remarksCol = 0;
+  try {
+    targetRow = findPaymentRow(sheet, payload.block, payload.flatNo);
+    if (!targetRow) {
+      return { ok: false, error: "No existing row found for " + payload.block + " / Flat " + payload.flatNo + " in " + sheetName + "." };
+    }
+    statusCol = findFlatStatusColumn(sheet);
+    if (!statusCol) return { ok: false, error: "Missing FLAT STATUS column in " + sheetName + "." };
+
+    const status = String(payload.flatStatus || "").trim().toUpperCase() === "LOCKED" ? "LOCKED" : "";
+    sheet.getRange(targetRow, statusCol).setValue(status);
+    remarksCol = findPaymentHeaderColumn(sheet, ["remarks", "remark", "notes", "note", "description"]);
+    const submittedNotes = oneLineRemarks_(payload.notes);
+    if (remarksCol && submittedNotes) {
+      const existingRemarks = oneLineRemarks_(sheet.getRange(targetRow, remarksCol).getValue());
+      sheet.getRange(targetRow, remarksCol).setValue(existingRemarks ? existingRemarks + " | " + submittedNotes : submittedNotes);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  return { ok: true, sheetName: sheetName, updatedRow: targetRow, statusColumn: statusCol, remarksColumn: remarksCol, flatStatus: String(payload.flatStatus || "").trim().toUpperCase() === "LOCKED" ? "LOCKED" : "" };
 }
 
 function saveResidentPayload(payload) {
@@ -495,8 +576,9 @@ function escapeHtml(value) {
 /* Collapses any line breaks in a remarks/notes string into a single space,
    so the Remarks column is always written as one line — never with a \n —
    whether the text came fresh from the client or was already stored (with
-   a stray line break) in the sheet from before this fix. Used by both
-   addPaymentPayload() and updatePaymentPayload(). */
+   a stray line break) in the sheet from before this fix. Used by
+   addPaymentPayload(), updatePaymentPayload(), and the flat-status/lock
+   remarks append below. */
 function oneLineRemarks_(raw) {
   return String(raw || "").replace(/\r\n|\r|\n/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -678,6 +760,26 @@ function findHeaderIndex(headers, patterns) {
     }
   }
   return -1;
+}
+
+function findFlatStatusColumn(sheet) {
+  return findPaymentHeaderColumn(sheet, ["flat status", "flatstatus"]);
+}
+
+function findPaymentHeaderColumn(sheet, patterns) {
+  const lastCol = sheet.getLastColumn();
+  const scanRows = Math.min(sheet.getLastRow(), 12);
+  if (lastCol < 1 || scanRows < 1) return 0;
+  const values = sheet.getRange(1, 1, scanRows, lastCol).getValues();
+  for (let r = 0; r < values.length; r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      const value = String(values[r][c] || "").trim().toLowerCase().replace(/\s+/g, " ");
+      for (let p = 0; p < patterns.length; p++) {
+        if (value === patterns[p] || value.indexOf(patterns[p]) >= 0) return c + 1;
+      }
+    }
+  }
+  return 0;
 }
 
 function normalizeBlock(value) {
@@ -998,16 +1100,18 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
   }
   // paidMonths comes in as normalized "YYYY-MM" keys, extract month labels
   const normalized = normalizePaidMonths(paidMonths);
-  
-  // DEBUG: Log what we're receiving
-  const debugInfo = {
+
+  // Server-side only (visible in the Apps Script execution log, never sent
+  // to the client) — useful for diagnosing a sync issue without leaking
+  // internal state into the payment-save response shown to staff.
+  Logger.log("syncGuardPayment: " + JSON.stringify({
     inputPaidMonths: paidMonths,
     normalizedKeys: normalized,
     year: year,
     block: block,
     flatNo: flatNo
-  };
-  
+  }));
+
   const months = normalized.map(function(key) {
     // key format: "YYYY-MM", extract month number and convert to label
     const parts = String(key || "").split("-");
@@ -1015,9 +1119,9 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
     const monthLabel = monthIdx >= 0 && monthIdx < MONTHS.length ? MONTHS[monthIdx].substring(0, 3) : "";
     return monthLabel;
   }).filter(function(m) { return m && GUARD_MONTH_COLUMNS.indexOf(m) >= 0; });
-  
+
   if (!months.length) {
-    return { ok: true, sheet: year, months: [], note: "No months to sync.", debug: debugInfo };
+    return { ok: true, sheet: year, months: [], note: "No months to sync." };
   }
 
   const lock = LockService.getScriptLock();
@@ -1026,15 +1130,15 @@ function syncGuardPayment(block, flatNo, paymentDateInput, paidMonths, markPaid)
     const sheet = openGuardSheetForYear(year);
     const row = findGuardRow(sheet, block, flatNo);
     if (!row) {
-      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + ".", debug: debugInfo };
+      return { ok: false, sheet: year, error: "Flat " + guardFlatKey(block, flatNo) + " not found on guard sheet " + year + "." };
     }
     months.forEach(function(m) {
       const col = guardMonthColumn(m);
       if (col) sheet.getRange(row, col).setValue(markPaid ? GUARD_MONTHLY_AMOUNT : "");
     });
-    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid, debug: debugInfo };
+    return { ok: true, sheet: year, row: row, months: months, markedPaid: markPaid };
   } catch (err) {
-    return { ok: false, sheet: year, error: err.message, debug: debugInfo };
+    return { ok: false, sheet: year, error: err.message };
   } finally {
     lock.releaseLock();
   }

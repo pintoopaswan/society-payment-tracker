@@ -1871,11 +1871,11 @@ function renderRecentRes(rd){
 }
 
 /* ── Load expenses ── */
-const EXPENSE_SHEET_ID="12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+const EXPENSE_SHEET_ID="1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
 async function loadExpenses(){
   const urls=[
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=EXPENSE`,
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=EXPENSE`,
+    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`,
+    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=Sheet1`,
   ];
   for(const url of urls){
     try{
@@ -1885,7 +1885,7 @@ async function loadExpenses(){
       const lines=csv.split(/\r?\n/).filter(l=>l.trim());if(lines.length<2)continue;
       const headerRaw=parseCSV(lines[0]).map(h=>String(h||"").trim().toLowerCase());
       const colIdx=(pats,fallback)=>{const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));return i>=0?i:fallback;};
-      const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","type","cr","debit","credit","txn type"],1),desc:colIdx(["description","desc","particulars","narration","detail"],2),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],3),paymode:colIdx(["payment mode","pay mode","mode","payment method"],4)};
+      const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","txn type","payment type","type"],4),desc:colIdx(["description","desc","particulars","narration","detail"],3),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],1),paymode:colIdx(["payment mode","pay mode","mode","payment method"],2)};
       const entries=lines.slice(1).map(line=>{
         const cols=parseCSV(line);const rawType=String(cols[C.type]||"").trim().toUpperCase();
         const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;

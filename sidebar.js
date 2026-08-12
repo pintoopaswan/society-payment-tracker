@@ -38,6 +38,8 @@
       icon:'<circle cx="9" cy="9" r="6"/><path d="M20 20l-4.35-4.35"/>' },
     { href:"payment-verification.html", label:"Payment Verification", tooltip:"Payment Verification",
       icon:'<path d="M8 3H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><rect x="8" y="2" width="4" height="3" rx="1"/><path d="M7 11l2 2 4-5"/>' },
+    { href:"payments-overview.html", label:"Payments Overview", tooltip:"Payments Overview",
+      icon:'<rect x="2" y="3" width="16" height="14" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12.01"/><line x1="10" y1="12" x2="10" y2="12.01"/><line x1="14" y1="12" x2="14" y2="12.01"/>' },
     { href:"owner-tenant.html",      label:"Resident Details", tooltip:"Resident Details",  section:"Directory", badge:"Residents",
       icon:'<circle cx="7" cy="6" r="3.5"/><path d="M1 18c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="16" cy="6" r="2.5"/><path d="M18.5 18c0-2.5-1.5-4.5-4-5"/>' },
     { href:"vehicles.html",          label:"Vehicle Details", tooltip:"Vehicle Details",   badge:"Vehicles",

@@ -562,6 +562,12 @@ td.empty{background:var(--red-50);color:var(--red-500);font-size:0.7rem;border-l
 tr:hover td.empty{background:#ffe4e6}
 td.empty:hover{background:var(--blue-50);color:var(--blue-600)}
 td.empty.has-tx{background:var(--red-50);cursor:pointer;border-left:2px solid var(--red-200)}
+td.locked{
+  background:var(--red-50);color:var(--red-500);cursor:not-allowed;
+  border-left:2px solid var(--red-100);
+  overflow:visible;
+}
+td.locked:hover{background:#ffe4e6;transform:none}
 
 .total-row td{
   background:var(--amber-50)!important;color:var(--amber-700);
@@ -667,6 +673,9 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 .month-tile.no-data .mt-empty{color:var(--red-400);font-weight:600}
 .month-tile.no-data:hover{background:var(--blue-50);border-color:var(--blue-200)}
 .month-tile.no-data:hover .mt-empty{color:var(--blue-600)}
+.month-tile.locked{background:var(--red-50);border-color:var(--red-100);border-left:3px solid var(--red-100);cursor:not-allowed}
+.month-tile.locked:hover{background:#ffe4e6;transform:none;box-shadow:none}
+.month-tile.locked .mt-name,.month-tile.locked .mt-empty{color:var(--red-500)}
 .mt-name{font-size:0.72rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:0.06em}
 .mt-amount{font-size:1rem;font-weight:700;color:var(--green-700);font-family:'DM Mono',monospace;margin-top:3px}
 .mt-empty{font-size:0.78rem;color:var(--ink-4);font-weight:400;margin-top:3px}
@@ -1307,7 +1316,7 @@ const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU
 const DEFAULT_YEAR = "2026";
 const AUTH_SESSION_KEY = "society_dashboard_auth";
 const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbzoPJN2pXUj0jaOFCpOQz2MgC-bfIW1cpET0oblux3OSvl-jFsAO5ooiV3AeaLTtMmoVQ/exec";
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
 const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
@@ -1316,7 +1325,7 @@ const monthSheetNamesByYear = { "2026":months,"2025":[null,null,null,null,null,"
 const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 
 /* ── State ── */
-let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={};
+let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={}, lockedFlatMonths={};
 let modalAction="create", editCtx=null;
 let selectedPaidMonthKeys=new Set(); // "YYYY-MM" keys selected across ALL years, not just the one currently shown
 
@@ -1348,11 +1357,18 @@ function getStaffEmail(){
    real data. Character-by-character parsing (matching flat-search.html's
    already-correct implementation) handles spaces inside unquoted fields
    correctly. */
+/* The escape check below must only fire while already inside a quoted
+   field (inQ===true). Without that guard, an empty quoted field — `""`,
+   e.g. a genuinely blank "Received By" cell that Google Sheets exports as
+   two quote characters — gets misread as an *escaped quote* (open quote
+   immediately followed by "escaped" quote) and turns into a literal `"`
+   character instead of an empty string. With the guard, `""` at the start
+   of a field is correctly read as open-quote then close-quote → "". */
 function parseCSV(line){
   const result=[];let cur="",inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
-    if(c==='"'&&line[i+1]==='"'){cur+='"';i++}
+    if(inQ&&c==='"'&&line[i+1]==='"'){cur+='"';i++}
     else if(c==='"'){inQ=!inQ}
     else if(c===','&&!inQ){result.push(cur.trim());cur="";}
     else{cur+=c;}
@@ -1377,6 +1393,7 @@ function parseCSVRows(csv){
 }
 const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
+const flatKey = v => String(v||"").trim();
 const isValidPaymentFlatRow = (block,flat) => {
   const b=norm(block), f=norm(flat);
   if(!b||!f||b==="block"||f==="flat"||b==="total")return false;
@@ -1427,8 +1444,36 @@ function unlockScroll(){
 /* ── Data reset ── */
 function resetState(){
   groupedData={};monthlyTotals=new Array(12).fill(0);
-  processedRecords=new Set();allBlocks=new Set();allFlats={};
+  processedRecords=new Set();allBlocks=new Set();allFlats={};lockedFlatMonths={};
   document.getElementById("tableBody").innerHTML="";
+}
+
+function isLockedStatus(value){
+  return /\blocked\b/i.test(String(value||"").trim());
+}
+function lockedKey(block,flat){
+  return `${blockName(block)}-${flatKey(flat)}`;
+}
+function ensureFlatRecord(block,flat){
+  const nb=blockName(block), fk=flatKey(flat), key=`${nb}-${fk}`;
+  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(fk,10),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
+  if(!groupedData[key].paidMonthIndices)groupedData[key].paidMonthIndices=new Set();
+  if(!groupedData[key].paidMonthYears)groupedData[key].paidMonthYears=new Set();
+  if(!groupedData[key].coverageByKey)groupedData[key].coverageByKey={};
+  return groupedData[key];
+}
+function markFlatLocked(block,flat,year,monthIndex,statusRaw){
+  if(monthIndex<0||monthIndex>11)return;
+  const nb=blockName(block), fk=flatKey(flat), key=`${nb}-${fk}`, monthKey=PaymentMonths.toKey(year,monthIndex);
+  if(!monthKey)return;
+  if(!lockedFlatMonths[key])lockedFlatMonths[key]={};
+  lockedFlatMonths[key][monthKey]=String(statusRaw||"LOCKED").trim()||"LOCKED";
+  const row=ensureFlatRecord(nb,fk);
+  if(!row.years[year])row.years[year]={total:0,months:{},paidMonthIndices:new Set()};
+}
+function isFlatMonthLocked(block,flat,year,monthIndex){
+  const monthKey=PaymentMonths.toKey(year,monthIndex);
+  return !!(lockedFlatMonths[lockedKey(block,flat)]&&lockedFlatMonths[lockedKey(block,flat)][monthKey]);
 }
 
 /* ── Process row ── */
@@ -1477,8 +1522,8 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
   const parsedDate=parseSheetDateParts(date);
   if(!parsedDate||monthIndex<0||monthIndex>11)return;
   const {dy,mo,yr}=parsedDate;
-  const key=`${nb}-${flat}`;
-  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(flat),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
+  const key=`${nb}-${flatKey(flat)}`;
+  ensureFlatRecord(nb,flat);
   if(!groupedData[key].years[year])groupedData[key].years[year]={total:0,months:{},paidMonthIndices:new Set()};
   const fmtDate=`${String(dy).padStart(2,"0")}/${String(mo).padStart(2,"0")}/${yr}`;
   const amtN=Number(amount||0);
@@ -1546,7 +1591,7 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
    edited from consideration (so Update Payment doesn't lock out its own
    already-selected months). */
 function computeDisabledMonthYears(block,flat,excludeKeys=[]){
-  const key=`${block}-${flat}`;
+  const key=lockedKey(block,flat);
   const row=groupedData[key];
   const disabled=new Set(row?row.paidMonthYears:[]);
   excludeKeys.forEach(k=>disabled.delete(k));
@@ -1559,6 +1604,36 @@ function entryCoversMonth(entry,year,mi){
     ?entry.paidMonthKeys
     :PaymentMonths.parseField(entry?.paidMonths,Number(year),Number(mi));
   return keys.includes(key);
+}
+
+function resolvePaymentCsvLayout(lines){
+  const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8,flatStatus:9};
+  let headerRowIndex=0, headers=[];
+  for(let i=0;i<Math.min(lines.length,12);i++){
+    const parsed=parseCSV(lines[i]).map(h=>norm(h));
+    const joined=parsed.join(" ");
+    if(joined.includes("payment status")||joined.includes("paid month")||joined.includes("flat status")){
+      headerRowIndex=i;
+      headers=parsed;
+      break;
+    }
+  }
+  if(!headers.length)headers=parseCSV(lines[0]||"").map(h=>norm(h));
+  const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
+  const flatIdx=headers.findIndex(h=>/^(flat|flat no|flat no\.|flat number|room|house|apartment)$/.test(h));
+  return {
+    startRow: headerRowIndex + 1,
+    block: idx(["block"],fallback.block),
+    flat: flatIdx>=0?flatIdx:fallback.flat,
+    amount: idx(["amount","amt"],fallback.amount),
+    mode: idx(["mode","method"],fallback.mode),
+    date: idx(["date"],fallback.date),
+    status: idx(["status","done","paid"],fallback.status),
+    recv: idx(["received by","collected by","received"],fallback.recv),
+    notes: idx(["remark","note","description"],fallback.notes),
+    paid: idx(["paid month","month paid"],fallback.paid),
+    flatStatus: idx(["flat status","flatstatus"],fallback.flatStatus)
+  };
 }
 
 /* ── Fetch CSV ── */
@@ -1606,26 +1681,16 @@ async function fetchAllMonthData(){
       // matching header text; this mirrors that approach, keeping the old
       // fixed positions only as a last-resort fallback for tabs with no
       // recognizable header row.
-      const headers=parseCSV(lines[0]).map(h=>norm(h));
-      const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8};
-      const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
-      const blockIdx=idx(["block"],fallback.block);
-      const flatIdx=idx(["flat","room","house","apartment"],fallback.flat);
-      const amtIdx=idx(["amount","amt"],fallback.amount);
-      const modeIdx=idx(["mode","method"],fallback.mode);
-      const dateIdx=idx(["date"],fallback.date);
-      const statusIdx=idx(["status","done","paid"],fallback.status);
-      const recvIdx=idx(["received by","collected by","received"],fallback.recv);
-      const notesIdx=idx(["remark","note","description"],fallback.notes);
-      const paidIdx=idx(["paid month","month paid"],fallback.paid);
-      lines.slice(1).forEach(row=>{
+      const layout=resolvePaymentCsvLayout(lines);
+      lines.slice(layout.startRow).forEach(row=>{
         const c=parseCSV(row);
-        const block=c[blockIdx],flat=c[flatIdx],amount=c[amtIdx],mode=c[modeIdx],date=c[dateIdx],status=c[statusIdx],recv=c[recvIdx],notes=c[notesIdx],paid=c[paidIdx];
+        const block=c[layout.block],flat=c[layout.flat],amount=c[layout.amount],mode=c[layout.mode],date=c[layout.date],status=c[layout.status],recv=c[layout.recv],notes=c[layout.notes],paid=c[layout.paid],flatStatus=layout.flatStatus>=0?c[layout.flatStatus]:"";
         if(!isValidPaymentFlatRow(block,flat))return;
         const nb=blockName(block);
         allBlocks.add(nb);
         if(!allFlats[nb])allFlats[nb]=new Set();
         allFlats[nb].add(flat);
+        if(isLockedStatus(flatStatus))markFlatLocked(block,flat,yr,mi,flatStatus);
         if(!amount||String(status||"").trim().toUpperCase()!=="DONE")return;
         processRow(block,flat,amount,date,yr,mi,paid,mode,recv,notes);
       });
@@ -1677,6 +1742,7 @@ function renderAll(){
         // same month, so a real payment amount stays visible and editable.
         txEntry=row.years?.[year]?.months?.[i]||row.coverageByKey?.[PaymentMonths.toKey(year,i)]||null;
       }
+      const locked=canEdit&&isFlatMonthLocked(row.Block,row.Flat,Number(year),i);
       const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
       if(txEntry){
         // A single payment can cover multiple months (coverageByKey maps every
@@ -1691,13 +1757,13 @@ function renderAll(){
           const cellKey=PaymentMonths.toKey(cellYear,i);
           const isCovered=entryCoversMonth(txEntry,cellYear,i)||!!row.coverageByKey?.[cellKey];
           const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
-          html+=`<td class="${isCovered?"paid":"empty has-tx"} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
+          html+=`<td class="${locked?"locked":(isCovered?"paid":"empty has-tx")} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
         }else{
-          html+=`<td class="paid covered month-cell"><div class="month-cell-content"><span class="cell-paid-badge">PAID</span></div></td>`;
+          html+=`<td class="${locked?"locked":"paid covered"} month-cell"><div class="month-cell-content"><span class="cell-paid-badge">PAID</span></div></td>`;
         }
       }else{
         const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
-        html+=`<td class="empty month-cell"${aa}>—</td>`;
+        html+=`<td class="${locked?"locked":"empty"} month-cell"${aa}>—</td>`;
       }
     });
     html+=`<td><strong style="font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></td></tr>`;
@@ -1761,10 +1827,18 @@ function renderAll(){
           // actually recorded, and a plain Paid mark for other months it
           // covers — no repeated amount/date and no "via" label.
           const coverageEntry=row.coverageByKey?.[PaymentMonths.toKey(yr,i)]||null;
+          const locked=isFlatMonthLocked(row.Block,row.Flat,Number(yr),i);
           const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:(coverageEntry?"":` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`);
           const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
           let tileContent,tileStateClass;
-          if(txMd){
+          if(locked){
+            if(txMd){
+              tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>`;
+            }else{
+              tileContent="—";
+            }
+            tileStateClass="locked";
+          }else if(txMd){
             const cellKey=PaymentMonths.toKey(Number(yr),i);
             const isCovered=entryCoversMonth(txMd,Number(yr),i)||!!row.coverageByKey?.[cellKey];
             tileContent=`<div class="mt-amount${isCovered?"":" mt-amount-red"}">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
@@ -2031,8 +2105,9 @@ function renderMonthGrid(){
   grid.innerHTML=PaymentMonths.MONTH_DISPLAY.map((lbl,mi)=>{
     const k=PaymentMonths.toKey(year,mi);
     const active=selectedPaidMonthKeys.has(k);
+    const lockedForStatus=isFlatMonthLocked(block,flat,year,mi);
     const locked=disabled.has(k)&&!active;
-    return`<label class="month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${lbl}</span><span class="mo-tag">Paid</span></label>`;
+    return`<label class="month-option${active?" selected":""}${locked?" disabled":""}"><input type="checkbox" value="${k}" ${active?"checked":""} ${locked?"disabled":""}><span>${lbl}</span><span class="mo-tag">${lockedForStatus?"Locked":"Paid"}</span></label>`;
   }).join("");
   updateMonthTrigger();
   updateAmountMonthsValidation();
@@ -2232,7 +2307,7 @@ function todayDMY(){
    line per field that actually changed (Amount, Payment Mode, Received
    By, Payment Date, Paid Months) — e.g. "Amount updated to ₹400 from
    ₹200 by Pintoo Paswan on 03/08/2026" or "Paid month changed from Jun
-   2026 to Jul 2026, Aug 2026 by Pintoo Paswan on 03/08/2026". Each line
+   2026 to Jul 2026 / Aug 2026 by Pintoo Paswan on 03/08/2026". Each line
    is stamped with today's date (the date the edit was made), not the
    payment date. Diffs the record's pre-edit values (oldVals) against the
    values currently in the form (newVals). Unlike the audit/attribution
@@ -2267,8 +2342,16 @@ function buildChangeNotes(oldVals,newVals,staffLabel){
   const oldSet=new Set(oldKeys),newSet=new Set(newKeys);
   const monthsSame=oldSet.size===newSet.size&&oldKeys.every(k=>newSet.has(k));
   if(!monthsSame){
-    const oldLabel=oldKeys.length?PaymentMonths.formatList(oldKeys).join(", "):"none";
-    const newLabel=newKeys.length?PaymentMonths.formatList(newKeys).join(", "):"none";
+    // NOTE: joined with " / ", not ", " — this text is written into the
+    // Notes cell in the sheet, immediately to the LEFT of the Paid Months
+    // cell. A bare comma here is indistinguishable from a CSV field
+    // separator: if this cell is ever exported/parsed without being
+    // perfectly quote-escaped, every column after it (including Paid
+    // Months) silently shifts out of position. That's exactly why this
+    // bug only ever showed up for multi-month payments (2+ months means
+    // 1+ commas in the note) and never for single-month ones (0 commas).
+    const oldLabel=oldKeys.length?PaymentMonths.formatList(oldKeys).join(" / "):"none";
+    const newLabel=newKeys.length?PaymentMonths.formatList(newKeys).join(" / "):"none";
     lines.push(`Paid month changed from ${oldLabel} to ${newLabel} by ${staffLabel}${stamp}`);
   }
   return lines;
@@ -2367,13 +2450,12 @@ async function savePayment(e){
     const r=await submitPayload(payload);
     if(!r.ok)throw new Error(r.error||"Save failed.");
     if(r.guardSync && !r.guardSync.ok){
-      const detail = r.guardSync.error || JSON.stringify(r.guardSync.debug || r.guardSync);
+      const detail = r.guardSync.error || "Unknown error.";
       setFormMsg("Saved, but guard sheet sync failed.",false);
       showAlert(`Payment saved, but guard sheet sync failed: ${detail}`);
     } else if(r.guardSync && r.guardSync.ok && Array.isArray(r.guardSync.months) && r.guardSync.months.length === 0){
-      const detail = JSON.stringify(r.guardSync.debug || r.guardSync);
       setFormMsg("Saved, but no guard months were synced.",false);
-      showAlert(`Payment saved, but no guard months were synced: ${detail}`);
+      showAlert("Payment saved, but no guard months were synced.");
     } else {
       setFormMsg("Saved!",true);
       showAlert(modalAction==="update"?"Payment updated.":"Payment saved.",true);
