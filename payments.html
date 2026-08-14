@@ -1513,7 +1513,8 @@ function parseSheetDateParts(raw){
   return(mo>=1&&mo<=12&&dy>=1&&dy<=31&&!isNaN(yr))?{dy,mo,yr}:null;
 }
 
-function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw,recvRaw,notesRaw){
+function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw,recvRaw,notesRaw,primary){
+  if(primary===undefined)primary=true; // default so existing callers/tests keep old behavior
   if(!isValidPaymentFlatRow(block,flat)||!amount)return;
   const nb=blockName(block);
   const rid=`${year}-${monthIndex}-${nb}-${flat}`;
@@ -1542,7 +1543,12 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
 
   const entry={amount:amtN,date:fmtDate,paidMonthsHtml:paidHtml,paymentMode:mode,receivedBy:String(recvRaw||"").trim(),notes:String(notesRaw||"").trim(),paidMonths:String(paidMonthsRaw||"").trim(),paidMonthKeys:paidKeys,txYear:Number(year),txMonthIndex:Number(monthIndex)};
   groupedData[key].years[year].months[monthIndex]=entry;
-  groupedData[key].years[year].total+=amtN;
+  // Only the ACTIVE year's own sheet ("primary") should feed this year's
+  // total. A spillover-year fetch (see yearsToFetch) exists purely to
+  // recover cross-year Paid Months coverage below — its rupee amount
+  // belongs to ITS OWN year, not the year currently being viewed, so it
+  // must not be added to this year's total/footer/monthlyTotals.
+  if(primary)groupedData[key].years[year].total+=amtN;
 
   // Credit this YEAR's index bucket only with keys that truly belong to it
   // (used to highlight paid tiles within a single-year view). Previously
@@ -1573,6 +1579,13 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
     const existingIsActual=existing&&parsed&&parsed.year===existing.txYear&&parsed.monthIndex===existing.txMonthIndex;
     if(!existing||newIsActual||!existingIsActual)groupedData[key].coverageByKey[k]=entry;
   });
+
+  // The rest of this function feeds flat-level and grid-footer totals
+  // (row.total, monthlyTotals) that are rendered for the currently active
+  // year. A spillover-year fetch has already done its job above by
+  // registering coverageByKey/paidMonthYears entries — stop here so its
+  // amount doesn't get double-counted into (or leak into) those totals.
+  if(!primary)return;
 
   if(!groupedData[key].months[monthIndex]){
     groupedData[key].months[monthIndex]={amount:0,date:fmtDate,paidMonthsHtml:"",paymentMode:"",receivedBy:"",notes:"",paidMonths:"",paidMonthKeys:[]};
@@ -1656,13 +1669,42 @@ async function fetchCsv(sid,tab){
 }
 
 /* ── Load data ── */
+/* Which years' sheets to fetch for a given active-year selection, and
+   whether each is a "primary" year (its transactions belong to the view
+   being rendered — totals, footer sums, KPI cards) or a "spillover" year
+   (fetched ONLY so that cross-year carry-forward coverage is visible).
+
+   WHY SPILLOVER YEARS EXIST:
+   A payment recorded in December 2025 can settle Dec 2025 + Jan 2026 (or
+   further ahead). That payment row physically lives in the 2025 sheet's
+   December tab — NOT anywhere in the 2026 sheet. Previously, viewing the
+   2026 grid only ever fetched the 2026 sheet, so that row was never read
+   at all, and Jan 2026 stayed "unpaid" even though it had already been
+   paid for. Fetching the previous year's sheet as a spillover source lets
+   processRow() parse its Paid Months cell and register the "2026-01" key
+   in coverageByKey (see processRow), which is what the matrix/calendar
+   cells actually check to decide paid/unpaid — independent of which
+   year's tab a transaction happened to be recorded under.
+
+   Spillover years must NOT contribute to the active year's totals/footer/
+   KPI numbers (that would double-count or leak a different year's rupees
+   into this year's summary) — see the `primary` flag threaded through to
+   processRow(). */
+function yearsToFetch(activeYr){
+  if(activeYr==="all")return Object.keys(SHEET_IDS_BY_YEAR).map(yr=>({yr,primary:true}));
+  const out=[{yr:activeYr,primary:true}];
+  const prevYr=String(Number(activeYr)-1);
+  if(prevYr!==activeYr && SHEET_IDS_BY_YEAR[prevYr])out.push({yr:prevYr,primary:false});
+  return out;
+}
+
 async function fetchAllMonthData(){
   const btn=document.getElementById("refreshBtn");
   if(btn)btn.classList.add("loading");
   const year=activeYear();
-  const years=year==="all"?Object.keys(SHEET_IDS_BY_YEAR):[year];
+  const years=yearsToFetch(year);
   resetState();
-  await Promise.all(years.flatMap(yr=>{
+  await Promise.all(years.flatMap(({yr,primary})=>{
     const sid=SHEET_IDS_BY_YEAR[yr];
     const tabs=monthSheetNamesByYear[yr]||months;
     if(!sid)return[];
@@ -1692,7 +1734,7 @@ async function fetchAllMonthData(){
         allFlats[nb].add(flat);
         if(isLockedStatus(flatStatus))markFlatLocked(block,flat,yr,mi,flatStatus);
         if(!amount||String(status||"").trim().toUpperCase()!=="DONE")return;
-        processRow(block,flat,amount,date,yr,mi,paid,mode,recv,notes);
+        processRow(block,flat,amount,date,yr,mi,paid,mode,recv,notes,primary);
       });
     });
   }));

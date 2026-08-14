@@ -827,6 +827,9 @@ body.modal-open{overflow:hidden}
 .mode-track{flex:1;height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden}
 .mode-bar{height:100%;border-radius:999px;width:0;transition:width 0.95s var(--ease-out)}
 .mode-pct{font-size:0.73rem;font-weight:600;color:var(--ink-2);min-width:32px;text-align:right;font-family:'DM Mono',monospace}
+.mode-amt{font-size:0.73rem;font-weight:700;color:var(--ink-2);min-width:76px;text-align:right;font-family:'DM Mono',monospace}
+.mode-row.unassigned .mode-label{font-weight:700}
+.person-count{font-size:0.66rem;font-weight:600;color:var(--ink-4);min-width:30px;text-align:right}
 
 /* ══════════════════════════════════════
    RESIDENT HEALTH
@@ -1368,6 +1371,24 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
           <div class="card-body"><div class="mode-list sk" id="modeList" style="min-height:70px"></div></div>
         </div>
         <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Cash Collection by Person</div>
+              <div class="card-meta" id="cashPersonMeta">Cash payments, grouped by collector</div>
+            </div>
+            <div class="card-head-filters">
+              <select class="card-sel" id="cashPersonMonth" aria-label="Cash collection filter month">
+                <option value="-1" selected>All Months</option>
+                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+                <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+                <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+                <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body"><div class="mode-list sk" id="cashPersonList" style="min-height:70px"></div></div>
+        </div>
+        <div class="card">
           <div class="card-head"><div class="card-title">Resident Health</div><div class="card-meta">Occupancy &amp; profiles</div></div>
           <div class="card-body">
             <div class="res-grid sk" id="resGrid">
@@ -1507,6 +1528,7 @@ function activeYear(){
   return(window.innerWidth<=768?document.getElementById("yearMob"):document.getElementById("yearDesk"))?.value||DEFAULT_YEAR;
 }
 let _blockMonth=-1;
+let _cashPersonMonth=-1;
 
 /* ── Load payments ── */
 async function loadPayments(year){
@@ -1858,6 +1880,50 @@ function renderModes(modeTotals){
   requestAnimationFrame(()=>{document.querySelectorAll(".mode-bar").forEach((b,i)=>{setTimeout(()=>{b.style.width=b.dataset.w+"%";},80+i*65);});});
 }
 
+/* ── Cash Collection by Person ──
+   Groups CASH-mode payments by the receivedBy column. Payments with a
+   blank receivedBy are bucketed as "Unassigned" so gaps in guard/cashier
+   attribution surface visually instead of getting silently absorbed into
+   someone else's total. Re-run standalone (no data reload) whenever the
+   month dropdown changes, using the already-cached payment list. */
+function renderCashByPerson(payments,monthIdx){
+  monthIdx=monthIdx==null?-1:Number(monthIdx);
+  const listEl=document.getElementById("cashPersonList");if(!listEl)return;
+  const cashPayments=(payments||[]).filter(p=>p.mode==="CASH"&&(monthIdx<0||p.monthIndex===monthIdx));
+  const groups=new Map(); // name -> {amount,count}
+  cashPayments.forEach(p=>{
+    const name=String(p.receivedBy||"").trim()||"Unassigned";
+    const g=groups.get(name)||{amount:0,count:0};
+    g.amount+=p.amount;g.count++;
+    groups.set(name,g);
+  });
+  const sorted=[...groups.entries()].sort((a,b)=>{
+    if(a[0]==="Unassigned")return 1; // Unassigned always sinks to the bottom
+    if(b[0]==="Unassigned")return-1;
+    return b[1].amount-a[1].amount;
+  });
+  const total=cashPayments.reduce((s,p)=>s+p.amount,0);
+  const monthLabel=monthIdx>=0?MONTHS_FULL[monthIdx]:"Full year";
+  if(!sorted.length){
+    empty("cashPersonList",`No cash payments recorded${monthIdx>=0?` for ${monthLabel}`:""}.`);
+    setTxt("cashPersonMeta",`No cash collections · ${monthLabel}`);
+    return;
+  }
+  const personColors=["#2563eb","#059669","#7c3aed","#d97706","#0891b2","#65a30d","#9333ea"];
+  let colorIdx=0;
+  listEl.innerHTML=sorted.map(([name,v])=>{
+    const pct=total>0?Math.round((v.amount/total)*100):0;
+    const isUnassigned=name==="Unassigned";
+    const c=isUnassigned?"#e11d48":personColors[colorIdx++%personColors.length];
+    const label=isUnassigned?"⚠ Unassigned":name;
+    return`<div class="mode-row${isUnassigned?" unassigned":""}"><span class="mode-label" style="color:${c};border-color:${c}30;background:${c}0e">${label}</span><div class="mode-track"><div class="mode-bar" data-w="${pct}" style="background:linear-gradient(90deg,${c},${c}88)"></div></div><span class="mode-amt">${fmt$(v.amount)}</span></div>`;
+  }).join("");
+  rmSk("cashPersonList");
+  requestAnimationFrame(()=>{document.querySelectorAll("#cashPersonList .mode-bar").forEach((b,i)=>{setTimeout(()=>{b.style.width=b.dataset.w+"%";},80+i*65);});});
+  const totalCount=cashPayments.length;
+  setTxt("cashPersonMeta",`${fmt$(total)} · ${totalCount} cash payment${totalCount===1?"":"s"} · ${monthLabel}`);
+}
+
 /* ── Recent residents ── */
 function renderRecentRes(rd){
   setTxt("resMeta",rd.hasUpdated?"Latest updated entries":"Latest directory rows");
@@ -2138,6 +2204,7 @@ function renderDash({pd,rd,ec,year,expData}){
   renderBlockCmpChart(pd.allBlocks, pd.blockMonthTotals);
   renderRecentPay(pd.payments);
   renderModes(pd.modeTotals);
+  renderCashByPerson(pd.payments,_cashPersonMonth);
   renderRecentRes(rd);
   if(expData?.entries)renderRecentExp(expData.entries);
   if(expData?.entries)renderExpenseChart(expData.entries);
@@ -2147,7 +2214,7 @@ function renderDash({pd,rd,ec,year,expData}){
 async function loadDash(){
   const btn=document.getElementById("refreshBtn");
   if(btn)btn.classList.add("loading");
-  ["blockList","recentPay","modeList","recentRes","recentExp"].forEach(id=>{
+  ["blockList","recentPay","modeList","cashPersonList","recentRes","recentExp"].forEach(id=>{
     const el=document.getElementById(id);if(el){el.classList.add("sk");el.innerHTML="";}
   });
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(id=>{
@@ -2198,6 +2265,11 @@ document.getElementById("monthPills")?.addEventListener("click",e=>{
 document.getElementById("blockMonthMob")?.addEventListener("change",e=>{
   onMonthChange(e.target.value);
   if(mDesk)mDesk.value=e.target.value;if(mMob)mMob.value=e.target.value;
+});
+
+document.getElementById("cashPersonMonth")?.addEventListener("change",e=>{
+  _cashPersonMonth=parseInt(e.target.value);
+  renderCashByPerson(_cachedPayments||[],_cashPersonMonth);
 });
 
 document.getElementById("refreshBtn")?.addEventListener("click",loadDash);
