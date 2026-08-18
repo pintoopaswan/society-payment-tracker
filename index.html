@@ -1084,6 +1084,7 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -2243,7 +2244,7 @@ document.getElementById("cashPersonMonth")?.addEventListener("change",e=>{
   renderCashByPerson(_cachedPayments||[],_cashPersonMonth);
 });
 
-document.getElementById("refreshBtn")?.addEventListener("click",loadDash);
+document.getElementById("refreshBtn")?.addEventListener("click",()=>{ Utils.clearAllCsvCache(); loadDash(); });
 
 /* ── Theme Toggle ── */
 (function(){

@@ -792,6 +792,7 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -846,8 +847,8 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 /* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
 /* ── Constants ── */
-const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
-const CONTACT_TAB_NAME = "emergency-contacts";
+const CONTACT_SHEET_ID = CONFIG.sheets.directory.id;
+const CONTACT_TAB_NAME = CONFIG.sheets.directory.emergencyContactsTab;
 const SECTION_ORDER = ["SECURITY GUARD","HOUSING BOARD & NRDA","EMERGENCY HELPLINE","HOSPITALS","DAILY HELPS"];
 
 const SECTION_META = {
@@ -1121,8 +1122,8 @@ overlay?.addEventListener("click",closeDrawer);
    automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Refresh ── */
-document.getElementById("refreshBtn")?.addEventListener("click",loadEmergencyContacts);
-document.getElementById("mobRefreshBtn")?.addEventListener("click",loadEmergencyContacts);
+document.getElementById("refreshBtn")?.addEventListener("click",()=>{ Utils.clearAllCsvCache(); loadEmergencyContacts(); });
+document.getElementById("mobRefreshBtn")?.addEventListener("click",()=>{ Utils.clearAllCsvCache(); loadEmergencyContacts(); });
 
 /* ── Theme toggle (shared key with dashboard) ── */
 (function(){

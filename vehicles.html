@@ -1372,6 +1372,7 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -1849,7 +1850,7 @@ const MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST",
 const MONTHS_S=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MONTHS_FULL=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TABS_BY_YR={"2026":MONTHS,"2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]};
-const DIR_ID="15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+const DIR_ID=CONFIG.sheets.directory.id;
 
 /* ── Block colors ── */
 const BLOCK_COLORS={
@@ -1887,17 +1888,15 @@ const empty=(id,msg)=>{const el=document.getElementById(id);if(el){el.innerHTML=
 const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ══════════════════════════════════════
-   VEHICLE DIRECTORY — Config
-   Fill in WRITE_API_URL with your deployed
-   Google Apps Script Web App /exec URL.
+   VEHICLE DIRECTORY — Config (sourced from config.js — see that file to change)
 ══════════════════════════════════════ */
-const WRITE_API_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
+const WRITE_API_URL = CONFIG.appsScript.residentsVehiclesExpenses;
 /* Writes now authorize with the signed-in person's verified Google ID
    token (window.Auth.getIdToken(), from auth.js) instead of a shared
    secret that used to sit here in plaintext — see authorizePayload_ in
    guard-payment-write-apps-script.gs, which checks idToken against
    Google and against ALLOWED_USERS on every request. */
-const DIR_TAB_NAME   = "vehicles";
+const DIR_TAB_NAME   = CONFIG.sheets.directory.vehiclesTab;
 
 /* ── JSONP helper for calling the Apps Script Web App ──────────────────────
    Apps Script Web Apps don't send CORS headers for plain fetch() from a
@@ -1975,10 +1974,10 @@ function rowToVehicle(cols, colIdx) {
 }
 
 /* ── Load vehicles from the Directory sheet ── */
-async function loadVehicles() {
+async function loadVehicles(force) {
   setVehListMeta("Loading…");
   showVehLoadingState();
-  const csv = await fetchCsv(DIR_ID, DIR_TAB_NAME);
+  const csv = await fetchCsv(DIR_ID, DIR_TAB_NAME, { forceRefresh: !!force });
   if (!csv) {
     showVehErrorState("Could not load the vehicle directory. Check your connection and try again.");
     return;
@@ -2421,7 +2420,8 @@ vehForm?.addEventListener("submit", async (e) => {
     }
     closeVehModal();
     showToast(_vehModalMode === "add" ? "Vehicle added successfully." : "Vehicle updated successfully.", "success");
-    await loadVehicles();
+    Utils.invalidateCsvCache(DIR_ID, DIR_TAB_NAME);
+    await loadVehicles(true);
   } catch (err) {
     errorEl.textContent = err.message || "Network error. Please try again.";
   } finally {
@@ -2466,7 +2466,8 @@ document.getElementById("vehDeleteConfirm")?.addEventListener("click", async () 
     }
     closeDeleteModal();
     showToast("Vehicle deleted.", "success");
-    await loadVehicles();
+    Utils.invalidateCsvCache(DIR_ID, DIR_TAB_NAME);
+    await loadVehicles(true);
   } catch (err) {
     errorEl.textContent = err.message || "Network error. Please try again.";
   } finally {
@@ -2483,7 +2484,7 @@ document.addEventListener("click", (e) => {
   if (delBtn) { openDeleteModal(delBtn.dataset.vehno); return; }
 });
 
-document.getElementById("refreshBtn")?.addEventListener("click", loadVehicles);
+document.getElementById("refreshBtn")?.addEventListener("click", ()=>{ Utils.clearAllCsvCache(); loadVehicles(); });
 
 
 /* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()

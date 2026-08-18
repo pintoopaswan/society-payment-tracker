@@ -55,6 +55,7 @@ button{cursor:pointer}
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
 <div class="mob-overlay" id="mobOverlay"></div>
 <aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -149,9 +150,13 @@ button{cursor:pointer}
 </div>
 <script src="payment-months.js"></script>
 <script>
-const SHEET_IDS_BY_YEAR={"2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU","2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"};
+const SHEET_IDS_BY_YEAR=CONFIG.sheets.paymentsByYear;
 const MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-const MONTH_TABS_BY_YEAR={"2026":MONTHS,"2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]};
+// null in config.js's monthTabsByYear means "this year has all twelve
+// months" — resolved against the local MONTHS array here.
+const MONTH_TABS_BY_YEAR=Object.fromEntries(
+  Object.entries(CONFIG.sheets.monthTabsByYear).map(([y,tabs])=>[y, tabs || MONTHS])
+);
 let pdfRows=[],sheetRows=[],discrepancies=[],rawPdfText="";
 let resultPage=1;
 const RESULT_PAGE_SIZE=25;

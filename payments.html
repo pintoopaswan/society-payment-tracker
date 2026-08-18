@@ -1357,6 +1357,7 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -1596,15 +1597,15 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 
 <script src="payment-months.js"></script>
 <script>
-/* ── Constants ── */
-const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU","2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
+/* ── Constants (sourced from config.js — see that file to change) ── */
+const SHEET_IDS_BY_YEAR = CONFIG.sheets.paymentsByYear;
 const DEFAULT_YEAR = "2026";
 /* Page-level auth (is anyone allowed on this page at all) is now handled
    globally by auth.js — every page redirects to login.html unless there's
    a valid, verified Google session. What's left below is specific to
    payments.html: reading that same session so payment writes can attach
    the person's verified idToken. */
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbzOOKgbKaeTzmIPc6KMMtQn69ic66KSCHSWq0bD787ZUCL6dpDxaHNK0npp3VNeje320A/exec";
+const PAYMENT_WRITE_URL = CONFIG.appsScript.payments;
 // PAYMENT_WRITE_SECRET is gone from this file on purpose — payments.html no
 // longer needs to know any shared secret to write a payment. See the
 // Google Sign-In block below: the backend verifies a real, short-lived
@@ -1612,8 +1613,12 @@ const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbzOOKgbKaeTzm
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const monthSheetNamesByYear = { "2026":months,"2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"] };
-const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
+// null in config.js's monthTabsByYear means "this year has all twelve
+// months" — resolved against the local `months` array here.
+const monthSheetNamesByYear = Object.fromEntries(
+  Object.entries(CONFIG.sheets.monthTabsByYear).map(([y, tabs]) => [y, tabs || months])
+);
+const CONTACT_SHEET_ID = CONFIG.sheets.directory.id;
 
 /* ── State ── */
 let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Set(), allBlocks=new Set(), allFlats={}, lockedFlatMonths={};
@@ -1951,6 +1956,24 @@ function yearsToFetch(activeYr){
   const prevYr=String(Number(activeYr)-1);
   if(prevYr!==activeYr && SHEET_IDS_BY_YEAR[prevYr])out.push({yr:prevYr,primary:false});
   return out;
+}
+
+/* A single payment save/delete can cover several months at once (see
+   paidMonths in getPayload()), so rather than track exactly which tab(s)
+   changed, invalidate every tab fetchAllMonthData() is about to re-fetch
+   for the years currently in view — same loop, guaranteed no stale tab
+   left behind. The handful of untouched tabs this also evicts just cost
+   one extra cache-miss fetch each; nothing is ever wrong, only briefly
+   less than maximally efficient. */
+function invalidateVisibleMonthCaches(){
+  const year=activeYear();
+  yearsToFetch(year).forEach(({yr})=>{
+    const sid=SHEET_IDS_BY_YEAR[yr];
+    if(!sid)return;
+    (monthSheetNamesByYear[yr]||months).forEach(tab=>{
+      if(tab) Utils.invalidateCsvCache(sid, tab);
+    });
+  });
 }
 
 async function fetchAllMonthData(){
@@ -2806,6 +2829,7 @@ async function savePayment(e){
       setFormMsg("Saved!",true);
       showAlert(modalAction==="update"?"Payment updated.":"Payment saved.",true);
     }
+    invalidateVisibleMonthCaches();
     await fetchAllMonthData();
     closeModal(); window.scrollTo(scroll.x,scroll.y);
   }catch(ex){ setFormMsg(ex.message||"Unable to save."); showAlert(ex.message||"Unable to save."); }
@@ -2824,6 +2848,7 @@ async function deletePayment(){
     const r=await submitPayload(payload);
     if(!r.ok)throw new Error(r.error||"Delete failed.");
     showAlert("Payment deleted.",true);
+    invalidateVisibleMonthCaches();
     await fetchAllMonthData();
     closeModal(); window.scrollTo(scroll.x,scroll.y);
   }catch(ex){ setFormMsg(ex.message||"Unable to delete."); showAlert(ex.message||"Unable to delete."); }
@@ -2906,7 +2931,7 @@ document.getElementById("expandAllBtn")?.addEventListener("click",()=>{
 ["deskAddBtn","mobAddBtn"].forEach(id=>{
   document.getElementById(id)?.addEventListener("click",()=>openModal());
 });
-document.getElementById("refreshBtn")?.addEventListener("click",fetchAllMonthData);
+document.getElementById("refreshBtn")?.addEventListener("click",()=>{ Utils.clearAllCsvCache(); fetchAllMonthData(); });
 document.getElementById("closeModal").addEventListener("click",closeModal);
 document.getElementById("cancelBtn").addEventListener("click",closeModal);
 document.getElementById("deleteBtn").addEventListener("click",deletePayment);

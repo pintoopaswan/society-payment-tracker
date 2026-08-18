@@ -1397,6 +1397,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 
 <div class="app-shell">
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -1998,12 +1999,12 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
 <script src="payment-months.js"></script>
 <script>
 /* ═══════════════════════════════════════════════
-   CONFIG
+   CONFIG (sourced from config.js — see that file to change)
 ═══════════════════════════════════════════════ */
-const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
-const DIRECTORY_TAB_NAME  = "Sheet1";
-const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
-const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
+const DIRECTORY_SHEET_ID  = CONFIG.sheets.directory.id;
+const DIRECTORY_TAB_NAME  = CONFIG.sheets.directory.residentsTab;
+const PAYMENT_SHEET_IDS   = CONFIG.sheets.paymentsByYear;
+const WRITE_URL           = CONFIG.appsScript.residentsVehiclesExpenses;
 // No longer sent on any write request — see requireStaffAuth()/idToken below.
 // A shared static secret embedded in a public page is compromised the moment
 // anyone views source, so every write now goes through a verified Google
@@ -2198,6 +2199,21 @@ async function loadPayments(){
     }));
     rows.filter(Boolean).forEach(job=>parsePaymentTab(job));
   }
+}
+
+/* Any payment write (payment save/delete, flat lock/unlock) can touch a
+   tab this same loop reads, and there's no cheap way to know exactly
+   which one from here — so invalidate every payment tab before the next
+   loadPayments() call, guaranteeing no stale tab survives a write. This
+   costs a handful of extra cache-miss fetches on the reload right after
+   a save; it never risks showing stale data. */
+function invalidateAllPaymentCaches(){
+  Object.entries(PAYMENT_SHEET_IDS).forEach(([year,sid])=>{
+    MONTH_TABS.forEach((tab,monthIndex)=>{
+      if(year==="2025" && monthIndex<5)return;
+      Utils.invalidateCsvCache(sid,tab);
+    });
+  });
 }
 
 /* Normalize a block value to a canonical form like "block-1" for matching */
@@ -3078,6 +3094,7 @@ async function saveFlatStatusModal(){
   try{
     const result=await submitWriteJsonp("savePayment",payload,20000);
     if(!result.ok)throw new Error(result.error||"Unable to update flat status.");
+    invalidateAllPaymentCaches();
     await loadPayments();
     setFlatStatusMsg(locked?"Flat locked":"Flat unlocked",true);
     if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);
@@ -3149,6 +3166,12 @@ async function saveOwnerEdit(){
     await persistResidentRow(rowValues);
     applyResidentRowValues(row,rowValues);
     delete localOverrides.owners[oKey];
+    // This page updates its own in-memory copy directly above rather than
+    // re-fetching (loadDirectory() isn't called here) — but the shared
+    // localStorage cache for this sheet is read by OTHER pages too
+    // (owner-tenant.html, emergency-contact.html), so it still needs
+    // invalidating even though this tab doesn't need a fresh fetch itself.
+    Utils.invalidateCsvCache(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
     closeModal("ownerModal");
     renderProfile(block,flat,row);
     showToast("Owner details saved ✓");
@@ -3212,6 +3235,10 @@ async function saveTenantEdit(){
     await persistResidentRow(rowValues);
     applyResidentRowValues(row,rowValues);
     delete localOverrides.tenants[oKey];
+    // See the matching comment in saveOwnerEdit() above — this page keeps
+    // its own state in memory, but the shared cache other pages read from
+    // still needs invalidating.
+    Utils.invalidateCsvCache(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
     closeModal("tenantModal");
     renderProfile(block,flat,row);
     showToast("Tenant details saved ✓");
@@ -3532,6 +3559,7 @@ async function savePaymentForm(){
   try{
     const result=await submitWriteJsonp("savePayment",payload,20000);
     if(!result.ok)throw new Error(result.error||"Payment save failed.");
+    invalidateAllPaymentCaches();
     await loadPayments();
     setPayFormMsg("Saved!",true);
     setTimeout(()=>{
@@ -3578,6 +3606,7 @@ async function deletePaymentRecord(){
   try{
     const result=await submitWriteJsonp("savePayment",payload,20000);
     if(!result.ok)throw new Error(result.error||"Delete failed.");
+    invalidateAllPaymentCaches();
     await loadPayments();
     closeConfirmDelete();
     if(currentFlatData)renderProfile(currentFlatData.block,currentFlatData.flat,currentFlatData.row);

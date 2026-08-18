@@ -36,14 +36,76 @@
     }[c]));
   }
 
-  /* ── fetchCsv ──
-     Tries the gviz endpoint first (works for any tab name, including
-     ones with spaces/hyphens), then the plain CSV export as a fallback,
-     then a hyphen→space variant of the tab name as a last resort — the
-     same fallback chain most pages already hand-rolled independently.
-     Returns "" (not a throw) on total failure so callers can render an
-     empty state instead of an unhandled rejection. */
-  async function fetchCsv(sheetId, tab) {
+  /* ── CSV cache ──
+     Reliable caching for the small, fixed set of Google Sheets this app
+     reads from — designed so a cache hit is fast AND correct, not just
+     fast:
+
+       1. TTL (from config.js's cache.csvTtlMs) is a SAFETY NET, not the
+          primary mechanism — it only matters for changes made outside
+          this app (someone editing the Sheet directly). Within the TTL
+          window, a read is served from cache with zero network calls.
+       2. The PRIMARY mechanism is explicit invalidation: every page that
+          writes (payments.html, owner-tenant.html, vehicles.html,
+          fund-ledger.html, flat-search.html) calls
+          Utils.invalidateCsvCache(sheetId, tab) the moment its write
+          succeeds, so a user always sees their own change immediately —
+          never a "fast but stale" read.
+       3. localStorage (not sessionStorage) means the cache is shared
+          across every open tab for free. A write in one tab evicts the
+          entry there; the next load in any OTHER tab (not a live push —
+          just its next fetch) gets fresh data too, with no extra wiring.
+       4. Fails open: if localStorage is full, disabled, or throws for any
+          reason, caching is silently skipped and every read just goes to
+          the network like it always did — caching must never be the
+          reason a read fails.
+       5. Concurrent callers asking for the same sheet+tab at the same
+          moment (e.g. two dashboard widgets on one page) collapse into
+          one network call instead of two. */
+  const CSV_CACHE_PREFIX = "sp-csv-cache:";
+  const csvInFlight = new Map();
+
+  function csvCacheTtlMs() {
+    return window.CONFIG?.cache?.csvTtlMs ?? 60 * 1000; // fail-safe default if config.js isn't loaded
+  }
+
+  function csvCacheKey(sheetId, tab) { return `${CSV_CACHE_PREFIX}${sheetId}::${tab}`; }
+
+  function readCsvCache(sheetId, tab) {
+    try {
+      const raw = localStorage.getItem(csvCacheKey(sheetId, tab));
+      if (!raw) return null;
+      const { data, ts } = JSON.parse(raw);
+      if (typeof data !== "string") return null;
+      return { data, age: Date.now() - ts };
+    } catch { return null; }
+  }
+
+  function writeCsvCache(sheetId, tab, data) {
+    try {
+      localStorage.setItem(csvCacheKey(sheetId, tab), JSON.stringify({ data, ts: Date.now() }));
+    } catch { /* storage full/blocked — caching is best-effort, never fatal */ }
+  }
+
+  /* Evict one sheet+tab's cached entry — call this the moment a write to
+     that tab succeeds. */
+  function invalidateCsvCache(sheetId, tab) {
+    try { localStorage.removeItem(csvCacheKey(sheetId, tab)); } catch {}
+  }
+
+  /* Evict every cached sheet+tab — this is what each page's "Refresh"
+     button should call before re-running its normal load function, so
+     Refresh always means "guaranteed fresh," not "fresh unless the TTL
+     hasn't expired yet." */
+  function clearAllCsvCache() {
+    try {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith(CSV_CACHE_PREFIX))
+        .forEach(k => localStorage.removeItem(k));
+    } catch {}
+  }
+
+  async function doFetchCsv(sheetId, tab) {
     const urls = [
       `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
       `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
@@ -65,6 +127,45 @@
       } catch { /* try next URL */ }
     }
     return "";
+  }
+
+  /* ── fetchCsv ──
+     Tries the gviz endpoint first (works for any tab name, including
+     ones with spaces/hyphens), then the plain CSV export as a fallback,
+     then a hyphen→space variant of the tab name as a last resort — the
+     same fallback chain most pages already hand-rolled independently.
+     Returns "" (not a throw) on total failure so callers can render an
+     empty state instead of an unhandled rejection.
+
+     Cache-aware (see CSV cache block above). Pass {forceRefresh:true} to
+     bypass the cache entirely — this is what a page's "Refresh" button
+     should do via clearAllCsvCache(), or what a caller can do per-call if
+     it specifically needs the network truth (e.g. right before opening
+     an edit form, to avoid clobbering someone else's concurrent edit
+     with stale data). */
+  async function fetchCsv(sheetId, tab, { forceRefresh = false } = {}) {
+    if (!forceRefresh) {
+      const cached = readCsvCache(sheetId, tab);
+      if (cached && cached.age < csvCacheTtlMs()) return cached.data;
+    }
+
+    const key = `${sheetId}::${tab}`;
+    if (!forceRefresh && csvInFlight.has(key)) return csvInFlight.get(key);
+
+    const p = doFetchCsv(sheetId, tab).then(data => {
+      csvInFlight.delete(key);
+      if (data) writeCsvCache(sheetId, tab, data);
+      // On total network failure, fall back to whatever's cached — even
+      // past its TTL — rather than showing an empty page. Stale-but-real
+      // data beats no data when the network itself is the problem.
+      if (!data) {
+        const stale = readCsvCache(sheetId, tab);
+        if (stale) return stale.data;
+      }
+      return data;
+    });
+    csvInFlight.set(key, p);
+    return p;
   }
 
   /* ── parseCSV ──
@@ -271,5 +372,9 @@
     return rows;
   }
 
-  window.Utils = { escapeHtml, fetchCsv, parseCSV, parseCSVLine, splitCSVRows, showToast, renderPagination };
+  window.Utils = {
+    escapeHtml, fetchCsv, parseCSV, parseCSVLine, splitCSVRows,
+    invalidateCsvCache, clearAllCsvCache,
+    showToast, renderPagination,
+  };
 })();

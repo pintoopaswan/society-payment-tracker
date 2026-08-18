@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="config.js"></script>
 <style>
   :root{
     --blue-700:#1d4ed8;--blue-600:#2563eb;--blue-500:#3b82f6;--blue-50:#eff6ff;
@@ -88,20 +89,16 @@
   </main>
 
 <script>
-const GOOGLE_OAUTH_CLIENT_ID = "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.apps.googleusercontent.com";
+const GOOGLE_OAUTH_CLIENT_ID = CONFIG.google.oauthClientId;
 const SESSION_KEY = "society_auth_session";
 
-// Mirrors ALLOWED_USERS in guard-payment-write-apps-script.gs. This check
-// is a UX nicety only (skip the "signed in but not on the list" surprise
-// a step later) — it is NOT the security boundary. The real check happens
-// server-side, on every single request, against the same list, because
-// anything in this file can be edited by whoever's editing this page.
-const ALLOWED_USERS = [
-  "pintoopaswan88@gmail.com",
-  "deveshsahu9143@gmail.com",
-  "mig1.society29@gmail.com",
-  "rky07456@gmail.com"
-];
+// Mirrors ALLOWED_USERS in guard-payment-write-apps-script.gs (via
+// config.js — see the note at the top of that file about why this can't
+// be the same file the server reads). This check is a UX nicety only
+// (skip the "signed in but not on the list" surprise a step later) — it
+// is NOT the security boundary. The real check happens server-side, on
+// every single request, against the server's own copy of this list.
+const ALLOWED_USERS = CONFIG.allowedUsers;
 
 function decodeJwtPayload(jwt){
   try{

@@ -657,6 +657,7 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 <!-- APP SHELL -->
 <div class="app-shell">
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -895,8 +896,8 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
      and paste its /exec URL here to enable Add/Edit/Delete.
      Leave empty for read-only mode.
 ══════════════════════════════════════════════════ */
-const EXPENSE_SHEET_ID   = "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
-const EXPENSE_WRITE_URL  = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec"; // <- Paste your Apps Script /exec URL here after deploying
+const EXPENSE_SHEET_ID   = CONFIG.sheets.expenses.id;
+const EXPENSE_WRITE_URL  = CONFIG.appsScript.residentsVehiclesExpenses;
 /* Writes now authorize with the signed-in person's verified Google ID
    token (window.Auth.getIdToken(), from auth.js) instead of a shared
    secret that used to sit here in plaintext — see authorizePayload_ in
@@ -972,20 +973,12 @@ function toIsoDate(display){
 function compareDates(a,b){ return new Date(a.isoDate)-new Date(b.isoDate); }
 
 /* ── Fetch CSV with fallback tabs ── */
-async function fetchSheetCsv(){
-  const urls = SHEET_TABS.flatMap(tab=>[
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-  ]);
-
-  for(const url of urls){
-    try{
-      const r = await fetch(url,{cache:"no-cache"});
-      const csv = await r.text();
-      const preview = csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||preview.startsWith("<!doctype html")||preview.includes("google.visualization.query.setresponse")||csv.includes("File not found")) continue;
-      return csv;
-    }catch(_){}
+async function fetchSheetCsv(force){
+  // SHEET_TABS is currently always a single tab ("Sheet1") — Utils.fetchCsv
+  // (utils.js) now handles the caching that used to be absent here.
+  for(const tab of SHEET_TABS){
+    const csv = await Utils.fetchCsv(EXPENSE_SHEET_ID, tab, { forceRefresh: !!force });
+    if(csv) return csv;
   }
   return "";
 }
@@ -1093,7 +1086,7 @@ function computeBalances(entries){
 }
 
 /* ── Load data ── */
-async function loadData(){
+async function loadData(force){
   const btn = document.getElementById("refreshBtn");
   if(btn) btn.classList.add("loading");
   ["kpiCredits","kpiDebits","kpiBalance","kpiCount"].forEach(id=>document.getElementById(id)?.classList.add("sk"));
@@ -1101,7 +1094,7 @@ async function loadData(){
   document.getElementById("mobileCards").innerHTML = "";
 
   try{
-    const csv = await fetchSheetCsv();
+    const csv = await fetchSheetCsv(force);
     if(!csv){
       allEntries = [];
       showAlert("Could not load data from the expense sheet. Check the sheet is publicly accessible.","error");
@@ -1544,7 +1537,8 @@ async function saveEntry(e){
     if(!r.ok) throw new Error(r.error||"Save failed.");
     setFormMsg("Saved!",true);
     showAlert(editRowId ? "Entry updated successfully." : "Entry saved successfully.","success");
-    await loadData();
+    Utils.invalidateCsvCache(EXPENSE_SHEET_ID, SHEET_TABS[0]);
+    await loadData(true);
     closeModal();
   }catch(ex){
     setFormMsg(ex.message||"Unable to save.");
@@ -1564,7 +1558,8 @@ async function deleteEntry(){
     const r = await submitPayload(payload);
     if(!r.ok) throw new Error(r.error||"Delete failed.");
     showAlert("Entry deleted.","success");
-    await loadData();
+    Utils.invalidateCsvCache(EXPENSE_SHEET_ID, SHEET_TABS[0]);
+    await loadData(true);
     closeModal();
   }catch(ex){
     setFormMsg(ex.message||"Unable to delete.");
@@ -1637,7 +1632,7 @@ mobOverlay?.addEventListener("click", closeDrawer);
    automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Event bindings ── */
-document.getElementById("refreshBtn")?.addEventListener("click", loadData);
+document.getElementById("refreshBtn")?.addEventListener("click", ()=>{ Utils.clearAllCsvCache(); loadData(); });
 document.getElementById("exportBtn")?.addEventListener("click", exportExcel);
 ["deskAddBtn","filterAddBtn","mobAddBtn"].forEach(id=>document.getElementById(id)?.addEventListener("click",()=>openModal(null)));
 document.getElementById("closeModal").addEventListener("click", closeModal);

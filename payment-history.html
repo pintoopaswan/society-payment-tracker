@@ -697,6 +697,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -1004,12 +1005,9 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
 <script>
-/* ── Constants (exact match to payments.html) ── */
-const SHEET_IDS_BY_YEAR = {
-  "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
-  "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
-};
-const START_YEAR   = 2025;
+/* ── Constants (sourced from config.js — see that file to change) ── */
+const SHEET_IDS_BY_YEAR = CONFIG.sheets.paymentsByYear;
+const START_YEAR   = Math.min(...Object.keys(SHEET_IDS_BY_YEAR).map(Number));
 const DEFAULT_YEAR = String(new Date().getFullYear());
 
 /* ── Populate year dropdowns dynamically ── */
@@ -1027,10 +1025,11 @@ const DEFAULT_YEAR = String(new Date().getFullYear());
 })();
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const monthSheetNamesByYear = {
-  "2026": MONTHS,
-  "2025": [null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
-};
+// null in config.js's monthTabsByYear means "this year has all twelve
+// months" — resolved against the local MONTHS array here.
+const monthSheetNamesByYear = Object.fromEntries(
+  Object.entries(CONFIG.sheets.monthTabsByYear).map(([y, tabs]) => [y, tabs || MONTHS])
+);
 
 /* ── State ── */
 let allRecords = [];    // flat array of every transaction row
@@ -1768,7 +1767,7 @@ function wireControls(){
   });
 
   /* Refresh */
-  document.getElementById("refreshBtn")?.addEventListener("click", loadData);
+  document.getElementById("refreshBtn")?.addEventListener("click", ()=>{ Utils.clearAllCsvCache(); loadData(); });
 
   /* Export dropdowns (CSV / PDF) */
   [["exportWrapDesk","exportBtn"],["exportWrapPage","exportBtnPage"]].forEach(([wrapId,btnId])=>{

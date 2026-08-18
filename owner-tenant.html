@@ -869,6 +869,7 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
 <script src="utils.js"></script>
 <script src="auth.js"></script>
 <script src="sidebar.js"></script>
@@ -1013,10 +1014,10 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 /* ── Auth ── */
 /* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
-/* ── Constants ── */
-const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
-const DIRECTORY_TAB_NAME = "Sheet1";
-const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
+/* ── Constants (sourced from config.js — see that file to change) ── */
+const DIRECTORY_SHEET_ID = CONFIG.sheets.directory.id;
+const DIRECTORY_TAB_NAME = CONFIG.sheets.directory.residentsTab;
+const RESIDENT_WRITE_URL = CONFIG.appsScript.residentsVehiclesExpenses;
 /* Writes now authorize with the signed-in person's verified Google ID
    token (window.Auth.getIdToken(), from auth.js) instead of a shared
    secret that used to sit here in plaintext — see authorizePayload_ in
@@ -1396,7 +1397,8 @@ async function saveResident(e){
     const r=await submitJsonp(payload);
     if(!r.ok)throw new Error(r.error||"Save failed.");
     if(m){m.textContent="Saved!";m.className="form-msg ok";}
-    await loadDirectoryData();
+    Utils.invalidateCsvCache(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
+    await loadDirectoryData(true);
     setTimeout(closeEditModal,400);
   }catch(ex){ if(m){m.textContent=ex.message||"Unable to save.";m.className="form-msg";} }
   finally{ sb.disabled=false; }
@@ -1409,7 +1411,8 @@ async function deleteResident(block,flat){
   try{
     const r=await submitJsonp(payload);
     if(!r.ok)throw new Error(r.error||"Delete failed.");
-    await loadDirectoryData();
+    Utils.invalidateCsvCache(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
+    await loadDirectoryData(true);
     Utils.showToast("Resident details deleted.","success");
   }catch(ex){ Utils.showToast(ex.message||"Unable to delete.","error"); }
 }
@@ -1421,21 +1424,9 @@ function findRow(block,flat){
 }
 
 /* ── Load data ── */
-async function loadDirectoryData(){
+async function loadDirectoryData(force){
   try{
-    const urls=[
-      `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
-      `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
-    ];
-    let csv="";
-    for(const url of urls){
-      try{
-        const r=await fetch(url,{cache:"no-cache"}); const t=await r.text();
-        const p=t.trim().slice(0,200).toLowerCase();
-        if(!t.trim()||p.startsWith("<!doctype html")||p.includes("<html")||t.includes("File not found"))continue;
-        csv=t; break;
-      }catch(_){}
-    }
+    const csv = await Utils.fetchCsv(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME, { forceRefresh: !!force });
     if(!csv)throw new Error("Unable to load resident directory. Ensure the Google Sheet is shared publicly (Anyone with link → Viewer).");
     const lines=csv.split("\n").filter(Boolean);
     const rh=parseCSV(lines[0]);
