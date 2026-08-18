@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth}
@@ -1294,6 +1295,29 @@ body.modal-open{overflow:hidden;position:static;width:auto}
 .theme-toggle{width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line-md);display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:all .18s}
 .theme-toggle:hover{background:var(--blue-50);color:var(--blue-600)}
 /* Profile dropdown */
+.staff-auth{display:flex;align-items:center}
+.staff-signin-slot{min-height:34px;display:flex;align-items:center}
+.staff-signin-slot.hidden{display:none}
+.staff-signed-in{
+  display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 4px;border-radius:999px;
+  background:var(--surface-2);border:1px solid var(--line-md);cursor:pointer;transition:background 0.15s;
+}
+.staff-signed-in:hover{background:var(--surface-3)}
+.staff-signed-in.hidden{display:none}
+.staff-avatar{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;
+  font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.staff-name{font-size:0.76rem;font-weight:600;color:var(--ink-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.staff-signin-slot-mob{width:32px;height:32px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.staff-signin-slot-mob.hidden{display:none}
+.staff-avatar-mob{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;
+  font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.staff-avatar-mob.hidden{display:none}
 .profile-wrap{position:relative}
 .profile-btn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue-500),var(--blue-700));color:#fff;font-size:.76rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.3);transition:box-shadow .18s,transform .18s}
 .profile-btn:hover{box-shadow:0 4px 14px rgba(37,99,235,.4);transform:scale(1.06)}
@@ -1365,72 +1389,26 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
   <div class="mob-header-top">
     <button class="mob-hamburger" id="mobMenuBtn" type="button" aria-label="Open navigation"><span></span><span></span><span></span></button>
     <div class="mob-header-title">Flat Search</div>
-    <div class="mob-header-actions"><button class="mob-theme-btn" id="mobThemeBtnNew" type="button" aria-label="Toggle theme"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg></button></div>
+    <div class="mob-header-actions">
+      <button class="mob-theme-btn" id="mobThemeBtnNew" type="button" aria-label="Toggle theme"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg></button>
+    </div>
   </div>
 </header>
 
 <div class="app-shell">
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 <div class="main" id="mainContent">
   <header class="topbar">
     <div class="topbar-title"><div class="topbar-page">Flat Search</div><div class="topbar-sub">MIG Society, Sector-29 · Resident profile & payment history</div></div>
     <div class="topbar-right">
       <button class="theme-toggle" id="themeToggleNew" type="button" title="Toggle theme"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/></svg></button>
-      <div class="profile-wrap"><button class="profile-btn" id="profileTogDeskNew" type="button" aria-haspopup="true" aria-expanded="false">A</button><div class="profile-dropdown" id="pdDeskNew"><button id="logoutDeskMenuNew" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>Logout</button></div></div>
     </div>
   </header>
 
-<!-- MOBILE HEADER -->
-<header class="mob-header legacy-mob-header" id="mobHeader">
-  <div class="mob-brand">
-    <div class="mob-gem">
-      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
-    </div>
-    <span class="mob-name">MIG Society</span>
-  </div>
-  <div class="mob-right">
-    <button class="mob-theme-btn" id="mobThemeBtn" type="button" title="Toggle theme">
-      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/><line x1="4.3" y1="4.3" x2="5.7" y2="5.7"/><line x1="14.3" y1="14.3" x2="15.7" y2="15.7"/><line x1="14.3" y1="5.7" x2="15.7" y2="4.3"/><line x1="4.3" y1="15.7" x2="5.7" y2="14.3"/></svg>
-    </button>
-    <div class="profile-wrap">
-      <button class="mob-profile" id="profileTogMob" type="button">A</button>
-      <div class="profile-dropdown" id="pdMob">
-        <button id="logoutMob" type="button">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-          Logout
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
 
-<!-- DESKTOP TOPBAR -->
-<header class="topbar legacy-topbar">
-  <div class="topbar-brand">
-    <div class="brand-gem">
-      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L3 7v11h5v-5h4v5h5V7z"/></svg>
-    </div>
-    <div class="brand-copy">
-      <div class="brand-name">MIG Society, Sector-29</div>
-      <div class="brand-tagline">Flat Search & 360° Profile</div>
-    </div>
-  </div>
-  <div class="topbar-right">
-    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme">
-      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/></svg>
-    </button>
-    <div class="profile-wrap">
-      <button class="profile-btn" id="profileTogDesk" type="button">A</button>
-      <div class="profile-dropdown" id="pdDesk">
-        <button id="logoutDesk" type="button">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-          Logout
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
 
 <!-- DESKTOP NAV — Flat Search is 3rd item -->
 <nav class="desknav legacy-desknav">
@@ -1722,9 +1700,11 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           <tbody id="payTableBody"></tbody>
         </table>
       </div>
+      <div class="pagination" id="payDeskPagination"></div>
 
       <!-- Mobile cards -->
       <div class="pay-card-list" id="payCardList"></div>
+      <div class="mob-pagination" id="payMobPagination" style="display:none"></div>
 
     </div>
 
@@ -2024,8 +2004,34 @@ const DIRECTORY_SHEET_ID  = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME  = "Sheet1";
 const PAYMENT_SHEET_IDS   = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU", "2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
 const WRITE_URL           = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
-const WRITE_SECRET        = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
-const AUTH_KEY            = "society_dashboard_auth";
+// No longer sent on any write request — see requireStaffAuth()/idToken below.
+// A shared static secret embedded in a public page is compromised the moment
+// anyone views source, so every write now goes through a verified Google
+// sign-in instead (matching payments.html). Kept only in case any legacy
+// code elsewhere still references the constant name.
+// WRITE_SECRET is unused now that writes authorize with a verified
+// idToken (window.Auth.getIdToken(), from auth.js) instead.
+
+/* ═══════════════════════════════════════════════
+   STAFF IDENTITY — sourced from the single global sign-in
+   Signing in happens once, on login.html; auth.js reads that session on
+   every page and exposes it as window.Auth. Writes attach the verified
+   idToken it hands back (checked server-side in
+   guard-payment-write-apps-script.gs → authorizePayload_ /
+   verifyGoogleIdToken_ against ALLOWED_USERS), so "who made this change"
+   is a verified fact, not a typed claim.
+═══════════════════════════════════════════════ */
+
+/* Every write path funnels through openModal() first (Add/Edit Payment,
+   lock/unlock, owner/tenant edit all call it), so gating there is enough —
+   no separate check needed at each entry point. The async save functions
+   re-check too, since a token can expire while a modal sits open. */
+function requireStaffAuth(){
+  if(window.Auth?.isSignedIn())return true;
+  showToast("Your session has expired. Please sign in again.");
+  window.Auth?.logout();
+  return false;
+}
 
 /* ═══════════════════════════════════════════════
    GLOBAL STATE
@@ -2035,6 +2041,8 @@ let allPaymentRecords = [];
 let currentFlatData = null;
 let paymentFiltered = [];
 let editingPaymentIdx = -1; // index into paymentFiltered for editing
+let payCurrentPage = 1;
+const PAY_PAGE_SIZE = 12; // one year's worth of monthly records per page
 const MONTH_TABS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -2044,7 +2052,7 @@ const localOverrides = { owners:{}, tenants:{}, payments:{} };
 /* ═══════════════════════════════════════════════
    UTILS
 ═══════════════════════════════════════════════ */
-const esc  = v => String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc  = v => Utils.escapeHtml(v); // shared in utils.js
 const norm = v => String(v||"").trim().toLowerCase();
 const normPhone = v => String(v||"").replace(/[^\d]/g,"");
 const blockDisp = v => { const d=String(v||"").match(/\d+/); return d?`Block-${Number(d[0])}`:String(v||""); };
@@ -2056,34 +2064,9 @@ const blockDisp = v => { const d=String(v||"").match(/\d+/); return d?`Block-${N
    immediately followed by "escaped" quote) and turns into a literal `"`
    character instead of an empty string. With the guard, `""` at the start
    of a field is correctly read as open-quote then close-quote → "". */
-function parseCSV(line){
-  const result=[];let cur="",inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(inQ&&c==='"'&&line[i+1]==='"'){cur+='"';i++}
-    else if(c==='"'){inQ=!inQ}
-    else if(c===','&&!inQ){result.push(cur.trim());cur="";}
-    else{cur+=c;}
-  }
-  result.push(cur.trim());
-  return result;
-}
+function parseCSV(line){ return Utils.parseCSVLine(line); } // shared in utils.js
 
-function parseCSVRows(csv){
-  const rows=[];let cur="",inQ=false;
-  for(let i=0;i<String(csv||"").length;i++){
-    const c=csv[i];
-    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
-    else if(c==='"'){inQ=!inQ;cur+=c;}
-    else if((c==="\n"||c==="\r")&&!inQ){
-      if(c==="\r"&&csv[i+1]==="\n")i++;
-      if(cur.trim())rows.push(cur);
-      cur="";
-    }else cur+=c;
-  }
-  if(cur.trim())rows.push(cur);
-  return rows;
-}
+function parseCSVRows(csv){ return Utils.splitCSVRows(csv); } // shared in utils.js
 
 function hiIdx(pats){
   const nh=directoryHeaders.map(h=>norm(h));
@@ -2191,22 +2174,7 @@ async function loadDirectory(){
   }
 }
 
-async function fetchCsv(sheetId,tabName){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`,
-    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodeURIComponent(tabName)}`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const t=await r.text();
-      const lc=t.trim().slice(0,200).toLowerCase();
-      if(!t.trim()||lc.startsWith("<!doctype")||lc.includes("<html")||lc.includes("google.visualization.query.setresponse")||t.includes("File not found")||t.includes("error"))continue;
-      return t;
-    }catch(_){}
-  }
-  return "";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ═══════════════════════════════════════════════
    LOAD PAYMENT DATA
@@ -2612,6 +2580,7 @@ function renderProfile(block,flat,row){
   yf.innerHTML=`<option value="">All Years</option>`+years.map(y=>`<option value="${y}">${y}</option>`).join("");
 
   document.getElementById("payStatusFilter").value="";
+  payCurrentPage=1;
   renderPaymentTable(flatPayments);
 
   document.getElementById("flatSub").textContent=`${flatPayments.length} payment record${flatPayments.length!==1?"s":""} · ${oName||"No owner"} · ${tName?`Tenant: ${tName}`:"Unoccupied"}`;
@@ -2662,9 +2631,10 @@ function setButtonBusy(id,busy,label="Saving…"){
 }
 
 async function persistResidentRow(rowValues){
+  if(!requireStaffAuth())throw new Error("Please sign in with Google before saving.");
   const payload={
     action:"saveResident",
-    secret:WRITE_SECRET,
+    idToken:window.Auth?.getIdToken(),
     headers:directoryHeaders.slice(),
     rowValues
   };
@@ -2849,10 +2819,22 @@ function renderPaymentTable(records){
     const noData=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-3);font-size:0.82rem">No payment records found for this flat</td></tr>`;
     tbody.innerHTML=noData;
     cardList.innerHTML=`<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="4" width="16" height="13" rx="2.5"/><line x1="2" y1="9" x2="18" y2="9"/></svg></div><div class="empty-title">No Payment Records</div><div class="empty-sub">No payment history found for this flat</div></div>`;
+    document.getElementById("payDeskPagination").innerHTML="";
+    document.getElementById("payMobPagination").style.display="none";
     return;
   }
 
-  tbody.innerHTML=records.map((p,idx)=>{
+  // Paginate — 12 records (a year's worth) per page. `records` stays the
+  // full filtered set for the count badge and for pagination math;
+  // `pageRecords` is just the slice actually rendered this page.
+  payCurrentPage=Utils.renderPagination({
+    total:records.length, page:payCurrentPage, pageSize:PAY_PAGE_SIZE,
+    deskId:"payDeskPagination", mobId:"payMobPagination", noun:"records",
+    onChange:(p)=>{ payCurrentPage=p; renderPaymentTable(records); window.scrollTo({top:document.getElementById("payTableBody").closest(".pay-table-wrap")?.offsetTop-80||0,behavior:"smooth"}); }
+  });
+  const pageRecords=records.slice((payCurrentPage-1)*PAY_PAGE_SIZE,payCurrentPage*PAY_PAGE_SIZE);
+
+  tbody.innerHTML=pageRecords.map((p,idx)=>{
     const badge=statusBadge(p.status);
     const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
     const realIdx=paymentFiltered.indexOf(p);
@@ -2939,7 +2921,7 @@ function renderPaymentTable(records){
     });
   });
 
-  cardList.innerHTML=records.map((p,idx)=>{
+  cardList.innerHTML=pageRecords.map((p,idx)=>{
     const amt=p.amount?`₹${p.amount.toLocaleString("en-IN")}`:"—";
     const realIdx=paymentFiltered.indexOf(p);
     const isPending=p.status==="PENDING";
@@ -3075,13 +3057,14 @@ function openFlatStatusModal(record,locked){
 
 async function saveFlatStatusModal(){
   if(!flatStatusCtx)return;
+  if(!requireStaffAuth())return;
   const {record,locked}=flatStatusCtx;
   const reason=document.getElementById("flatStatusReason").value.trim();
   const staffEmail=await getStaffEmail();
   const actionLabel=locked?"Flat locked":"Flat unlocked";
   const note=`${actionLabel} for ${record.month} ${record.year}.${reason?` Reason: ${reason}`:""}${staffEmail?` | Updated by: ${staffEmail}`:""} | Updated on: ${todayDMY()}`;
   const payload={
-    secret:WRITE_SECRET,
+    idToken:window.Auth?.getIdToken(),
     actionType:"setFlatStatus",
     block:record.block||currentFlatData.block,
     flatNo:record.flat||currentFlatData.flat,
@@ -3120,6 +3103,7 @@ function applyPaymentFilters(){
   let filtered=paymentFiltered;
   if(year)filtered=filtered.filter(p=>p.year===year);
   if(status)filtered=filtered.filter(p=>p.status===status);
+  payCurrentPage=1;
   renderPaymentTable(filtered);
 }
 document.getElementById("payYearFilter").addEventListener("change",applyPaymentFilters);
@@ -3248,45 +3232,11 @@ document.getElementById("tenantModalCancel").addEventListener("click",()=>closeM
 ═══════════════════════════════════════════════ */
 
 /* ── Staff email (for audit trail) ──
-   The app sits behind Cloudflare Access, gated by Gmail login, so the
-   real identity of whoever is logged in is available from Cloudflare via
-   the same-origin `/cdn-cgi/access/get-identity` endpoint (no separate
-   login step of our own needed). We fetch it once and cache the email in
-   localStorage (so it survives across sessions on this device/browser),
-   then stamp it onto the payment's notes so there is a record of who made
-   the change. It's cleared on logout (see the logout handler below) so a
-   different Cloudflare-authenticated person gets their own identity looked
-   up again. If the identity endpoint is ever unreachable (e.g. testing
-   outside Cloudflare Access), we fall back to asking once via prompt so
-   attribution still works. */
-const STAFF_EMAIL_KEY="mig_staff_email";
-async function fetchAccessIdentityEmail(){
-  try{
-    const res=await fetch("/cdn-cgi/access/get-identity",{credentials:"include"});
-    if(!res.ok)return "";
-    const data=await res.json();
-    return String(data?.email||"").trim();
-  }catch(ex){
-    return "";
-  }
-}
-async function getStaffEmail(){
-  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
-  if(email)return email;
-  email=await fetchAccessIdentityEmail();
-  if(!email){
-    email=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
-  }
-  if(email)localStorage.setItem(STAFF_EMAIL_KEY,email);
-  return email;
-}
-/* Prefetch right away: the page only ever loads because Cloudflare Access
-   already authenticated this request, so grab the identity now and cache
-   it, instead of waiting until the first payment save to fetch it. Silent
-   (no prompt fallback here) — getStaffEmail() still covers that case if
-   this prefetch doesn't find anything by the time a save happens. */
-if(!localStorage.getItem(STAFF_EMAIL_KEY)){
-  fetchAccessIdentityEmail().then(email=>{ if(email)localStorage.setItem(STAFF_EMAIL_KEY,email); });
+   getStaffEmail() reads the same verified identity window.Auth exposes
+   (see requireStaffAuth() above) — kept as its own function so every call
+   site below is unchanged. */
+function getStaffEmail(){
+  return window.Auth?.getEmail() || "";
 }
 
 /* ── Month picker helpers ──
@@ -3510,6 +3460,7 @@ function openPaymentEditModal(idx){
 
 
 async function savePaymentForm(){
+  if(!requireStaffAuth())return;
   const isAdd=modalPaymentAction==="create";
   const records=paymentFiltered;
   const p=isAdd?null:records[editingPaymentIdx];
@@ -3559,7 +3510,7 @@ async function savePaymentForm(){
   }
 
   const payload={
-    secret:WRITE_SECRET,
+    idToken:window.Auth?.getIdToken(),
     actionType:isAdd?"create":"update",
     block,
     flatNo:flat,
@@ -3598,6 +3549,7 @@ async function savePaymentForm(){
 
 async function deletePaymentRecord(){
   if(editingPaymentIdx<0)return;
+  if(!requireStaffAuth())return;
   const records=paymentFiltered;
   if(editingPaymentIdx>=records.length)return;
   const p=records[editingPaymentIdx];
@@ -3607,7 +3559,7 @@ async function deletePaymentRecord(){
   const paidMonths=paidMonthsForRecord(p);
 
   const payload={
-    secret:WRITE_SECRET,
+    idToken:window.Auth?.getIdToken(),
     actionType:"delete",
     block:p.block,
     flatNo:p.flat,
@@ -3686,6 +3638,10 @@ let _modalReturnFocus=null;
 function openModal(id){
   const m=document.getElementById(id);
   if(!m)return;
+  // Every modal this function opens (owner/tenant edit, lock/unlock,
+  // payment add/edit) is a write action — gate here once rather than at
+  // each of the five call sites.
+  if(!requireStaffAuth())return;
   _modalReturnFocus=document.activeElement;
   m.classList.add("open");
   document.body.classList.add("modal-open");
@@ -3741,23 +3697,8 @@ document.getElementById("panelCloseBtn").addEventListener("click",()=>{
   currentFlatData=null;
 });
 
-/* ═══════════════════════════════════════════════
-   DROPDOWN / PROFILE / LOGOUT
-═══════════════════════════════════════════════ */
-function setupDD(tId,dId){
-  const t=document.getElementById(tId),d=document.getElementById(dId);
-  if(!t||!d)return;
-  t.addEventListener("click",e=>{e.stopPropagation();d.classList.toggle("open");});
-}
-setupDD("profileTogDesk","pdDesk");
-setupDD("profileTogMob","pdMob");
-setupDD("profileTogDeskNew","pdDeskNew");
-document.addEventListener("click",()=>document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open")));
-
-["logoutDesk","logoutMob","logoutDeskNew","logoutDeskMenuNew","drawerLogoutBtn"].forEach(id=>{
-  const b=document.getElementById(id);
-  if(b)b.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(STAFF_EMAIL_KEY);window.location.href="index.html";});
-});
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ═══════════════════════════════════════════════
    INIT

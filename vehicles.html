@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth;height:100%}
@@ -1371,6 +1372,8 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -1390,15 +1393,6 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
         </svg>
         Refresh
       </button>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -1825,8 +1819,7 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <script>
 /* ── Auth ── */
-const AUTH_KEY = "society_dashboard_auth";
-if (!sessionStorage.getItem(AUTH_KEY)) sessionStorage.setItem(AUTH_KEY, "true");
+/* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
 /* ── Sidebar collapse ── */
 const sidebar = document.getElementById("sidebar");
@@ -1876,7 +1869,7 @@ function getBlockColor(blockName,idx=0){
 }
 
 /* ── Helpers ── */
-const parseCSV=l=>l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 const norm=v=>String(v||"").trim().toLowerCase();
 const blockN=v=>{const d=String(v||"").replace(/[^0-9]/g,"");return d?`Block-${Number(d)}`:String(v||"").trim();};
 const fmt$=v=>`₹${Number(v||0).toLocaleString("en-IN")}`;
@@ -1891,23 +1884,7 @@ const rmSkEl=el=>{if(el)el.classList.remove("sk");};
 const empty=(id,msg)=>{const el=document.getElementById(id);if(el){el.innerHTML=`<div class="empty-state">${msg}</div>`;el.classList.remove("sk");}};
 
 /* ── Fetch CSV ── */
-async function fetchCsv(sid,tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab.replace(/-/g," "))}`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const csv=await r.text();
-      const p=csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("<html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
-      return csv;
-    }catch(_){}
-  }
-  return"";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ══════════════════════════════════════
    VEHICLE DIRECTORY — Config
@@ -1915,7 +1892,11 @@ async function fetchCsv(sid,tab){
    Google Apps Script Web App /exec URL.
 ══════════════════════════════════════ */
 const WRITE_API_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
-const WRITE_SECRET  = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
+/* Writes now authorize with the signed-in person's verified Google ID
+   token (window.Auth.getIdToken(), from auth.js) instead of a shared
+   secret that used to sit here in plaintext — see authorizePayload_ in
+   guard-payment-write-apps-script.gs, which checks idToken against
+   Google and against ALLOWED_USERS on every request. */
 const DIR_TAB_NAME   = "vehicles";
 
 /* ── JSONP helper for calling the Apps Script Web App ──────────────────────
@@ -1940,7 +1921,7 @@ function callWriteApi(action, payload) {
       resolve(result);
     };
 
-    const fullPayload = Object.assign({ secret: WRITE_SECRET }, payload);
+    const fullPayload = Object.assign({ idToken: window.Auth?.getIdToken() }, payload);
     const params = new URLSearchParams({
       action: action,
       payload: JSON.stringify(fullPayload),
@@ -2060,11 +2041,7 @@ function formatBlockLabel(b) {
   if (/^block[\s-]?/i.test(v)) return v;
   return "Block-" + v;
 }
-function escapeHtml(v) {
-  return String(v == null ? "" : v)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
+function escapeHtml(v) { return Utils.escapeHtml(v); } // shared in utils.js
 
 /* ── KPIs ── */
 function renderVehKpis() {
@@ -2509,16 +2486,8 @@ document.addEventListener("click", (e) => {
 document.getElementById("refreshBtn")?.addEventListener("click", loadVehicles);
 
 
-/* ── Dropdown ── */
-const tog=document.getElementById("profileTogDesk"),dd=document.getElementById("pdDesk");
-tog?.addEventListener("click",e=>{e.stopPropagation();const open=dd.classList.toggle("open");tog.setAttribute("aria-expanded",open?"true":"false");});
-document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));});
-
-/* ── Logout ── */
-function doLogout(){sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";}
-document.getElementById("logoutDesk")?.addEventListener("click",doLogout);
-document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Theme Toggle ── */
 (function(){

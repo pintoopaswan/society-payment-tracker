@@ -1,5 +1,21 @@
 const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
-const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
+
+// ── Legacy shared secret — REMOVED ───────────────────────────────────────────
+// Every page (payments.html, owner-tenant.html, vehicles.html,
+// fund-ledger.html) now signs in once through login.html and sends a
+// verified Google idToken with every write, so the old shared secret that
+// used to sit in plaintext in the client source is gone rather than kept as
+// a fallback. If you deployed the previous version of this script, that
+// secret should be treated as already compromised — nothing else to do
+// about it now that no caller sends it, but don't reintroduce it.
+
+// ── Google Sign-In (new) ─────────────────────────────────────────────────────
+// OAuth 2.0 Client ID from Google Cloud Console → APIs & Services →
+// Credentials → "OAuth client ID" → Application type "Web application".
+// Must match the client_id the frontend initializes Google Identity
+// Services with (see GOOGLE_OAUTH_CLIENT_ID in payments.html) — a token
+// issued for a different client ID will correctly fail verification below.
+const GOOGLE_OAUTH_CLIENT_ID = "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.apps.googleusercontent.com";
 // Each calendar year's guard-payment data lives in its OWN spreadsheet (one
 // spreadsheet only ever contains tabs for a single year). Every payment
 // write must open the spreadsheet matching the YEAR of payload.paymentDateInput
@@ -96,8 +112,10 @@ function savePaymentFromAdmin(payload) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      return jsonResponse({ ok: false, error: "Unauthorized" });
+    Logger.log(JSON.stringify(payload));
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      return jsonResponse({ ok: false, error: auth.error });
     }
     const postAction = String(payload.action || "").toLowerCase();
     if (postAction === "saveresident") {
@@ -136,10 +154,12 @@ function handleApiSaveRequest(e) {
   const params = (e && e.parameter) || {};
   const callback = String(params.callback || "").trim();
   const payload = parseApiPayload(params.payload);
+  Logger.log(JSON.stringify(payload));
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       result = handlePaymentMutation(payload);
     }
@@ -161,8 +181,9 @@ function handleApiResidentSaveRequest(e) {
   const action = String(params.action || payload.action || "").toLowerCase();
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else if (action === "deleteresidentfields") {
       result = deleteResidentFieldsPayload(payload);
     } else {
@@ -559,6 +580,82 @@ function isAllowedEmail(email) {
   }).indexOf(normalizedEmail) >= 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Google ID token verification (for requests that reach this script over
+   a plain fetch()/JSONP call, i.e. NOT google.script.run — those calls
+   have no ambient Google session for Session.getActiveUser() to read, so
+   the client sends a short-lived Google ID token instead and this
+   verifies it server-side before trusting anything in the payload).
+
+   Uses Google's tokeninfo endpoint rather than local JWT signature
+   verification — Apps Script has no built-in JWT/JWKS support, and
+   Google's own docs list tokeninfo as an acceptable verification method
+   for low-volume server-side use, which this guard-payment app is (a
+   handful of writes per day, not a public API). If this project's write
+   volume ever grows enough for tokeninfo's rate limits to matter, switch
+   to local RS256 verification against Google's published JWKS instead.
+═══════════════════════════════════════════════════════════════════════ */
+function verifyGoogleIdToken_(idToken) {
+  const token = String(idToken || "").trim();
+  if (!token) return { ok: false, error: "No ID token supplied." };
+
+  let resp;
+  try {
+    resp = UrlFetchApp.fetch(
+      "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(token),
+      { muteHttpExceptions: true }
+    );
+  } catch (err) {
+    return { ok: false, error: "Could not reach Google to verify sign-in: " + err.message };
+  }
+
+  if (resp.getResponseCode() !== 200) {
+    // tokeninfo returns 400 for anything invalid/expired — treat all
+    // non-200 responses as "not a valid current sign-in", not a crash.
+    return { ok: false, error: "Google sign-in has expired or is invalid. Please sign in again." };
+  }
+
+  let claims;
+  try {
+    claims = JSON.parse(resp.getContentText());
+  } catch (err) {
+    return { ok: false, error: "Unexpected response verifying Google sign-in." };
+  }
+
+  if (claims.aud !== GOOGLE_OAUTH_CLIENT_ID) {
+    return { ok: false, error: "Sign-in token was issued for a different app." };
+  }
+  if (String(claims.email_verified) !== "true") {
+    return { ok: false, error: "Google account email is not verified." };
+  }
+  const email = String(claims.email || "").trim().toLowerCase();
+  if (!email) return { ok: false, error: "No email in Google sign-in token." };
+
+  return { ok: true, email: email, name: claims.name || email };
+}
+
+/* Single authorization gate for every fetch()/JSONP write request
+   (doPost and handleApiSaveRequest below both call this instead of
+   comparing a shared secret directly).
+
+   payload.idToken is verified via Google (verifyGoogleIdToken_), then
+   checked against ALLOWED_USERS — the same allow-list doGet()/
+   savePaymentFromAdmin() already trust for the google.script.run path, so
+   there's one allow-list for the whole app. Every client page now signs in
+   once through login.html and sends this idToken with every write; there
+   is no shared-secret fallback anymore. */
+function authorizePayload_(payload) {
+  if (payload && payload.idToken) {
+    const verified = verifyGoogleIdToken_(payload.idToken);
+    if (!verified.ok) return { ok: false, error: verified.error };
+    if (!isAllowedEmail(verified.email)) {
+      return { ok: false, error: "Signed in as " + verified.email + ", which isn't on the approved list. Ask an admin to add you." };
+    }
+    return { ok: true, email: verified.email, name: verified.name };
+  }
+  return { ok: false, error: "Unauthorized" };
+}
+
 function getUnauthorizedHtml(email) {
   const shownEmail = email || "No Google account email detected";
   return '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:Arial,sans-serif;background:#f3f7fb;color:#17314f;margin:0;min-height:100vh;display:grid;place-items:center}.card{background:#fff;border-radius:18px;box-shadow:0 18px 38px rgba(27,37,54,.08);padding:28px;max-width:460px;margin:18px}h1{font-size:1.35rem;margin:0 0 10px}p{line-height:1.45}.email{font-weight:700}</style></head><body><div class="card"><h1>Access denied</h1><p>This admin page is restricted to approved Google accounts.</p><p>Signed in as: <span class="email">' + escapeHtml(shownEmail) + '</span></p></div></body></html>';
@@ -836,8 +933,9 @@ function handleExpenseRequest(e) {
   const payload  = parseApiPayload(params.payload);
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       const action = String(params.action || payload.actionType || "").toLowerCase();
       if (action === "deleteexpense") {
@@ -1174,8 +1272,9 @@ function handleVehicleRequest(e) {
   const payload  = parseApiPayload(params.payload);
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       const action = String(params.action || payload.actionType || "").toLowerCase();
       if (action === "deletevehicle") {
@@ -1389,4 +1488,9 @@ function deleteVehiclePayload(payload) {
     lock.releaseLock();
   }
   return { ok: true, action: "deleteVehicle", deletedRow: targetRow };
+  
+  function testAuthSetup(){
+  const result = verifyGoogleIdToken_("dummy");
+  Logger.log(JSON.stringify(result));
+}
 }

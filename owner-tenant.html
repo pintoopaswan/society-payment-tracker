@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth;height:100%}
@@ -868,6 +869,8 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -880,15 +883,6 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
       <div class="topbar-sub">MIG Society, Sector-29 · Owner &amp; Tenant records</div>
     </div>
     <div class="topbar-right">
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -972,10 +966,12 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
           <tbody id="tableBody"></tbody>
         </table>
       </div>
+      <div class="pagination" id="deskPagination"></div>
     </div>
 
     <!-- Mobile cards -->
     <div class="card-list" id="cardList"></div>
+    <div class="mob-pagination" id="mobPagination" style="display:none"></div>
 
   </div><!-- /page -->
 
@@ -1015,28 +1011,33 @@ body.dark-mode .view-item{background:var(--surface-2);border-color:var(--line-md
 
 <script>
 /* ── Auth ── */
-const AUTH_KEY = "society_dashboard_auth";
-if(!sessionStorage.getItem(AUTH_KEY))sessionStorage.setItem(AUTH_KEY,"true");
+/* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
 /* ── Constants ── */
 const DIRECTORY_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
 const DIRECTORY_TAB_NAME = "Sheet1";
 const RESIDENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
-const RESIDENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
+/* Writes now authorize with the signed-in person's verified Google ID
+   token (window.Auth.getIdToken(), from auth.js) instead of a shared
+   secret that used to sit here in plaintext — see authorizePayload_ in
+   guard-payment-write-apps-script.gs, which checks idToken against
+   Google and against ALLOWED_USERS on every request. */
 const RESIDENT_OCCUPIED_OPTIONS = ["UNOCCUPIED","TENANT","OWNER","PHQ"];
 const VEHICLE_TYPE_OPTIONS = ["BIKE","SCOOTY","CAR"];
 
 /* ── State ── */
 let headers=[], rows=[], filteredRows=[];
+let currentPage=1;
+const PAGE_SIZE=25;
 const searchIdx = {name:[],mobile:[],vehicle:[]};
 let editCtx=null;
 
 /* ── Utils ── */
-const parseCSV = l => l.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,""))||[];
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 const norm     = v => String(v||"").trim().toLowerCase();
 const blockDisp= v => { const d=String(v||"").match(/\d+/); return d?`Block-${Number(d[0])}`:String(v||""); };
 const normPhone= v => String(v||"").replace(/[^\d+]/g,"");
-const esc      = v => String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc      = v => Utils.escapeHtml(v); // shared in utils.js
 const setTxt   = (id,v) => { const el=document.getElementById(id); if(el)el.textContent=v; };
 const rmSk     = id => { const el=document.getElementById(id); if(el)el.classList.remove("sk"); };
 
@@ -1165,8 +1166,6 @@ function renderTable(data){
       </div></td>
     </tr>`;
   }).join("");
-
-  setTxt("filterCount",`${data.length} of ${rows.length} residents`);
 }
 
 /* ── Render mobile cards ── */
@@ -1245,8 +1244,24 @@ function applyFilters(){
     return pool.some(i=>norm(row[i]||"").includes(q));
   });
 
-  renderTable(filteredRows);
-  renderCards(filteredRows);
+  currentPage=1;
+  renderPage();
+}
+
+/* Renders whichever page of filteredRows is current — split out from
+   applyFilters() so the pagination click handler (Utils.renderPagination's
+   onChange) can re-render without re-running the search/filter above. */
+function renderPage(){
+  const total=filteredRows.length;
+  currentPage=Utils.renderPagination({
+    total, page:currentPage, pageSize:PAGE_SIZE,
+    deskId:"deskPagination", mobId:"mobPagination", noun:"residents",
+    onChange:(p)=>{ currentPage=p; renderPage(); document.querySelector(".table-card")?.scrollIntoView({behavior:"smooth",block:"start"}); }
+  });
+  const pageRows=filteredRows.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
+  renderTable(pageRows);
+  renderCards(pageRows);
+  setTxt("filterCount",`${total} of ${rows.length} resident${rows.length!==1?"s":""}`);
 }
 
 /* ── Scroll lock ── */
@@ -1344,7 +1359,7 @@ function buildPayload(){
     if(!el)return editCtx.row[i]||"";
     return String(el.value||"").trim();
   });
-  return{action:"saveResident",secret:RESIDENT_WRITE_SECRET,headers:headers.slice(),rowValues:rowVals};
+  return{action:"saveResident",idToken:window.Auth?.getIdToken(),headers:headers.slice(),rowValues:rowVals};
 }
 function validatePayload(p){
   const rv=p.rowValues||[];
@@ -1390,12 +1405,13 @@ async function saveResident(e){
 /* ── Delete resident ── */
 async function deleteResident(block,flat){
   if(!confirm(`Delete all resident details for ${block} / Flat ${flat}?`))return;
-  const payload={action:"deleteResidentFields",secret:RESIDENT_WRITE_SECRET,block,flat,headers:headers.slice()};
+  const payload={action:"deleteResidentFields",idToken:window.Auth?.getIdToken(),block,flat,headers:headers.slice()};
   try{
     const r=await submitJsonp(payload);
     if(!r.ok)throw new Error(r.error||"Delete failed.");
     await loadDirectoryData();
-  }catch(ex){ alert(ex.message||"Unable to delete."); }
+    Utils.showToast("Resident details deleted.","success");
+  }catch(ex){ Utils.showToast(ex.message||"Unable to delete.","error"); }
 }
 
 /* ── Find row ── */
@@ -1428,7 +1444,7 @@ async function loadDirectoryData(){
     headers=ch; rows=cr;
     searchIdx.name=[]; searchIdx.mobile=[]; searchIdx.vehicle=[]; collectIdx();
     updateBlockFilter(); updateKPI();
-    filteredRows=rows; renderTable(filteredRows); renderCards(filteredRows);
+    filteredRows=rows; currentPage=1; renderPage();
   }catch(ex){
     setTxt("filterCount","Error: "+ex.message);
   }
@@ -1477,16 +1493,8 @@ document.getElementById("resModalOverlay").addEventListener("click",e=>{ if(e.ta
 document.getElementById("closeViewModal").addEventListener("click",closeViewModal);
 document.getElementById("viewModalOverlay").addEventListener("click",e=>{ if(e.target.id==="viewModalOverlay")closeViewModal(); });
 
-/* ── Dropdown ── */
-const tog=document.getElementById("profileTogDesk"),dd=document.getElementById("pdDesk");
-tog?.addEventListener("click",e=>{e.stopPropagation();const open=dd.classList.toggle("open");tog.setAttribute("aria-expanded",open?"true":"false");});
-document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));});
-
-/* ── Logout ── */
-function doLogout(){sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";}
-document.getElementById("logoutDesk")?.addEventListener("click",doLogout);
-document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Sidebar collapse ── */
 (function(){

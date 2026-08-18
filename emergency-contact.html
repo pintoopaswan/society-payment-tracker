@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth;height:100%}
@@ -791,6 +792,8 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -810,15 +813,6 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
         Refresh
       </button>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -849,8 +843,7 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 
 <script>
 /* ── Auth ── */
-const AUTH_KEY = "society_dashboard_auth";
-if (!sessionStorage.getItem(AUTH_KEY)) sessionStorage.setItem(AUTH_KEY, "true");
+/* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
 /* ── Constants ── */
 const CONTACT_SHEET_ID = "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE";
@@ -870,19 +863,8 @@ let activeSectionIndex = 0;
 let searchQuery = "";
 
 /* ── Helpers ── */
-function esc(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-function parseCSVLine(line){
-  const cols=[];let cur="",inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i],n=line[i+1];
-    if(c==='"'&&inQ&&n==='"'){cur+='"';i++;}
-    else if(c==='"')inQ=!inQ;
-    else if(c===','&&!inQ){cols.push(cur);cur="";}
-    else cur+=c;
-  }
-  cols.push(cur);
-  return cols.map(s=>s.trim());
-}
+function esc(v){ return Utils.escapeHtml(v); } // shared in utils.js
+function parseCSVLine(line){ return Utils.parseCSVLine(line); } // shared in utils.js
 function normalizePhone(v){return String(v||"").replace(/[^\d+]/g,"");}
 function titleCase(v){
   const n=String(v||"").trim().toUpperCase();
@@ -1135,16 +1117,8 @@ function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove(
 document.getElementById("mobMenuBtn")?.addEventListener("click",openDrawer);
 overlay?.addEventListener("click",closeDrawer);
 
-/* ── Desktop profile dropdown ── */
-const profBtn=document.getElementById("profileTogDesk"),profDD=document.getElementById("pdDesk");
-profBtn?.addEventListener("click",e=>{e.stopPropagation();const o=profDD.classList.toggle("open");profBtn.setAttribute("aria-expanded",o?"true":"false");});
-document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));});
-
-/* ── Logout ── */
-const doLogout=()=>{sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";};
-document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
-document.getElementById("desktopLogoutBtn")?.addEventListener("click",doLogout);
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Refresh ── */
 document.getElementById("refreshBtn")?.addEventListener("click",loadEmergencyContacts);

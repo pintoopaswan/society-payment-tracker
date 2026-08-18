@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 
 <style>
 /* ════════════════════════════════════════════════
@@ -841,6 +842,8 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
 <div class="app-shell">
 
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <div class="main" id="mainContent">
@@ -851,15 +854,6 @@ table.po-matrix tbody tr:hover{background:var(--blue-50)}
       <div class="topbar-sub">MIG Society, Sector-29 · Every flat, every month, at a glance</div>
     </div>
     <div class="topbar-right">
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -939,8 +933,6 @@ const SHEET_IDS_BY_YEAR = {
   "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
   "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
 };
-const AUTH_SESSION_KEY = "society_dashboard_auth";
-const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const monthSheetNamesByYear = {
   "2026": MONTHS,
@@ -950,11 +942,11 @@ const MDISP = PaymentMonths.MONTH_DISPLAY; // ["Jan",...,"Dec"]
 const FEE = PaymentMonths.MONTHLY_FEE;      // 200
 
 /* ── Utils (shared with the rest of the app) ── */
-const parseCSV = l => l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
 const fmt$ = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN = v => Number(v||0).toLocaleString("en-IN");
-function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function escapeHtml(s){ return Utils.escapeHtml(s); } // shared in utils.js
 const blockNum = b => String(b||"").replace(/^Block-/,"");
 
 function parseSheetDateParts(raw){
@@ -972,51 +964,11 @@ function parseSheetDateParts(raw){
 function toDisplay(p){ return `${String(p.dy).padStart(2,"0")}/${String(p.mo).padStart(2,"0")}/${p.yr}`; }
 
 /* ── Fetch CSV (identical strategy to the rest of the app) ── */
-async function fetchCsv(sid, tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-  ];
-  for(const url of urls){
-    try{
-      const r = await fetch(url,{cache:"no-cache"});
-      const csv = await r.text();
-      const p = csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype")||p.includes("<html")||csv.includes("File not found")) continue;
-      return csv;
-    }catch(_){}
-  }
-  return "";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
-/* ── Auth (identical to the rest of the app) ── */
-function isLoggedIn(){ return !!sessionStorage.getItem(AUTH_SESSION_KEY); }
-function logout(){ sessionStorage.removeItem(AUTH_SESSION_KEY); showLoginModal(); }
-function showLoginModal(){
-  const html=`<div id="loginOverlay" style="position:fixed;inset:0;z-index:9999;background:rgba(7,15,35,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px">
-    <div style="background:#fff;border-radius:20px;padding:32px;max-width:360px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.22)">
-      <div style="font-size:1.2rem;font-weight:800;color:#0b1628;margin-bottom:6px;letter-spacing:-0.03em">Sign in</div>
-      <div style="font-size:0.8rem;color:#6a86a4;margin-bottom:22px">MIG Society · Guard Payment Dashboard</div>
-      <input id="liUser" type="text" placeholder="Username" style="width:100%;height:40px;border:1.5px solid #d8e8f8;border-radius:10px;padding:0 14px;margin-bottom:10px;font-size:0.85rem;font-family:inherit">
-      <input id="liPass" type="password" placeholder="Password" style="width:100%;height:40px;border:1.5px solid #d8e8f8;border-radius:10px;padding:0 14px;margin-bottom:16px;font-size:0.85rem;font-family:inherit">
-      <div id="liErr" style="color:#dc2626;font-size:0.77rem;margin-bottom:10px;display:none"></div>
-      <button onclick="doLogin()" style="width:100%;height:42px;background:linear-gradient(135deg,#1e3a72,#274d96);color:#fff;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer">Sign in</button>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML("beforeend",html);
-  document.getElementById("liPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-}
-function doLogin(){
-  const u=document.getElementById("liUser")?.value||"";
-  const p=document.getElementById("liPass")?.value||"";
-  if(u===AUTH_CREDENTIALS.username && p===AUTH_CREDENTIALS.password){
-    sessionStorage.setItem(AUTH_SESSION_KEY,"1");
-    document.getElementById("loginOverlay")?.remove();
-  } else {
-    const el=document.getElementById("liErr");
-    if(el){ el.textContent="Invalid credentials. Please try again."; el.style.display="block"; }
-  }
-}
+/* Auth is handled globally by auth.js (redirects to login.html if there's
+   no valid, verified Google session) — no page-specific login modal or
+   hardcoded credentials needed here anymore. */
 
 /* ══════════════════════════════════════════════
    DATA LOADING (Excel 1 only — no directory sheet, no
@@ -1613,14 +1565,9 @@ async function loadAndRender(){
 }
 
 function wireControls(){
-  document.getElementById("profileTogDesk")?.addEventListener("click", e=>{
-    e.stopPropagation();
-    document.getElementById("pdDesk")?.classList.toggle("open");
-  });
-  document.addEventListener("click", ()=>{
-    document.querySelectorAll(".profile-dropdown.open").forEach(d=>d.classList.remove("open"));
-  });
-  document.getElementById("logoutDeskMenu")?.addEventListener("click", logout);
+  /* Identity + logout live in the sidebar now (sidebar.js wires logout to
+     Auth.logout() automatically) — no profile-menu markup left on this
+     page, nothing to wire up here. */
 
   const mobOverlay = document.getElementById("mobOverlay");
   const mobDrawer = document.getElementById("mobDrawer");
@@ -1628,7 +1575,6 @@ function wireControls(){
   function closeDrawer(){ mobDrawer?.classList.remove("open"); mobOverlay?.classList.remove("open"); document.body.style.overflow=""; }
   document.getElementById("mobMenuBtn")?.addEventListener("click", openDrawer);
   mobOverlay?.addEventListener("click", closeDrawer);
-  document.getElementById("drawerLogoutBtn")?.addEventListener("click", logout);
 
   document.getElementById("sidebarToggle")?.addEventListener("click", ()=>{
     document.getElementById("sidebar")?.classList.toggle("collapsed");
@@ -1675,8 +1621,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   populateYearOptions();
   wireControls();
-
-  if(!isLoggedIn()){ showLoginModal(); }
   loadAndRender();
 });
 </script>

@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth;height:100%}
@@ -246,6 +247,29 @@ button,select,input,textarea{font:inherit;cursor:pointer;border:none;outline:non
 }
 .add-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(5,150,105,0.30)}
 .add-btn:active{transform:none}
+.staff-auth{display:flex;align-items:center}
+.staff-signin-slot{min-height:34px;display:flex;align-items:center}
+.staff-signin-slot.hidden{display:none}
+.staff-signed-in{
+  display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 4px;border-radius:999px;
+  background:var(--surface-2);border:1px solid var(--line-md);cursor:pointer;transition:background 0.15s;
+}
+.staff-signed-in:hover{background:var(--surface-3)}
+.staff-signed-in.hidden{display:none}
+.staff-avatar{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;
+  font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.staff-name{font-size:0.76rem;font-weight:600;color:var(--ink-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.staff-signin-slot-mob{width:32px;height:32px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.staff-signin-slot-mob.hidden{display:none}
+.staff-avatar-mob{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;cursor:pointer;
+  background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;
+  font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.staff-avatar-mob.hidden{display:none}
 .profile-wrap{position:relative}
 .profile-btn{
   width:34px;height:34px;border-radius:50%;
@@ -968,6 +992,333 @@ body.dark-mode .kpi-pct{background:rgba(255,255,255,0.07);border-color:rgba(255,
 body.dark-mode .kpi-bar-wrap{background:rgba(255,255,255,0.07)}
 body.dark-mode .mk-pct{background:rgba(255,255,255,0.08)}
 body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
+
+/* ══════════════════════════════════════
+   REDESIGN — added on top of the original tokens/components above
+   (see notes at top of this file for what changed and why)
+══════════════════════════════════════ */
+:root{
+  /* ── Layout / easing (byte-identical to original — no layout shift) ── */
+  --sidebar-w:256px; --sidebar-w-col:68px;
+  --topbar-h:60px; --mobnav-h:68px;
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth:cubic-bezier(0.4,0,0.2,1);
+
+  /* ── Radii (unchanged) ── */
+  --r-xs:4px; --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-2xl:28px;
+
+  /* ── Surfaces / ink / lines — refined premium light palette ── */
+  --bg:#eef3f9; --surface:#ffffff; --surface-2:#f5f8fc; --surface-3:#eaf0f7; --surface-4:#dde6f0;
+  --ink:#101a2c; --ink-2:#1c2a40; --ink-3:#3c5170; --ink-4:#5c7190;
+  --line:#e4ebf3; --line-md:#c7d3e3; --line-lg:#a7b7cf;
+
+  /* ── Accent scale (same names, recolored + contrast-checked) ── */
+  --blue-950:#141b40; --blue-900:#1f2960; --blue-800:#28357f; --blue-700:#3140a3;
+  --blue-600:#3d4fc0; --blue-500:#4a5ed4; --blue-400:#6f82e8; --blue-300:#94a3ef;
+  --blue-200:#b9c4f5; --blue-100:#dde3fb; --blue-50:#eef1fd;
+
+  --green-700:#0b7c5b; --green-600:#0f8a63; --green-500:#189970; --green-200:#a4e0cb; --green-100:#cdeee1; --green-50:#e9f7f2;
+
+  --red-700:#b8203f; --red-600:#d12a4f; --red-500:#dd5573; --red-400:#e8879b; --red-300:#f0a9b8; --red-200:#f6c7d1; --red-100:#fad7dd; --red-50:#fdecef;
+
+  --amber-700:#8a4f0c; --amber-600:#a4600e; --amber-500:#c07f1e; --amber-100:#fae3c4; --amber-50:#fdf3e7;
+
+  --violet-600:#7455c4; --violet-500:#8867d0; --violet-100:#e2dbf5; --violet-50:#f2effb;
+
+  --teal-600:#097583; --teal-500:#0f8b98; --teal-100:#cdeaee; --teal-50:#e9f6f7;
+
+  /* ── Shadows (same names, softer/tighter) ── */
+  --s-xs:0 1px 2px rgba(16,26,44,.05);
+  --s-sm:0 2px 12px rgba(16,26,44,.07),0 1px 3px rgba(16,26,44,.04);
+  --s-md:0 10px 30px rgba(16,26,44,.09),0 2px 6px rgba(16,26,44,.05);
+  --s-lg:0 22px 54px rgba(16,26,44,.13),0 4px 12px rgba(16,26,44,.06);
+  --s-xl:0 32px 80px rgba(16,26,44,.16),0 8px 20px rgba(16,26,44,.07);
+  --s-blue:0 4px 18px rgba(74,94,212,.24),0 1px 4px rgba(74,94,212,.14);
+  --s-green:0 4px 16px rgba(11,124,91,.20);
+}
+
+body.dark-mode{
+  --bg:#0f1117; --surface:#181c27; --surface-2:#1e2333; --surface-3:#232a3d; --surface-4:#2b334a;
+  --ink:#e8edf7; --ink-2:#cbd4e6; --ink-3:#94a3c0; --ink-4:#7f8bab;
+  --line:#252c3d; --line-md:#333c54; --line-lg:#4a5570;
+
+  --blue-950:#0a0e1f; --blue-900:#141d3d; --blue-800:#1f2c5c; --blue-700:#3140a3;
+  --blue-600:#5a6de0; --blue-500:#7c8ff5; --blue-400:#96a5f7; --blue-300:#b3befa;
+  --blue-200:#3a4270; --blue-100:rgba(124,143,245,.16); --blue-50:rgba(124,143,245,.10);
+
+  --green-700:#2ec994; --green-600:#22b382; --green-500:#189970; --green-200:rgba(46,201,148,.28); --green-100:rgba(46,201,148,.18); --green-50:rgba(46,201,148,.11);
+
+  --red-700:#f4607a; --red-600:#f4607a; --red-500:#e2436a; --red-400:rgba(244,96,122,.6); --red-300:rgba(244,96,122,.42); --red-200:rgba(244,96,122,.3); --red-100:rgba(244,96,122,.2); --red-50:rgba(244,96,122,.11);
+
+  --amber-700:#f5a623; --amber-600:#f5a623; --amber-500:#e0951b; --amber-100:rgba(245,166,35,.2); --amber-50:rgba(245,166,35,.12);
+
+  --violet-600:#a47cf5; --violet-500:#9264e0; --violet-100:rgba(164,124,245,.2); --violet-50:rgba(164,124,245,.12);
+
+  --teal-600:#22c8dc; --teal-500:#1eb0c2; --teal-100:rgba(34,200,220,.2); --teal-50:rgba(34,200,220,.12);
+
+  --s-xs:0 1px 2px rgba(0,0,0,.3);
+  --s-sm:0 4px 16px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.22);
+  --s-md:0 14px 36px rgba(0,0,0,.4),0 3px 8px rgba(0,0,0,.24);
+  --s-lg:0 26px 60px rgba(0,0,0,.5),0 6px 16px rgba(0,0,0,.3);
+  --s-xl:0 36px 84px rgba(0,0,0,.55),0 10px 24px rgba(0,0,0,.32);
+  --s-blue:0 4px 18px rgba(124,143,245,.3);
+  --s-green:0 4px 16px rgba(46,201,148,.26);
+}
+
+/* ══════════════════════════════════════
+   TOPBAR — theme toggle (new button)
+══════════════════════════════════════ */
+.theme-toggle-btn{
+  width:34px;height:34px;border-radius:var(--r-sm);flex-shrink:0;
+  border:1px solid var(--line-md);background:var(--surface);color:var(--ink-3);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.18s var(--ease-out);
+}
+.theme-toggle-btn:hover{background:var(--blue-50);border-color:var(--blue-200);color:var(--blue-700);transform:translateY(-1px)}
+
+/* ══════════════════════════════════════
+   KPI STRIP — unified (one markup, desktop + mobile)
+══════════════════════════════════════ */
+.kpi-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  padding:16px 20px;background:var(--bg);
+  animation:fadeDown 0.5s 0.05s var(--ease-out) both;
+}
+.kpi-cell{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:16px 18px 14px;position:relative;overflow:hidden;
+  box-shadow:var(--s-sm);transition:transform 0.2s var(--ease-spring),box-shadow 0.2s;
+}
+.kpi-cell:hover{transform:translateY(-2px);box-shadow:var(--s-md)}
+.kpi-cell::after{
+  content:'';position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;
+  background:var(--kpi-accent-bg,var(--blue-50));opacity:0.6;pointer-events:none;
+}
+.kpi-cell::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--r-xl) var(--r-xl);
+  background:var(--kpi-accent,var(--blue-500));transform:scaleX(0);transition:transform 0.6s var(--ease-out);transform-origin:left;
+}
+.kpi-cell.reveal::before{transform:scaleX(1)}
+.kpi-cell.c-total{--kpi-accent:var(--blue-500);--kpi-accent-bg:var(--blue-50)}
+.kpi-cell.c-flats{--kpi-accent:var(--green-500);--kpi-accent-bg:var(--green-50)}
+.kpi-cell.c-mix{--kpi-accent:var(--amber-500);--kpi-accent-bg:var(--amber-50)}
+.kpi-cell.c-outstanding{--kpi-accent:var(--red-500);--kpi-accent-bg:var(--red-50)}
+.kpi-ico{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--kpi-accent-bg,var(--blue-50));color:var(--kpi-accent,var(--blue-600));
+}
+.kpi-label{font-size:0.66rem;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.kpi-val{font-size:1.42rem;font-weight:800;color:var(--ink);letter-spacing:-0.03em;line-height:1;font-family:'DM Sans',sans-serif}
+.kpi-val.small{font-size:1.05rem}
+.kpi-meta{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.kpi-pct{
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--kpi-accent-bg,var(--blue-50));color:var(--kpi-accent,var(--blue-600));
+  border:1px solid color-mix(in srgb,var(--kpi-accent,var(--blue-500)) 18%,transparent);
+  border-radius:999px;padding:2px 8px;font-size:0.7rem;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;
+}
+.kpi-sub{font-size:0.66rem;color:var(--ink-4);font-weight:500;line-height:1.3}
+.kpi-bar-wrap{margin-top:10px;height:4px;border-radius:999px;background:var(--kpi-accent-bg,var(--blue-50));overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:999px;background:var(--kpi-accent,var(--blue-500));width:0%;transition:width 0.7s var(--ease-out)}
+.kpi-mix-split{display:flex;gap:3px;height:8px;border-radius:99px;overflow:hidden;margin-top:10px}
+.kpi-mix-seg-a{background:var(--blue-500)}
+.kpi-mix-seg-b{background:var(--amber-500)}
+.kpi-mix-labels{display:flex;justify-content:space-between;margin-top:7px;font-size:0.66rem;font-weight:600;color:var(--ink-3)}
+.kpi-mix-labels b{font-family:'DM Mono',monospace;color:var(--ink)}
+@media(max-width:1100px){.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr)}}
+@media(max-width:768px){.kpi-strip{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 8px}.kpi-cell{padding:13px 14px 12px}.kpi-val{font-size:1.15rem}}
+
+/* ══════════════════════════════════════
+   TOOLBAR — status pills + block + search
+══════════════════════════════════════ */
+.toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:10px;animation:fadeUp 0.4s 0.06s var(--ease-out) both;
+}
+.pill-group{display:flex;gap:6px;flex-wrap:wrap}
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;
+  font-size:0.74rem;font-weight:700;color:var(--ink-3);background:var(--surface);border:1px solid var(--line-md);
+  transition:all 0.15s var(--ease-out);
+}
+.status-pill:hover{color:var(--ink);border-color:var(--line-lg)}
+.status-pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.status-pill .n{opacity:0.6;font-family:'DM Mono',monospace;font-size:0.68rem}
+.status-pill.active .n{opacity:0.55}
+.toolbar-spacer{flex:1}
+.toolbar-search{position:relative;min-width:170px}
+.toolbar-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--ink-4);fill:none;stroke-width:1.8}
+.toolbar-search input{
+  height:34px;width:100%;padding:0 12px 0 32px;border-radius:var(--r-sm);
+  border:1px solid var(--line-md);background:var(--surface-2);color:var(--ink);font-size:0.8rem;
+}
+.toolbar-search input::placeholder{color:var(--ink-4)}
+.toolbar-block-sel{
+  height:34px;padding:0 28px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-md);
+  background:var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%233c5170' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  appearance:none;color:var(--ink);font-size:0.8rem;font-weight:600;
+}
+body.dark-mode .toolbar-block-sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394a3c0' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+
+/* ══════════════════════════════════════
+   LEGEND
+══════════════════════════════════════ */
+.legend-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:2px 2px 14px;font-size:0.7rem;color:var(--ink-4);font-weight:500}
+.bulk-collapse-btn{margin-left:auto;height:32px;padding:0 13px;border-radius:var(--r-sm);border:1px solid var(--line-md);background:var(--surface);color:var(--ink-2);font-size:0.74rem;font-weight:700;display:flex;align-items:center;gap:6px}
+.bulk-collapse-btn:hover{background:var(--blue-50);border-color:var(--blue-100);color:var(--blue-600)}
+.bulk-collapse-btn svg{transition:transform 0.2s var(--ease-out)}
+.bulk-collapse-btn.is-collapsed svg{transform:rotate(-90deg)}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:5px;vertical-align:-1px}
+.legend-dot.ld-paid{background:var(--green-500)}
+.legend-dot.ld-due{border:1.5px solid var(--red-500);background:transparent}
+.legend-dot.ld-review{background:var(--violet-500)}
+.legend-dot.ld-locked{border:1.5px solid var(--ink-4);background:transparent}
+.legend-dot.ld-future{border:1.5px dashed var(--line-lg);background:transparent}
+
+/* ══════════════════════════════════════
+   BLOCK CARDS + MATRIX + CHIPS
+══════════════════════════════════════ */
+.blocks-wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:8px}
+.block-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--s-sm);overflow:hidden;position:relative;
+  animation:fadeUp 0.4s var(--ease-out) both;
+}
+.block-card::before{
+  content:'';position:absolute;top:0;bottom:0;left:0;width:5px;
+  background-image:radial-gradient(circle at 2.5px 9px, var(--surface) 2px, transparent 2.1px);
+  background-size:5px 18px;background-repeat:repeat-y;background-position:0 6px;
+  background-color:var(--surface-3);opacity:0.8;
+}
+.block-head{display:flex;align-items:center;gap:14px;padding:13px 18px 13px 22px;cursor:pointer;user-select:none;transition:background 0.14s}
+.block-head:hover{background:var(--surface-2)}
+.block-name{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--ink);letter-spacing:-0.01em}
+.block-meta{font-size:0.72rem;color:var(--ink-4);margin-top:2px;font-weight:500}
+.block-meta b{color:var(--green-700);font-weight:700;font-family:'DM Mono',monospace}
+.block-right{margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.block-progress-track{width:80px;height:5px;border-radius:99px;background:var(--surface-3);overflow:hidden}
+.block-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-500),var(--green-500))}
+.block-pct{font-family:'DM Mono',monospace;font-weight:700;font-size:0.8rem;color:var(--ink-2);min-width:32px;text-align:right}
+.block-chevron{
+  width:24px;height:24px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line-md);
+  display:flex;align-items:center;justify-content:center;transition:transform 0.22s var(--ease-out);color:var(--ink-3);flex-shrink:0;
+}
+.block-chevron svg{width:11px;height:11px}
+.block-card.collapsed .block-chevron{transform:rotate(-90deg)}
+.block-body{border-top:1px solid var(--line)}
+.block-card.collapsed .block-body{display:none}
+.block-card.filtered-out{display:none}
+
+.matrix-wrap{overflow-x:auto}
+.matrix-wrap::-webkit-scrollbar{height:5px}
+.matrix-wrap::-webkit-scrollbar-thumb{background:var(--blue-200);border-radius:999px}
+table.pay-matrix{width:100%;border-collapse:collapse;min-width:920px}
+table.pay-matrix thead th{
+  padding:9px 4px;text-align:center;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--ink-4);border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap;
+}
+table.pay-matrix thead th.flat-col{text-align:left;padding-left:22px;min-width:150px}
+table.pay-matrix thead th .m-sum{display:block;margin-top:3px;font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:700;color:var(--ink-2);text-transform:none;letter-spacing:0}
+table.pay-matrix thead th.is-current{color:var(--blue-600)}
+table.pay-matrix thead th.is-current .m-sum{color:var(--blue-600)}
+table.pay-matrix tbody td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--line)}
+table.pay-matrix tbody tr:last-child td{border-bottom:none}
+table.pay-matrix tbody tr:hover{background:var(--surface-2)}
+.flat-cell{text-align:left!important;padding-left:22px!important}
+.flat-num{font-family:'DM Mono',monospace;font-weight:700;font-size:0.84rem;color:var(--ink)}
+.flat-warn{color:var(--violet-600);display:inline-flex;margin-left:5px;vertical-align:-2px}
+.flat-warn svg{width:12px;height:12px}
+.total-col{min-width:82px}
+.total-chip{font-family:'DM Mono',monospace;font-weight:700;font-size:0.82rem;color:var(--ink);display:flex;flex-direction:column;align-items:center}
+.total-sub{font-size:0.6rem;font-weight:600;color:var(--ink-4);margin-top:1px}
+.total-sub.tsub-due{color:var(--red-600)}
+
+.chip{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  width:56px;height:38px;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:700;
+  border:1.5px solid transparent;cursor:pointer;transition:transform 0.12s ease;position:relative;
+}
+.chip:hover{transform:translateY(-1px) scale(1.04)}
+.chip.paid{background:var(--green-50);color:var(--green-700);border-color:var(--green-200)}
+.chip.paid-covered{background:var(--green-50);color:var(--green-700);opacity:0.72;cursor:default}
+.chip.paid-covered:hover{transform:none}
+.chip.due{background:transparent;color:var(--red-600);border-color:var(--red-300);border-style:dashed}
+.chip.review{background:var(--violet-50);color:var(--violet-600);border-color:var(--violet-100)}
+.chip.locked{background:var(--surface-3);color:var(--ink-4);cursor:not-allowed}
+.chip.locked:hover{transform:none}
+.chip.future{background:transparent;color:var(--ink-4);border-color:var(--line);cursor:default}
+.chip.future:hover{transform:none}
+.chip .c-sub{font-size:0.54rem;font-weight:700;opacity:0.75;letter-spacing:0.02em;margin-top:1px}
+.chip svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ══════════════════════════════════════
+   MOBILE BLOCK CARDS — same layout as the
+   Payments Overview page's mobile view:
+   a two-row block header (title+collected,
+   then a full-width progress bar) followed
+   by one self-contained card per flat with
+   a labeled 12-month grid (no side-scrolling,
+   every month visible + a status badge). ══
+══════════════════════════════════════ */
+.mob-block-card{
+  display:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--s-sm);margin-bottom:12px;overflow:hidden;animation:fadeUp 0.4s var(--ease-out) both;
+}
+.mob-block-head{
+  display:flex;flex-direction:column;gap:8px;padding:13px 14px;
+  cursor:pointer;user-select:none;background:var(--surface-2);border-bottom:1px solid var(--line);
+  transition:background 0.14s;
+}
+.mob-block-head:active{background:var(--blue-50)}
+.mob-block-card.collapsed .mob-block-head{border-bottom:none}
+.mob-block-head-top{display:flex;align-items:center;gap:10px}
+.mob-block-head-top .block-chevron{flex-shrink:0}
+.mob-block-card.collapsed .mob-block-head .block-chevron{transform:rotate(-90deg)}
+.mob-block-name{font-family:'Fraunces',serif;font-weight:700;font-size:0.92rem;color:var(--ink);letter-spacing:-0.01em;flex:1;min-width:0}
+.mob-block-collected{font-size:0.72rem;font-weight:700;color:var(--green-700);white-space:nowrap}
+.mob-block-progress{display:flex;align-items:center;gap:10px;padding-left:34px}
+.mob-block-progress .block-progress-track{flex:1;width:auto}
+.mob-block-body{padding:10px 10px 2px}
+.mob-block-card.collapsed .mob-block-body{display:none}
+
+.mob-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:8px;overflow:hidden;box-shadow:var(--s-sm)}
+.mob-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px}
+.mob-card-total{font-family:'DM Mono',monospace;font-weight:700;font-size:0.86rem;color:var(--ink);text-align:right}
+.mob-card-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:0 13px 12px}
+.mob-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
+.mob-cell-month{font-size:0.56rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.03em}
+.mob-cell .chip{width:100%;height:32px;font-size:0.6rem}
+.mob-status{font-size:0.6rem;font-weight:800;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:2px;white-space:nowrap}
+.mob-status.ok{background:var(--green-50);color:var(--green-700)}
+.mob-status.due{background:var(--red-50);color:var(--red-600)}
+.mob-status.review{background:var(--violet-50);color:var(--violet-600)}
+
+.empty-note{padding:30px;text-align:center;color:var(--ink-4);font-size:0.84rem}
+
+@media(max-width:768px){
+  .block-card{display:none}
+  .mob-block-card{display:block}
+}
+
+/* ══════════════════════════════════════
+   PAYMENT MODE — segmented toggle over
+   the real (visually hidden) <select>
+══════════════════════════════════════ */
+#fMode.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.mode-seg{display:flex;border:1.5px solid var(--line-md);border-radius:var(--r-sm);overflow:hidden;height:42px}
+.mode-seg-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:0.82rem;font-weight:700;color:var(--ink-2);background:var(--surface-2);transition:all 0.15s;
+}
+.mode-seg-btn:not(:last-child){border-right:1px solid var(--line-md)}
+.mode-seg-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+.mode-seg-btn.active{background:var(--blue-600);color:#fff}
+
+.month-option{border-radius:999px}
 </style>
 </head>
 <body>
@@ -1001,51 +1352,13 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
   </div>
 </header>
 
-<!-- ══ MOBILE KPI STRIP ══ -->
-<div class="mob-kpi-strip">
-  <div class="mob-kpi-card">
-    <div class="mk-label">Total Collection</div>
-    <div class="mk-val" id="mkTotal">—</div>
-    <div class="mk-meta">
-      <span class="mk-pct" id="mkTotalPct">—%</span>
-      <span class="mk-sub-txt" id="mkTotalCtx">collected</span>
-    </div>
-    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkTotalBar"></div></div>
-  </div>
-  <div class="mob-kpi-card">
-    <div class="mk-label">Paid Flats</div>
-    <div class="mk-val" id="mkFlats">—</div>
-    <div class="mk-meta">
-      <span class="mk-pct" id="mkFlatsPct">—%</span>
-      <span class="mk-sub-txt" id="mkFlatsCtx">of flats</span>
-    </div>
-    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkFlatsBar"></div></div>
-  </div>
-  <div class="mob-kpi-card">
-    <div class="mk-label">Online</div>
-    <div class="mk-val" id="mkOnline">—</div>
-    <div class="mk-meta">
-      <span class="mk-pct" id="mkOnlinePct">—%</span>
-      <span class="mk-sub-txt">UPI / transfer</span>
-    </div>
-    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkOnlineBar"></div></div>
-  </div>
-  <div class="mob-kpi-card">
-    <div class="mk-label">Cash</div>
-    <div class="mk-val" id="mkCash">—</div>
-    <div class="mk-meta">
-      <span class="mk-pct" id="mkCashPct">—%</span>
-      <span class="mk-sub-txt">physical</span>
-    </div>
-    <div class="mk-bar-wrap"><div class="mk-bar-fill" id="mkCashBar"></div></div>
-  </div>
-</div>
-
 <!-- ══ APP SHELL ══ -->
 <div class="app-shell">
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -1061,6 +1374,9 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
       <select id="yearDesk" class="year-sel" aria-label="Dashboard year">
         <option value="2026">2026</option><option value="2025">2025</option>
       </select>
+      <button id="themeToggleDesk" class="theme-toggle-btn" type="button" aria-label="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>
+      </button>
       <button id="refreshBtn" class="refresh-btn" type="button">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>
         Refresh
@@ -1069,20 +1385,10 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
         Add Payment
       </button>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDesk" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-          <div class="pd-divider"></div>
-          <button type="button" onclick="downloadReport()">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
-            Export Excel
-          </button>
-        </div>
-      </div>
+      <button id="exportBtn" class="refresh-btn" type="button" onclick="downloadReport()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>
+        Export Excel
+      </button>
     </div>
   </header>
 
@@ -1090,20 +1396,17 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
   <div class="kpi-strip">
 
     <!-- 1. Total Collection -->
-    <div class="kpi-cell">
+    <div class="kpi-cell c-total">
       <div class="kpi-ico">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="5" width="16" height="11" rx="2"/>
-          <line x1="2" y1="9" x2="18" y2="9"/>
-          <line x1="6" y1="13.5" x2="8" y2="13.5"/>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="16" height="11" rx="2"/><line x1="2" y1="9" x2="18" y2="9"/><line x1="6" y1="13.5" x2="8" y2="13.5"/>
         </svg>
       </div>
       <div class="kpi-label">Total Collection</div>
       <div class="kpi-val sk" id="kpiTotal">—</div>
       <div class="kpi-meta">
         <span class="kpi-pct" id="kpiTotalPct">
-          <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 5,3 8,7"/></svg>
-          —%
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 5,3 8,7"/></svg>—%
         </span>
         <span class="kpi-sub" id="kpiSub">of expected</span>
       </div>
@@ -1111,11 +1414,10 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
     </div>
 
     <!-- 2. Paid Flats -->
-    <div class="kpi-cell">
+    <div class="kpi-cell c-flats">
       <div class="kpi-ico">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9,22 9,12 15,12 15,22"/>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
       </div>
       <div class="kpi-label">Paid Flats</div>
@@ -1127,40 +1429,36 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
       <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiFlatsBar"></div></div>
     </div>
 
-    <!-- 3. Online Collection -->
-    <div class="kpi-cell">
+    <!-- 3. Payment Mix (Online + Cash combined) -->
+    <div class="kpi-cell c-mix">
       <div class="kpi-ico">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="10" cy="10" r="8"/>
-          <path d="M2 10h16M10 2a14 14 0 0 1 0 16M10 2a14 14 0 0 0 0 16"/>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2a14 14 0 0 1 0 16M10 2a14 14 0 0 0 0 16"/>
         </svg>
       </div>
-      <div class="kpi-label">Online Collection</div>
-      <div class="kpi-val sk" id="kpiOnline">—</div>
-      <div class="kpi-meta">
-        <span class="kpi-pct" id="kpiOnlinePct">—%</span>
-        <span class="kpi-sub">of total collected</span>
+      <div class="kpi-label">Payment Mix</div>
+      <div class="kpi-val small sk" id="kpiOnline">—</div>
+      <div class="kpi-sub" style="margin-top:1px">Online collected</div>
+      <div class="kpi-mix-split">
+        <div class="kpi-mix-seg-a" id="kpiMixOnlineSeg" style="flex:1"></div>
+        <div class="kpi-mix-seg-b" id="kpiMixCashSeg" style="flex:1"></div>
       </div>
-      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiOnlineBar"></div></div>
+      <div class="kpi-mix-labels">
+        <span>Online <b id="kpiOnlinePct">—%</b></span>
+        <span>Cash <b id="kpiCashPct">—%</b></span>
+      </div>
     </div>
 
-    <!-- 4. Cash Collection -->
-    <div class="kpi-cell">
+    <!-- 4. Outstanding -->
+    <div class="kpi-cell c-outstanding">
       <div class="kpi-ico">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="1" y="5" width="18" height="11" rx="2"/>
-          <circle cx="10" cy="10.5" r="2.5"/>
-          <line x1="4" y1="10.5" x2="4" y2="10.5"/>
-          <line x1="16" y1="10.5" x2="16" y2="10.5"/>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="11"/><circle cx="10" cy="14" r="0.6" fill="currentColor"/>
         </svg>
       </div>
-      <div class="kpi-label">Cash Collection</div>
-      <div class="kpi-val sk" id="kpiCash">—</div>
-      <div class="kpi-meta">
-        <span class="kpi-pct" id="kpiCashPct">—%</span>
-        <span class="kpi-sub">of total collected</span>
-      </div>
-      <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="kpiCashBar"></div></div>
+      <div class="kpi-label">Outstanding</div>
+      <div class="kpi-val sk" id="kpiOutstanding" style="color:var(--red-600)">—</div>
+      <div class="kpi-sub" id="kpiOutstandingCtx">vs. expected collection</div>
     </div>
 
   </div>
@@ -1168,54 +1466,35 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
   <!-- PAGE -->
   <div class="page">
 
-    <!-- Filter bar -->
-    <div class="filter-bar">
-      <select id="blockFilter" class="filter-select" aria-label="Filter by block">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="pill-group" id="statusPills"></div>
+      <div class="toolbar-spacer"></div>
+      <select id="blockFilter" class="toolbar-block-sel" aria-label="Filter by block">
         <option value="">All Blocks</option>
       </select>
-      <select id="searchType" class="filter-select" aria-label="Search type">
-        <option value="all">All Fields</option>
-        <option value="block">Block</option>
-        <option value="flat">Flat</option>
-        <option value="amount">Amount</option>
-      </select>
-      <input id="search" type="text" class="filter-input" placeholder="Search block, flat, or amount…" autocomplete="off" />
+      <div class="toolbar-search">
+        <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6.5"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+        <input id="search" type="text" placeholder="Search flat no…" autocomplete="off" />
+      </div>
       <span class="filter-count" id="filterCount"></span>
-      <button class="add-btn" id="filterAddBtn" type="button">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
-        Add Payment
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-row">
+      <span><span class="legend-dot ld-paid"></span>Paid</span>
+      <span><span class="legend-dot ld-due"></span>Due</span>
+      <span><span class="legend-dot ld-review"></span>Needs review</span>
+      <span><span class="legend-dot ld-locked"></span>Locked</span>
+      <span><span class="legend-dot ld-future"></span>Not yet due</span>
+      <button class="bulk-collapse-btn" id="expandAllBtn" type="button">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+        <span id="expandAllLabel">Collapse all</span>
       </button>
     </div>
 
-    <!-- Desktop table -->
-    <div class="table-card">
-      <div class="table-wrap">
-        <table id="payTable">
-          <thead>
-            <tr>
-              <th>Block</th><th>Flat</th>
-              <th data-month-index="0"><div class="month-head"><span class="month-head-name">Jan</span><span class="month-total-val" id="mTot0">₹0</span><span class="month-flats-val" id="mFlats0">0 flats</span></div></th>
-              <th data-month-index="1"><div class="month-head"><span class="month-head-name">Feb</span><span class="month-total-val" id="mTot1">₹0</span><span class="month-flats-val" id="mFlats1">0 flats</span></div></th>
-              <th data-month-index="2"><div class="month-head"><span class="month-head-name">Mar</span><span class="month-total-val" id="mTot2">₹0</span><span class="month-flats-val" id="mFlats2">0 flats</span></div></th>
-              <th data-month-index="3"><div class="month-head"><span class="month-head-name">Apr</span><span class="month-total-val" id="mTot3">₹0</span><span class="month-flats-val" id="mFlats3">0 flats</span></div></th>
-              <th data-month-index="4"><div class="month-head"><span class="month-head-name">May</span><span class="month-total-val" id="mTot4">₹0</span><span class="month-flats-val" id="mFlats4">0 flats</span></div></th>
-              <th data-month-index="5"><div class="month-head"><span class="month-head-name">Jun</span><span class="month-total-val" id="mTot5">₹0</span><span class="month-flats-val" id="mFlats5">0 flats</span></div></th>
-              <th data-month-index="6"><div class="month-head"><span class="month-head-name">Jul</span><span class="month-total-val" id="mTot6">₹0</span><span class="month-flats-val" id="mFlats6">0 flats</span></div></th>
-              <th data-month-index="7"><div class="month-head"><span class="month-head-name">Aug</span><span class="month-total-val" id="mTot7">₹0</span><span class="month-flats-val" id="mFlats7">0 flats</span></div></th>
-              <th data-month-index="8"><div class="month-head"><span class="month-head-name">Sep</span><span class="month-total-val" id="mTot8">₹0</span><span class="month-flats-val" id="mFlats8">0 flats</span></div></th>
-              <th data-month-index="9"><div class="month-head"><span class="month-head-name">Oct</span><span class="month-total-val" id="mTot9">₹0</span><span class="month-flats-val" id="mFlats9">0 flats</span></div></th>
-              <th data-month-index="10"><div class="month-head"><span class="month-head-name">Nov</span><span class="month-total-val" id="mTot10">₹0</span><span class="month-flats-val" id="mFlats10">0 flats</span></div></th>
-              <th data-month-index="11"><div class="month-head"><span class="month-head-name">Dec</span><span class="month-total-val" id="mTot11">₹0</span><span class="month-flats-val" id="mFlats11">0 flats</span></div></th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Mobile cards -->
-    <div class="card-list" id="mobileCards"></div>
+    <!-- Block cards (desktop matrix + mobile chip rows, one render path) -->
+    <div class="blocks-wrap" id="blocksWrap"></div>
 
   </div><!-- /page -->
 
@@ -1238,23 +1517,29 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
           <div class="form-field">
             <label for="fBlock">Block<span class="required-mark">*</span></label>
             <select id="fBlock" required></select>
-            <input id="fBlockR" type="text" readonly class="hidden" />
           </div>
           <div class="form-field">
             <label for="fFlat">Flat No.<span class="required-mark">*</span></label>
             <select id="fFlat" required></select>
-            <input id="fFlatR" type="text" readonly class="hidden" />
           </div>
           <div class="form-field">
             <label for="fAmount">Amount (₹)<span class="required-mark">*</span></label>
             <input id="fAmount" type="number" min="1" step="1" inputmode="numeric" required placeholder="e.g. 200" />
           </div>
           <div class="form-field">
-            <label for="fMode">Payment Mode<span class="required-mark">*</span></label>
-            <select id="fMode" required>
+            <label>Payment Mode<span class="required-mark">*</span></label>
+            <select id="fMode" required class="sr-only" tabindex="-1" aria-hidden="true">
               <option value="ONLINE">ONLINE</option>
               <option value="CASH">CASH</option>
             </select>
+            <div class="mode-seg" id="modeSeg">
+              <button type="button" class="mode-seg-btn active" data-mode="ONLINE">
+                <svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/></svg>Online
+              </button>
+              <button type="button" class="mode-seg-btn" data-mode="CASH">
+                <svg viewBox="0 0 20 20"><rect x="1" y="5" width="18" height="11" rx="2"/><circle cx="10" cy="10.5" r="2.5"/></svg>Cash
+              </button>
+            </div>
           </div>
           <div class="form-field" id="fRecvField">
             <label for="fRecv">Received By<span class="required-mark" id="fRecvRequiredMark" style="display:none">*</span></label>
@@ -1314,10 +1599,16 @@ body.dark-mode .mk-bar-wrap{background:rgba(255,255,255,0.07)}
 /* ── Constants ── */
 const SHEET_IDS_BY_YEAR = { "2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU","2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP" };
 const DEFAULT_YEAR = "2026";
-const AUTH_SESSION_KEY = "society_dashboard_auth";
-const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
-const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec";
-const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
+/* Page-level auth (is anyone allowed on this page at all) is now handled
+   globally by auth.js — every page redirects to login.html unless there's
+   a valid, verified Google session. What's left below is specific to
+   payments.html: reading that same session so payment writes can attach
+   the person's verified idToken. */
+const PAYMENT_WRITE_URL = "https://script.google.com/macros/s/AKfycbzOOKgbKaeTzmIPc6KMMtQn69ic66KSCHSWq0bD787ZUCL6dpDxaHNK0npp3VNeje320A/exec";
+// PAYMENT_WRITE_SECRET is gone from this file on purpose — payments.html no
+// longer needs to know any shared secret to write a payment. See the
+// Google Sign-In block below: the backend verifies a real, short-lived
+// Google identity instead (server-side, in guard-payment-write-apps-script.gs).
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -1329,23 +1620,28 @@ let groupedData={}, monthlyTotals=new Array(12).fill(0), processedRecords=new Se
 let modalAction="create", editCtx=null;
 let selectedPaidMonthKeys=new Set(); // "YYYY-MM" keys selected across ALL years, not just the one currently shown
 
-/* ── Staff email (for audit trail) ──
-   There is no per-user login/email captured anywhere in this app today
-   (the auth gate is a single shared password — see AUTH_SESSION_KEY). Until
-   a real login step exists, we capture the logged-in person's email once
-   and keep it in localStorage (so it survives across sessions on this
-   device/browser, not just the current tab), then stamp it onto the
-   payment's notes so there is a record of who made the change. It's
-   cleared on logout (see the logout handlers below) so the next person to
-   log in on this browser is asked for their own email instead of
-   inheriting the previous person's. */
-const STAFF_EMAIL_KEY="mig_staff_email";
+/* ── Staff identity, sourced from the single global sign-in ──
+   Signing in happens once, on login.html; auth.js reads that session on
+   every page and exposes it as window.Auth. Payment writes attach the
+   verified idToken it hands back — see authorizePayload_ in
+   guard-payment-write-apps-script.gs, which checks it against Google and
+   against ALLOWED_USERS on every request, so "who made this change" is a
+   verified fact, not a typed claim. The identity itself is shown in the
+   sidebar (sidebar.js), not in this page's topbar. */
+
+/* Every write path funnels through openModal() first (Add button, Edit
+   chip, and Add-for-cell all call it), so gating there is enough — no
+   separate check needed at each entry point. savePayment()/deletePayment()
+   re-check too, since a token can expire while the modal sits open. */
+function requireStaffAuth(){
+  if(window.Auth?.isSignedIn())return true;
+  showAlert("Your session has expired. Please sign in again.");
+  window.Auth?.logout();
+  return false;
+}
+
 function getStaffEmail(){
-  let email=(localStorage.getItem(STAFF_EMAIL_KEY)||"").trim();
-  if(email)return email;
-  const entered=(window.prompt("Enter your email address (used to log who made this payment change; you'll only be asked once until you log out):","")||"").trim();
-  if(entered){ localStorage.setItem(STAFF_EMAIL_KEY,entered); email=entered; }
-  return email;
+  return window.Auth?.getEmail() || "";
 }
 
 /* ── Utils ── */
@@ -1364,33 +1660,8 @@ function getStaffEmail(){
    immediately followed by "escaped" quote) and turns into a literal `"`
    character instead of an empty string. With the guard, `""` at the start
    of a field is correctly read as open-quote then close-quote → "". */
-function parseCSV(line){
-  const result=[];let cur="",inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(inQ&&c==='"'&&line[i+1]==='"'){cur+='"';i++}
-    else if(c==='"'){inQ=!inQ}
-    else if(c===','&&!inQ){result.push(cur.trim());cur="";}
-    else{cur+=c;}
-  }
-  result.push(cur.trim());
-  return result;
-}
-function parseCSVRows(csv){
-  const rows=[];let cur="",inQ=false;
-  for(let i=0;i<String(csv||"").length;i++){
-    const c=csv[i];
-    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
-    else if(c==='"'){inQ=!inQ;cur+=c;}
-    else if((c==="\n"||c==="\r")&&!inQ){
-      if(c==="\r"&&csv[i+1]==="\n")i++;
-      if(cur.trim())rows.push(cur);
-      cur="";
-    }else cur+=c;
-  }
-  if(cur.trim())rows.push(cur);
-  return rows;
-}
+function parseCSV(line){ return Utils.parseCSVLine(line); } // shared in utils.js
+function parseCSVRows(csv){ return Utils.splitCSVRows(csv); } // shared in utils.js
 const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
 const flatKey = v => String(v||"").trim();
@@ -1445,7 +1716,7 @@ function unlockScroll(){
 function resetState(){
   groupedData={};monthlyTotals=new Array(12).fill(0);
   processedRecords=new Set();allBlocks=new Set();allFlats={};lockedFlatMonths={};
-  document.getElementById("tableBody").innerHTML="";
+  const bw=document.getElementById("blocksWrap"); if(bw)bw.innerHTML="";
 }
 
 function isLockedStatus(value){
@@ -1650,23 +1921,7 @@ function resolvePaymentCsvLayout(lines){
 }
 
 /* ── Fetch CSV ── */
-async function fetchCsv(sid,tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab.replace(/-/g," "))}`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const csv=await r.text();
-      const p=csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("<html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
-      return csv;
-    }catch(_){}
-  }
-  return"";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ── Load data ── */
 /* Which years' sheets to fetch for a given active-year selection, and
@@ -1741,7 +1996,6 @@ async function fetchAllMonthData(){
   renderAll();
   if(btn)btn.classList.remove("loading");
 }
-
 /* ── Emergency badge ── */
 async function loadEmergencyBadge(){
   try{
@@ -1752,7 +2006,87 @@ async function loadEmergencyBadge(){
   }catch(_){}
 }
 
-/* ── Render everything ── */
+/* ── New UI state (redesign) ── */
+let statusFilter="all", collapsedBlocks=new Set(), currentSorted=[], currentYear=DEFAULT_YEAR, allCollapsed=false;
+
+/* Whether (year,mi) lies strictly after today's real calendar month — used
+   only to decide chip color (neutral "not yet due" vs alarm "due"). Never
+   used to gate whether a payment CAN be added; guards can still record an
+   advance payment for a future month if they want to. */
+function isFutureCell(year,mi){
+  const now=new Date();
+  const cy=now.getFullYear(), cm=now.getMonth();
+  return (year>cy)||(year===cy&&mi>cm);
+}
+
+/* Classifies a single (row, year, monthIndex) cell using the exact same
+   lookups the original grid used (txEntry / coverageByKey / isTxMonth /
+   entryCoversMonth / isFlatMonthLocked) — see processRow()/renderAll's
+   original comments above for what each of those means. The one
+   deliberate behavior change: a locked month is now genuinely
+   non-interactive (action:null) instead of only *looking*
+   not-allowed while still opening the edit modal on click. */
+function computeCellState(row,year,mi,canEdit){
+  const locked=canEdit&&isFlatMonthLocked(row.Block,row.Flat,Number(year),mi);
+  let txEntry=null;
+  if(year==="all"){
+    const yrs=Object.keys(row.years||{});
+    for(const yr of yrs){ const yd=row.years?.[yr]; if(yd?.months?.[mi]){ txEntry=yd.months[mi]; break; } }
+  }else{
+    txEntry=row.years?.[year]?.months?.[mi]||row.coverageByKey?.[PaymentMonths.toKey(year,mi)]||null;
+  }
+  if(locked)return{status:"locked",entry:txEntry,action:null,year,mi};
+  if(txEntry){
+    const isTxMonth=(year==="all")||(Number(year)===txEntry.txYear&&mi===txEntry.txMonthIndex);
+    if(isTxMonth){
+      const cellYear=year==="all"?txEntry.txYear:Number(year);
+      const cellKey=PaymentMonths.toKey(cellYear,mi);
+      const isCovered=entryCoversMonth(txEntry,cellYear,mi)||!!row.coverageByKey?.[cellKey];
+      // isCovered=false here means: a transaction WAS recorded this month,
+      // but its own Paid-For-Months list doesn't include this month — the
+      // money exists but isn't allocated here, so it needs a human to
+      // reconcile. This mirrors the original .empty.has-tx / .mt-amount-red
+      // treatment, just named honestly as "review" instead of a second
+      // flavour of red.
+      return{status:isCovered?"paid":"review",entry:txEntry,action:canEdit?"edit":null,year,mi};
+    }
+    return{status:"paid-covered",entry:null,action:null,year,mi};
+  }
+  const future=year!=="all"&&isFutureCell(Number(year),mi);
+  return{status:future?"future":"due",entry:null,action:canEdit?"add":null,year,mi};
+}
+
+/* Whole-flat status used for the status-pill filters and each block-card's
+   progress %. Locked months are excluded from this judgement on purpose —
+   a closed/audited month says nothing about whether the flat is currently
+   up to date. "All Years" has no single coherent due/undue notion, so it
+   is treated as neutral. */
+function computeFlatBucket(row,year){
+  if(year==="all")return"paid";
+  let hasReview=false,hasDue=false;
+  for(let mi=0;mi<12;mi++){
+    const cs=computeCellState(row,year,mi,true);
+    if(cs.status==="review")hasReview=true;
+    if(cs.status==="due")hasDue=true;
+  }
+  if(hasReview)return"review";
+  if(hasDue)return"due";
+  return"paid";
+}
+
+const CHIP_ICO_LOCK='<svg viewBox="0 0 20 20"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.5 9V6a3.5 3.5 0 0 1 7 0v3"/></svg>';
+
+function chipHtml(row,cs){
+  const attrs=cs.action?` data-action="${cs.action}" data-year="${cs.year}" data-mi="${cs.mi}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+  if(cs.status==="paid")return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}</span>`;
+  if(cs.status==="review")return`<span class="chip review"${attrs} title="Recorded ${fmt$(cs.entry.amount)} this month, but not allocated to it yet — needs review">${fmt$(cs.entry.amount)}<span class="c-sub">Review</span></span>`;
+  if(cs.status==="paid-covered")return`<span class="chip paid-covered" title="Covered by a payment recorded in another month">✓</span>`;
+  if(cs.status==="locked")return`<span class="chip locked" title="Locked — closed to edits">${CHIP_ICO_LOCK}</span>`;
+  if(cs.status==="due")return`<span class="chip due"${attrs} title="Add payment for ${MONTH_SHORT[cs.mi]} ${cs.year}">Due</span>`;
+  return`<span class="chip future"${attrs} title="Not yet due — click to record an advance payment">—</span>`;
+}
+
+/* ── Render everything (called after a fresh data fetch) ── */
 function renderAll(){
   const year=activeYear();
   const sortedBlocks=Array.from(allBlocks).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
@@ -1762,333 +2096,240 @@ function renderAll(){
       if(!groupedData[key])groupedData[key]={Block:block,Flat:parseInt(flat),years:{},months:{},total:0};
     });
   });
-  const sorted=Object.values(groupedData).sort((a,b)=>{const c=a.Block.localeCompare(b.Block,undefined,{numeric:true});return c!==0?c:a.Flat-b.Flat;});
-  const canEdit=year!=="all";
+  currentSorted=Object.values(groupedData).sort((a,b)=>{const c=a.Block.localeCompare(b.Block,undefined,{numeric:true});return c!==0?c:a.Flat-b.Flat;});
+  currentYear=year;
 
-  /* Table */
-  let html="";
-  sorted.forEach(row=>{
-    html+=`<tr data-block="${row.Block}" data-flat="${row.Flat}"><td>${row.Block}</td><td>${row.Flat}</td>`;
-    months.forEach((_,i)=>{
-      let txEntry=null;
-      if(year==="all"){
-        // Collapsed "All Years" summary — approximate, non-editable view;
-        // still keyed by tab position since it's not year-scoped.
-        const _searchYrs=Object.keys(row.years||{});
-        for(const _yr of _searchYrs){
-          const _yd=row.years?.[_yr];
-          if(_yd?.months?.[i]){txEntry=_yd.months[i];break;}
-        }
-      }else{
-        // Actual transaction wins over a generic covered/Paid state for the
-        // same month, so a real payment amount stays visible and editable.
-        txEntry=row.years?.[year]?.months?.[i]||row.coverageByKey?.[PaymentMonths.toKey(year,i)]||null;
-      }
-      const locked=canEdit&&isFlatMonthLocked(row.Block,row.Flat,Number(year),i);
-      const ea=canEdit?` data-action="edit" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
-      if(txEntry){
-        // A single payment can cover multiple months (coverageByKey maps every
-        // covered month to the same entry). Only the month the payment was
-        // actually RECORDED against ("txMonthIndex"/"txYear") should display the
-        // full transaction details AND be editable. If the transaction month
-        // itself is not in Paid-For-Month, show the details in red because
-        // money exists but this month is still not covered.
-        const isTxMonth=(year==="all")||(Number(year)===txEntry.txYear&&i===txEntry.txMonthIndex);
-        if(isTxMonth){
-          const cellYear=year==="all"?txEntry.txYear:Number(year);
-          const cellKey=PaymentMonths.toKey(cellYear,i);
-          const isCovered=entryCoversMonth(txEntry,cellYear,i)||!!row.coverageByKey?.[cellKey];
-          const pmPill=txEntry.paidMonthsHtml?txEntry.paidMonthsHtml.replace('class="paid-months-compact"','class="paid-months-compact" style="margin-top:2px"'):"";
-          html+=`<td class="${locked?"locked":(isCovered?"paid":"empty has-tx")} month-cell"${ea}><div class="month-cell-content"><span class="cell-amount">${fmt$(txEntry.amount)}</span><span class="cell-date">${txEntry.date}</span>${pmPill}<span class="cell-mode">${txEntry.paymentMode||""}</span></div></td>`;
-        }else{
-          html+=`<td class="${locked?"locked":"paid covered"} month-cell"><div class="month-cell-content"><span class="cell-paid-badge">PAID</span></div></td>`;
-        }
-      }else{
-        const aa=canEdit?` data-action="add" data-year="${year}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${months[i]} ${year}"`:"";
-        html+=`<td class="${locked?"locked":"empty"} month-cell"${aa}>—</td>`;
-      }
-    });
-    html+=`<td><strong style="font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></td></tr>`;
-  });
-  html+=`<tr class="total-row"><td colspan="2">TOTAL</td>`;
-  monthlyTotals.forEach(t=>{ html+=`<td>${fmt$(t)}</td>`; });
-  html+=`<td>—</td></tr>`;
-  document.getElementById("tableBody").innerHTML=html;
-
-  /* Month header totals (initial render — full dataset) */
-  const monthlyFlatCounts = new Array(12).fill(0);
-  sorted.forEach(row=>{
-    months.forEach((_,i)=>{
-      if(year==="all"){
-        const found=Object.keys(row.years||{}).some(_yr=>row.years?.[_yr]?.months?.[i]);
-        if(found)monthlyFlatCounts[i]++;
-      }else{
-        if(row.coverageByKey?.[PaymentMonths.toKey(year,i)])monthlyFlatCounts[i]++;
-      }
-    });
-  });
-  monthlyTotals.forEach((t,i)=>{ setTxt(`mTot${i}`,fmt$(t)); setTxt(`mFlats${i}`, monthlyFlatCounts[i]+(monthlyFlatCounts[i]===1?' flat':' flats')); });
-
-  /* Block filter dropdown */
   const bf=document.getElementById("blockFilter");
-  const sel=bf.value;
+  const selVal=bf.value;
   bf.innerHTML=`<option value="">All Blocks</option>`+sortedBlocks.map(b=>`<option value="${b}">${b}</option>`).join("");
-  if(sel&&sortedBlocks.includes(sel))bf.value=sel;
+  if(selVal&&sortedBlocks.includes(selVal))bf.value=selVal;
 
-  /* KPIs — computed fresh; applyFilters will recompute after block filter is applied */
-  updateKpis();
-
-  document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
-
-  /* Mobile cards */
-  let chtml="";
-  sorted.forEach((row,ri)=>{
-    const blockShort=row.Block.replace("Block-","B");
-    chtml+=`<div class="mob-card" data-block="${row.Block}" data-flat="${row.Flat}" style="animation-delay:${ri*28}ms">
-      <div class="mob-card-head">
-        <div class="mob-card-avatar">${blockShort}</div>
-        <div class="mob-card-info">
-          <div class="mob-card-title">${row.Block} / Flat ${row.Flat}</div>
-          <div class="mob-card-sub">Total: <strong style="color:var(--green-700);font-family:'DM Mono',monospace">${fmt$(row.total)}</strong></div>
-        </div>
-        <div class="mob-card-chevron"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 6,8 10,4"/></svg></div>
-      </div>
-      <div class="mob-card-body">`;
-
-    const yrs=Object.keys(row.years||{}).sort((a,b)=>b-a);
-    if(yrs.length){
-      yrs.forEach(yr=>{
-        const yd=row.years[yr];
-        chtml+=`<div class="year-section"><div class="year-row" data-year="${yr}"><span class="year-label">${yr}</span><div class="year-right"><span class="year-total">${fmt$(yd.total)}</span><span class="year-chevron"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg></span></div></div>
-        <div class="year-months"><div class="month-grid">`;
-        months.forEach((m,i)=>{
-          const txMd=yd.months?.[i]||null;
-          // Same "actual transaction month vs. merely-covered month" split as
-          // the desktop grid (see the coverageByKey-based lookup above): show
-          // full transaction details only in the month the payment was
-          // actually recorded, and a plain Paid mark for other months it
-          // covers — no repeated amount/date and no "via" label.
-          const coverageEntry=row.coverageByKey?.[PaymentMonths.toKey(yr,i)]||null;
-          const locked=isFlatMonthLocked(row.Block,row.Flat,Number(yr),i);
-          const ea=txMd?` data-action="edit" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}"`:(coverageEntry?"":` data-action="add" data-year="${yr}" data-mi="${i}" data-block="${row.Block}" data-flat="${row.Flat}" title="Add payment for ${MONTH_SHORT[i]} ${yr}"`);
-          const modeClass=txMd?.paymentMode==="CASH"?"cash":"online";
-          let tileContent,tileStateClass;
-          if(locked){
-            if(txMd){
-              tileContent=`<div class="mt-amount">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>`;
-            }else{
-              tileContent="—";
-            }
-            tileStateClass="locked";
-          }else if(txMd){
-            const cellKey=PaymentMonths.toKey(Number(yr),i);
-            const isCovered=entryCoversMonth(txMd,Number(yr),i)||!!row.coverageByKey?.[cellKey];
-            tileContent=`<div class="mt-amount${isCovered?"":" mt-amount-red"}">${fmt$(txMd.amount)}</div><div class="mt-date">${txMd.date}</div>${txMd.paidMonthsHtml?`<div class="mt-paid-months">${txMd.paidMonthsHtml}</div>`:""}<span class="mt-mode ${modeClass}">${txMd.paymentMode||""}</span>`;
-            tileStateClass=isCovered?"has-payment":"not-paid";
-          }else if(coverageEntry){
-            // Read-only: this month is settled by a payment made in a
-            // different month. No amount/date shown, and no data-action —
-            // it can only be edited from the month the payment actually
-            // happened in.
-            tileContent=`<div class="mt-paid-badge">PAID</div>`;
-            tileStateClass="has-payment covered";
-          }else{
-            tileContent=`<div class="mt-empty">+ Add</div>`;
-            tileStateClass="no-data";
-          }
-          chtml+=`<div class="month-tile ${tileStateClass}"${ea}>
-            <div class="mt-name">${MONTH_SHORT[i]}</div>
-            ${tileContent}
-          </div>`;
-        });
-        chtml+=`</div><div class="year-summary"><span>Paid in ${yr}</span><strong>${fmt$(yd.total)}</strong></div></div></div>`;
-      });
-    }else{
-      chtml+=`<div style="padding:16px;font-size:0.82rem;color:var(--ink-3)">No payments recorded yet.</div>`;
-    }
-    chtml+=`</div></div>`;
-  });
-  document.getElementById("mobileCards").innerHTML=chtml;
   applyFilters();
 }
 
-/* ── KPI computation (filter-aware) ──────────────────────────────────────────
-   Reads the active block filter and recalculates all 4 KPIs plus the 12
-   monthly column-header totals based only on visible (matching) rows.
-   Called by renderAll (initial) and applyFilters (on every filter change).
-─────────────────────────────────────────────────────────────────────────── */
-function updateKpis(){
-  const year     = activeYear();
-  const blockSel = (document.getElementById("blockFilter")?.value||"").toLowerCase();
-  const sv       = (document.getElementById("search")?.value||"").toLowerCase();
-  const st       = (document.getElementById("searchType")?.value||"all");
-
-  /* ── Accumulate filtered metrics ── */
-  let totalCollection  = 0;
-  let onlineCollection = 0;
-  let cashCollection   = 0;
-  const paidFlatKeys   = new Set();
-  const filteredMonthlyTotals = new Array(12).fill(0);
-
-  /* Also track total visible flat count (denominator for Paid Flats %) */
-  let totalVisibleFlats = 0;
-
-  Object.entries(groupedData).forEach(([key, row])=>{
-    /* Block filter */
-    if(blockSel && row.Block.toLowerCase() !== blockSel) return;
-
-    /* Text search filter */
-    if(sv){
-      const rb = row.Block.toLowerCase();
-      const rf = String(row.Flat).toLowerCase();
-      let textMatch = false;
-      if(st==="block")      textMatch = rb.includes(sv);
-      else if(st==="flat")  textMatch = rf.includes(sv);
-      else                  textMatch = rb.includes(sv) || rf.includes(sv);
-      if(!textMatch) return;
-    }
-
-    totalVisibleFlats++;
-
-    const searchYears = year==="all" ? Object.keys(row.years||{}) : [year];
-    let flatHasPayment = false;
-
-    searchYears.forEach(yr=>{
-      const yd = row.years?.[yr]; if(!yd) return;
-      Object.entries(yd.months||{}).forEach(([mi, entry])=>{
-        const amt = Number(entry.amount||0);
-        if(!amt) return;
-        flatHasPayment = true;
-        totalCollection  += amt;
-        filteredMonthlyTotals[Number(mi)] += amt;
-        const mode = String(entry.paymentMode||"").toUpperCase();
-        if(mode==="CASH") cashCollection   += amt;
-        else              onlineCollection += amt;
-      });
-    });
-
-    if(flatHasPayment) paidFlatKeys.add(key);
-  });
-
-  /* ── Percentage calculations ── */
-  /* 1. Total Collection %: collected vs expected (flats × 12 months × standard rate)
-        We don't know the standard rate, so we derive "expected" as:
-        totalVisibleFlats × 12 × median or average per-payment amount.
-        Practical approach: expected = totalVisibleFlats × 12 × 200 (₹200/month guard fee).
-        If you want a different denominator, change EXPECTED_PER_FLAT_YEAR below.       */
-  const EXPECTED_PER_FLAT_YEAR = 200 * 12; /* ₹200/month × 12 months */
-  const expectedTotal  = totalVisibleFlats * EXPECTED_PER_FLAT_YEAR;
-  const totalPct       = expectedTotal > 0 ? Math.round((totalCollection / expectedTotal) * 100) : 0;
-
-  /* 2. Paid Flats %: paid flats / total visible flats */
-  const flatsPct = totalVisibleFlats > 0 ? Math.round((paidFlatKeys.size / totalVisibleFlats) * 100) : 0;
-
-  /* 3. Online %: online / total collected */
-  const onlinePct = totalCollection > 0 ? Math.round((onlineCollection / totalCollection) * 100) : 0;
-
-  /* 4. Cash %: cash / total collected */
-  const cashPct   = totalCollection > 0 ? Math.round((cashCollection   / totalCollection) * 100) : 0;
-
-  /* ── Helper: set progress bar width with clamped animation ── */
-  function setBar(id, pct){
-    const el = document.getElementById(id);
-    if(!el) return;
-    /* Small delay so the CSS transition fires after initial paint */
-    requestAnimationFrame(()=>{ el.style.width = Math.min(Math.max(pct, 0), 100) + "%"; });
-  }
-
-  /* ── Helper: pct label with cap display ── */
-  const pctLabel = p => p > 0 ? `${p}%` : "0%";
-
-  /* ── Update desktop KPI tiles ── */
-  const skIds = ["kpiTotal","kpiFlats","kpiOnline","kpiCash"];
-  skIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove("sk"); });
-
-  /* Tile 1 — Total Collection */
-  setTxt("kpiTotal",    fmt$(totalCollection));
-  setTxt("kpiTotalPct", pctLabel(totalPct));
-  setTxt("kpiSub",      blockSel
-    ? `${pctLabel(totalPct)} collected · ${blockSel.replace(/^block-?/i,"Block ")}`
-    : `${pctLabel(totalPct)} collected · ${year==="all"?"all years":"year "+year}`);
-  setBar("kpiTotalBar", totalPct);
-
-  /* Tile 2 — Paid Flats */
-  setTxt("kpiFlats",    `${fmtN(paidFlatKeys.size)} / ${fmtN(totalVisibleFlats)}`);
-  setTxt("kpiFlatsPct", pctLabel(flatsPct));
-  setTxt("kpiFlatsCtx", `${pctLabel(flatsPct)} of flats paid`);
-  setBar("kpiFlatsBar", flatsPct);
-
-  /* Tile 3 — Online */
-  setTxt("kpiOnline",    fmt$(onlineCollection));
-  setTxt("kpiOnlinePct", pctLabel(onlinePct));
-  setBar("kpiOnlineBar", onlinePct);
-
-  /* Tile 4 — Cash */
-  setTxt("kpiCash",    fmt$(cashCollection));
-  setTxt("kpiCashPct", pctLabel(cashPct));
-  setBar("kpiCashBar", cashPct);
-
-  /* ── Update mobile KPI cards ── */
-  setTxt("mkTotal",    fmt$(totalCollection));
-  setTxt("mkTotalPct", pctLabel(totalPct));
-  setTxt("mkTotalCtx", `${pctLabel(totalPct)} collected`);
-  setBar("mkTotalBar", totalPct);
-
-  setTxt("mkFlats",    `${fmtN(paidFlatKeys.size)} / ${fmtN(totalVisibleFlats)}`);
-  setTxt("mkFlatsPct", pctLabel(flatsPct));
-  setTxt("mkFlatsCtx", `${pctLabel(flatsPct)} of flats`);
-  setBar("mkFlatsBar", flatsPct);
-
-  setTxt("mkOnline",    fmt$(onlineCollection));
-  setTxt("mkOnlinePct", pctLabel(onlinePct));
-  setBar("mkOnlineBar", onlinePct);
-
-  setTxt("mkCash",    fmt$(cashCollection));
-  setTxt("mkCashPct", pctLabel(cashPct));
-  setBar("mkCashBar", cashPct);
-
-  /* ── Sidebar resident badge (full dataset, not filtered) ── */
-  const totalFlatCount = Object.keys(groupedData).length;
-  setTxt("navResidents",       fmtN(totalFlatCount));
-  setTxt("drawerNavResidents", fmtN(totalFlatCount));
-
-  /* ── Month column header totals ── */
-  filteredMonthlyTotals.forEach((t,i)=>setTxt(`mTot${i}`, fmt$(t)));
-
-  /* ── Reveal KPI animation ── */
-  document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
-}
-
-/* ── Filters ── */
+/* ── Filters (status pill + block + search) — rebuilds the block-card list
+   and recomputes KPIs. Called on every filter interaction, and once from
+   renderAll() after each fetch. ── */
 function applyFilters(){
-  const sv=document.getElementById("search").value.toLowerCase();
-  const sb=document.getElementById("blockFilter").value;
-  const st=document.getElementById("searchType").value;
-  let vis=0;
-  document.querySelectorAll("#tableBody tr").forEach(tr=>{
-    if(tr.querySelector("td[colspan]")){tr.style.display="";return;}
-    const rb=(tr.dataset.block||"").toLowerCase(), rf=(tr.dataset.flat||"").toLowerCase(), rt=tr.innerText.toLowerCase();
-    let m=!sv||(st==="block"?rb.includes(sv):st==="flat"?rf.includes(sv):st==="amount"?rt.includes(sv):rt.includes(sv));
-    const show=m&&(!sb||rb===sb.toLowerCase());
-    tr.style.display=show?"":"none";
-    if(show)vis++;
-  });
-  document.querySelectorAll("#mobileCards .mob-card").forEach(card=>{
-    const cb=(card.dataset.block||"").toLowerCase(), cf=(card.dataset.flat||"").toLowerCase(), ct=card.innerText.toLowerCase();
-    let m=!sv||(st==="block"?cb.includes(sv):st==="flat"?cf.includes(sv):st==="amount"?ct.includes(sv):ct.includes(sv));
-    card.style.display=m&&(!sb||cb===sb.toLowerCase())?"":"none";
-  });
-  const fc=document.getElementById("filterCount");
-  if(fc)fc.textContent=vis?`${fmtN(vis)} flat${vis!==1?"s":""}`:""
+  const sv=(document.getElementById("search")?.value||"").trim().toLowerCase();
+  const sb=document.getElementById("blockFilter")?.value||"";
+  const year=currentYear;
+  const canEdit=year!=="all";
 
-  /* Recompute KPIs & monthly header totals for the active filter combination */
+  const scoped=currentSorted.filter(row=>{
+    if(sb&&row.Block!==sb)return false;
+    if(sv&&!String(row.Flat).toLowerCase().includes(sv))return false;
+    return true;
+  });
+  const counts={all:0,paid:0,due:0,review:0};
+  scoped.forEach(row=>{ counts.all++; const b=computeFlatBucket(row,year); counts[b]=(counts[b]||0)+1; });
+  const finalRows=statusFilter==="all"?scoped:scoped.filter(row=>computeFlatBucket(row,year)===statusFilter);
+
+  const pillDefs=[["all","All"],["paid","Paid"],["due","Due"],["review","Review"]];
+  const pillsEl=document.getElementById("statusPills");
+  pillsEl.innerHTML=pillDefs.map(([k,label])=>
+    `<button type="button" class="status-pill ${statusFilter===k?"active":""}" data-status="${k}">${label} <span class="n">${counts[k]||0}</span></button>`
+  ).join("");
+  pillsEl.querySelectorAll(".status-pill").forEach(p=>p.addEventListener("click",()=>{ statusFilter=p.dataset.status; applyFilters(); }));
+
+  const byBlock=new Map();
+  finalRows.forEach(row=>{ if(!byBlock.has(row.Block))byBlock.set(row.Block,[]); byBlock.get(row.Block).push(row); });
+
+  const sortedBlocks=Array.from(allBlocks).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const now=new Date(), curYear=now.getFullYear(), curMonthIdx=now.getMonth();
+  let html="";
+  sortedBlocks.forEach(bn=>{
+    const rows=byBlock.get(bn);
+    if(!rows||!rows.length)return;
+    const allInBlock=currentSorted.filter(r=>r.Block===bn);
+    const collected=allInBlock.reduce((s,r)=>s+(r.total||0),0);
+    const paidCount=allInBlock.filter(r=>computeFlatBucket(r,year)==="paid").length;
+    const pct=allInBlock.length?Math.round(paidCount/allInBlock.length*100):0;
+    const collapsed=collapsedBlocks.has(bn);
+
+    const theadCells=MONTH_SHORT.map((m,i)=>{
+      let sum="—";
+      if(year!=="all")sum=fmt$(rows.reduce((s,r)=>s+(r.years?.[year]?.months?.[i]?.amount||0),0));
+      const isCur=year!=="all"&&Number(year)===curYear&&i===curMonthIdx;
+      return`<th class="${isCur?"is-current":""}">${m}<span class="m-sum">${sum}</span></th>`;
+    }).join("");
+
+    const bodyRows=rows.map(row=>{
+      const cells=MONTH_SHORT.map((_,i)=>`<td>${chipHtml(row,computeCellState(row,year,i,canEdit))}</td>`).join("");
+      const bucket=computeFlatBucket(row,year);
+      const warn=bucket==="review"?`<span class="flat-warn" title="Needs review"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.2" r="0.6" fill="currentColor"/></svg></span>`:"";
+      return`<tr><td class="flat-cell"><span class="flat-num">${row.Flat}</span>${warn}</td>${cells}<td class="total-col"><div class="total-chip">${fmt$(row.total)}</div></td></tr>`;
+    }).join("");
+
+    const mobCards=rows.map(row=>{
+      const bucket=computeFlatBucket(row,year);
+      const badgeCls=bucket==="paid"?"ok":bucket==="review"?"review":"due";
+      const badgeLabel=bucket==="paid"?"Up to date":bucket==="review"?"Needs review":"Has dues";
+      const warn=bucket==="review"?`<span class="flat-warn" title="Needs review"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.2" r="0.6" fill="currentColor"/></svg></span>`:"";
+      const cells=MONTH_SHORT.map((m,i)=>`<div class="mob-cell">
+        <span class="mob-cell-month">${m}</span>${chipHtml(row,computeCellState(row,year,i,canEdit))}
+      </div>`).join("");
+      return`<div class="mob-card">
+        <div class="mob-card-head">
+          <span class="flat-num">${row.Flat}</span>${warn}
+          <div style="margin-left:auto;text-align:right">
+            <div class="mob-card-total">${fmt$(row.total)}</div>
+            <span class="mob-status ${badgeCls}">${badgeLabel}</span>
+          </div>
+        </div>
+        <div class="mob-card-strip">${cells}</div>
+      </div>`;
+    }).join("");
+
+    const blockId="blk-"+bn.replace(/[^a-zA-Z0-9]/g,"-");
+    const chevronSvg=`<div class="block-chevron"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,4 6,8 10,4"/></svg></div>`;
+    html+=`<div class="block-card ${collapsed?"collapsed":""}" data-block="${bn}" id="${blockId}">
+      <div class="block-head" data-toggle-block="${bn}">
+        <div>
+          <div class="block-name">${bn}</div>
+          <div class="block-meta">${allInBlock.length} flat${allInBlock.length===1?"":"s"} · <b>${fmt$(collected)}</b> collected</div>
+        </div>
+        <div class="block-right">
+          <div class="block-progress-track"><div class="block-progress-fill" style="width:${pct}%"></div></div>
+          <div class="block-pct">${pct}%</div>
+          ${chevronSvg}
+        </div>
+      </div>
+      <div class="block-body">
+        <div class="matrix-wrap">
+          <table class="pay-matrix">
+            <thead><tr><th class="flat-col">Flat</th>${theadCells}<th class="total-col">Total</th></tr></thead>
+            <tbody>${bodyRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="mob-block-card ${collapsed?"collapsed":""}" data-block="${bn}">
+      <div class="mob-block-head" data-toggle-block="${bn}">
+        <div class="mob-block-head-top">
+          ${chevronSvg}
+          <span class="mob-block-name">${bn}</span>
+          <span class="mob-block-collected">${fmt$(collected)} collected</span>
+        </div>
+        <div class="mob-block-progress">
+          <div class="block-progress-track"><div class="block-progress-fill" style="width:${pct}%"></div></div>
+          <div class="block-pct">${pct}%</div>
+        </div>
+      </div>
+      <div class="mob-block-body">${mobCards}</div>
+    </div>`;
+  });
+  document.getElementById("blocksWrap").innerHTML=html||`<div class="empty-note">No flats match these filters. Try clearing the search or status filter.</div>`;
+
+  const fc=document.getElementById("filterCount");
+  if(fc)fc.textContent=finalRows.length?`${fmtN(finalRows.length)} flat${finalRows.length!==1?"s":""}`:"";
+
   updateKpis();
 }
 
-/* ── Excel export ── */
-function downloadReport(){ const t=document.getElementById("payTable"); const wb=XLSX.utils.table_to_book(t); XLSX.writeFile(wb,"MIG_Payments.xlsx"); }
+/* ── KPI computation (filter-aware) — same accumulation loop and the same
+   EXPECTED_PER_FLAT_YEAR (₹200/month) assumption the original used for its
+   "% of expected" figure; Outstanding reuses that identical assumption
+   rather than introducing a new one. ── */
+function updateKpis(){
+  const year=currentYear;
+  const blockSel=(document.getElementById("blockFilter")?.value||"").toLowerCase();
+  const sv=(document.getElementById("search")?.value||"").toLowerCase();
 
-/* ── Get active year ── */
+  let totalCollection=0,onlineCollection=0,cashCollection=0;
+  const paidFlatKeys=new Set();
+  let totalVisibleFlats=0;
+
+  Object.entries(groupedData).forEach(([key,row])=>{
+    if(blockSel&&row.Block.toLowerCase()!==blockSel)return;
+    if(sv&&!String(row.Flat).toLowerCase().includes(sv))return;
+    totalVisibleFlats++;
+    const searchYears=year==="all"?Object.keys(row.years||{}):[year];
+    let flatHasPayment=false;
+    searchYears.forEach(yr=>{
+      const yd=row.years?.[yr]; if(!yd)return;
+      Object.entries(yd.months||{}).forEach(([mi,entry])=>{
+        const amt=Number(entry.amount||0);
+        if(!amt)return;
+        flatHasPayment=true;
+        totalCollection+=amt;
+        const mode=String(entry.paymentMode||"").toUpperCase();
+        if(mode==="CASH")cashCollection+=amt; else onlineCollection+=amt;
+      });
+    });
+    if(flatHasPayment)paidFlatKeys.add(key);
+  });
+
+  const EXPECTED_PER_FLAT_YEAR=200*12; /* ₹200/month × 12 — same rough estimate the original KPI used */
+  const expectedTotal=totalVisibleFlats*EXPECTED_PER_FLAT_YEAR;
+  const totalPct=expectedTotal>0?Math.round((totalCollection/expectedTotal)*100):0;
+  const flatsPct=totalVisibleFlats>0?Math.round((paidFlatKeys.size/totalVisibleFlats)*100):0;
+  const onlinePct=totalCollection>0?Math.round((onlineCollection/totalCollection)*100):0;
+  const cashPct=totalCollection>0?Math.round((cashCollection/totalCollection)*100):0;
+  const outstanding=Math.max(expectedTotal-totalCollection,0);
+  const outstandingPct=expectedTotal>0?Math.round((outstanding/expectedTotal)*100):0;
+
+  function setBar(id,pct){ const el=document.getElementById(id); if(!el)return; requestAnimationFrame(()=>{ el.style.width=Math.min(Math.max(pct,0),100)+"%"; }); }
+  const pctLabel=p=>p>0?`${p}%`:"0%";
+
+  ["kpiTotal","kpiFlats","kpiOnline","kpiOutstanding"].forEach(id=>{ const el=document.getElementById(id); if(el)el.classList.remove("sk"); });
+
+  setTxt("kpiTotal",fmt$(totalCollection));
+  setTxt("kpiTotalPct",pctLabel(totalPct));
+  setTxt("kpiSub",blockSel?`${pctLabel(totalPct)} collected · ${blockSel.replace(/^block-?/i,"Block ")}`:`${pctLabel(totalPct)} collected · ${year==="all"?"all years":"year "+year}`);
+  setBar("kpiTotalBar",totalPct);
+
+  setTxt("kpiFlats",`${fmtN(paidFlatKeys.size)} / ${fmtN(totalVisibleFlats)}`);
+  setTxt("kpiFlatsPct",pctLabel(flatsPct));
+  setTxt("kpiFlatsCtx",`${pctLabel(flatsPct)} of flats paid`);
+  setBar("kpiFlatsBar",flatsPct);
+
+  setTxt("kpiOnline",fmt$(onlineCollection));
+  setTxt("kpiOnlinePct",pctLabel(onlinePct));
+  setTxt("kpiCashPct",pctLabel(cashPct));
+  const mixA=document.getElementById("kpiMixOnlineSeg"),mixB=document.getElementById("kpiMixCashSeg");
+  if(mixA)mixA.style.flex=String(Math.max(onlinePct,1));
+  if(mixB)mixB.style.flex=String(Math.max(cashPct,1));
+
+  setTxt("kpiOutstanding",fmt$(outstanding));
+  setTxt("kpiOutstandingCtx",outstanding>0?`${pctLabel(outstandingPct)} of expected still due`:"All caught up");
+
+  const totalFlatCount=Object.keys(groupedData).length;
+  setTxt("navResidents",fmtN(totalFlatCount));
+  setTxt("drawerNavResidents",fmtN(totalFlatCount));
+
+  document.querySelectorAll(".kpi-cell").forEach(el=>requestAnimationFrame(()=>el.classList.add("reveal")));
+}
+
+/* ── Excel export — rebuilt from groupedData directly instead of scraping
+   a DOM table (the old #payTable element no longer exists as a single
+   giant table, and scraping is fragile regardless of markup). ── */
+function downloadReport(){
+  const year=currentYear||activeYear();
+  const rows=(currentSorted&&currentSorted.length?currentSorted:Object.values(groupedData))
+    .slice().sort((a,b)=>{const c=a.Block.localeCompare(b.Block,undefined,{numeric:true});return c!==0?c:a.Flat-b.Flat;});
+  const header=["Block","Flat",...MONTH_SHORT,"Total"];
+  const aoa=[header];
+  const monthSums=new Array(12).fill(0);
+  rows.forEach(row=>{
+    const line=[row.Block,row.Flat];
+    MONTH_SHORT.forEach((_,i)=>{
+      let amt=0;
+      if(year==="all"){ Object.values(row.years||{}).forEach(yd=>{ amt+=Number(yd?.months?.[i]?.amount||0); }); }
+      else{ amt=Number(row.years?.[year]?.months?.[i]?.amount||0); }
+      monthSums[i]+=amt;
+      line.push(amt);
+    });
+    line.push(Number(row.total||0));
+    aoa.push(line);
+  });
+  aoa.push(["TOTAL","",...monthSums,monthSums.reduce((s,v)=>s+v,0)]);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Payments");
+  XLSX.writeFile(wb,"MIG_Payments.xlsx");
+}
+
 function activeYear(){
   return (window.innerWidth<=768?document.getElementById("yearMob"):document.getElementById("yearDesk"))?.value||DEFAULT_YEAR;
 }
@@ -2202,11 +2443,20 @@ function setFormMsg(msg,ok=false){ const el=document.getElementById("formMsg"); 
 /* Received By stays visible for both ONLINE and CASH; it's only mandatory
    (shown with a red asterisk) when the payment mode is CASH. */
 function updateRecvRequirement(){
-  const isCash=document.getElementById("fMode").value==="CASH";
+  const mode=document.getElementById("fMode").value;
+  const isCash=mode==="CASH";
   document.getElementById("fRecvRequiredMark").style.display=isCash?"":"none";
+  document.querySelectorAll("#modeSeg .mode-seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
 }
 
-function openModal({mode="web",block="",flat=""}={}){
+/* ── Modal open (create mode) ──
+   Simplified from the original: the {mode:"web"|"mobile"} parameter and its
+   fBlockR/fFlatR "readonly mirror" branch were dead code — every call site
+   in this file already passed mode:"web" (or nothing), and openAddModalForCell
+   re-sets fBlock/fFlat immediately after calling this anyway. Removed rather
+   than carried forward unused. */
+function openModal(){
+  if(!requireStaffAuth())return;
   document.getElementById("paymentForm").reset();
   const today=getToday();
   document.getElementById("fDate").max=today;
@@ -2220,17 +2470,7 @@ function openModal({mode="web",block="",flat=""}={}){
   document.getElementById("modalSubtitle").textContent="Create a new payment entry";
   document.getElementById("saveBtn").textContent="Save Payment";
   document.getElementById("deleteBtn").classList.add("hidden");
-  const isMob=mode==="mobile";
-  const bs=document.getElementById("fBlock"),fs=document.getElementById("fFlat");
-  const br=document.getElementById("fBlockR"),fr=document.getElementById("fFlatR");
-  bs.classList.toggle("hidden",isMob); fs.classList.toggle("hidden",isMob);
-  br.classList.toggle("hidden",!isMob); fr.classList.toggle("hidden",!isMob);
-  bs.required=!isMob; fs.required=!isMob;
-  if(isMob){ br.value=block; fr.value=flat; bs.value=block; populateFlatOptions(block,flat); }
-  else{ populateBlockOptions(); }
-  // Build the picker AFTER block/flat are known so already-paid months for
-  // that flat are disabled from the very first render. Default the Year
-  // dropdown to the current calendar year.
+  populateBlockOptions();
   buildYearOptions();
   document.getElementById("payYear").value=String(new Date().getFullYear());
   refreshMonthPicker([monthYearFromDate(today)]);
@@ -2240,9 +2480,73 @@ function openModal({mode="web",block="",flat=""}={}){
   setTimeout(()=>document.getElementById("fAmount").focus(),80);
 }
 
+/* ── Block-card interactions: collapse/expand + chip clicks ──
+   One delegated listener on the shared #blocksWrap container handles both
+   the desktop matrix (.block-card) and the mobile card list
+   (.mob-block-card) — two separate DOM trees, one per block, shown/hidden
+   by a media query, kept in sync via the shared data-block attribute. */
+document.getElementById("blocksWrap").addEventListener("click",e=>{
+  const toggle=e.target.closest("[data-toggle-block]");
+  if(toggle){
+    const bn=toggle.dataset.toggleBlock;
+    collapsedBlocks.has(bn)?collapsedBlocks.delete(bn):collapsedBlocks.add(bn);
+    /* Two DOM trees share one bn — the desktop .block-card and the mobile
+       .mob-block-card — both tagged data-block="bn", so keep them in sync
+       even though only one is visible at a time. */
+    document.querySelectorAll(`[data-block="${bn}"]`).forEach(el=>el.classList.toggle("collapsed"));
+    return;
+  }
+  const editT=e.target.closest('[data-action="edit"]');
+  if(editT){
+    const ctx=findCtx(editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi||-1));
+    if(ctx)openEditModal(ctx);
+    return;
+  }
+  const addT=e.target.closest('[data-action="add"]');
+  if(addT){
+    openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
+  }
+});
+
+/* ── Payment-mode segmented toggle — drives the real (visually hidden)
+   #fMode select so every existing consumer of its value (getPayload,
+   validatePayload, updateRecvRequirement) keeps working unchanged. ── */
+document.getElementById("modeSeg")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".mode-seg-btn"); if(!btn)return;
+  const sel=document.getElementById("fMode");
+  sel.value=btn.dataset.mode;
+  sel.dispatchEvent(new Event("change",{bubbles:true}));
+});
+
+/* ── Theme toggle — same localStorage key/class as before, now wired to
+   both the mobile header button and a new desktop topbar button so dark
+   mode is reachable on desktop too. ── */
+(function(){
+  const KEY="society_dark_mode";
+  const moonSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>`;
+  const sunSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18"/><line x1="2" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18" y2="10"/><line x1="4.22" y1="4.22" x2="5.28" y2="5.28"/><line x1="14.72" y1="14.72" x2="15.78" y2="15.78"/><line x1="14.72" y1="5.28" x2="15.78" y2="4.22"/><line x1="4.22" y1="15.78" x2="5.28" y2="14.72"/></svg>`;
+  function apply(dark){
+    document.body.classList.toggle("dark-mode",dark);
+    const btn=document.getElementById("mobThemeBtn");
+    if(btn)btn.innerHTML=dark?sunSVG:moonSVG;
+    const btnD=document.getElementById("themeToggleDesk");
+    if(btnD)btnD.innerHTML=dark?sunSVG:moonSVG;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content",dark?"#0f1117":"#4a5ed4");
+  }
+  apply(localStorage.getItem(KEY)==="1");
+  document.getElementById("mobThemeBtn")?.addEventListener("click",()=>{
+    const dark=!document.body.classList.contains("dark-mode");
+    localStorage.setItem(KEY,dark?"1":"0"); apply(dark);
+  });
+  document.getElementById("themeToggleDesk")?.addEventListener("click",()=>{
+    const dark=!document.body.classList.contains("dark-mode");
+    localStorage.setItem(KEY,dark?"1":"0"); apply(dark);
+  });
+})();
+
 function openEditModal(ctx){
   if(!ctx)return;
-  openModal({mode:"web"});
+  openModal();
   modalAction="update"; editCtx=ctx;
   document.getElementById("modalTitle").textContent="Edit Payment";
   document.getElementById("modalSubtitle").textContent="Update existing payment";
@@ -2266,7 +2570,7 @@ function openEditModal(ctx){
 
 function openAddModalForCell(block,flat,year,mi){
   if(!block||!flat||!year||mi<0)return;
-  openModal({mode:"web",block,flat});
+  openModal();
   populateBlockOptions(block);
   populateFlatOptions(block,flat);
   document.getElementById("fBlock").value=block;
@@ -2277,7 +2581,6 @@ function openAddModalForCell(block,flat,year,mi){
   // Payment date always defaults to today (already set by openModal above);
   // the user can change it to any valid past date if required.
 }
-
 
 function closeModal(){
   setMonthPickerOpen(false);
@@ -2428,7 +2731,7 @@ function getPayload(includeAttribution=true){
     }
   }
   return{
-    secret:PAYMENT_WRITE_SECRET,actionType:modalAction,
+    idToken:window.Auth?.getIdToken(),actionType:modalAction,
     block,flatNo:flat,amount:Number(document.getElementById("fAmount").value),
     paymentMode:document.getElementById("fMode").value,
     receivedBy:document.getElementById("fRecv").value.trim(),
@@ -2482,6 +2785,7 @@ function submitPayload(payload){
 
 async function savePayment(e){
   e.preventDefault();
+  if(!requireStaffAuth())return;
   const scroll={x:window.scrollX,y:window.scrollY};
   const payload=getPayload();
   const err=validatePayload(payload);
@@ -2510,6 +2814,7 @@ async function savePayment(e){
 
 async function deletePayment(){
   if(!editCtx)return;
+  if(!requireStaffAuth())return;
   const scroll={x:window.scrollX,y:window.scrollY};
   const payload=getPayload(false); payload.actionType="delete";
   const sb=document.getElementById("saveBtn"),db=document.getElementById("deleteBtn");
@@ -2554,6 +2859,7 @@ function populateFlatOptions(block,selFlat=""){
   if(selFlat&&flats.includes(String(selFlat)))fs.value=String(selFlat);
 }
 
+
 /* ── Sidebar ── */
 document.getElementById("sidebarToggle")?.addEventListener("click",()=>{
   document.getElementById("sidebar").classList.toggle("collapsed");
@@ -2567,24 +2873,8 @@ function closeDrawer(){_mobDrawer.classList.remove("open");_mobOverlay.classList
 document.getElementById("mobMenuBtn")?.addEventListener("click",openDrawer);
 _mobOverlay?.addEventListener("click",closeDrawer);
 
-/* ── Sidebar logout ── */
-document.getElementById("desktopLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
-
-/* ── Dropdown setup ── */
-function setupDD(togId,ddId){
-  const tog=document.getElementById(togId),dd=document.getElementById(ddId);
-  if(!tog||!dd)return;
-  tog.addEventListener("click",e=>{e.stopPropagation();const o=dd.classList.toggle("open");tog.setAttribute("aria-expanded",o?"true":"false");});
-}
-setupDD("profileTogDesk","pdDesk");
-document.addEventListener("click",()=>{
-  document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));
-  document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));
-});
-
-/* ── Logout ── */
-document.getElementById("logoutDesk")?.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); localStorage.removeItem(STAFF_EMAIL_KEY); window.location.href="index.html"; });
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Year sync ── */
 const yDesk=document.getElementById("yearDesk"),yMob=document.getElementById("yearMob");
@@ -2604,10 +2894,17 @@ if(yMob){yMob.value=DEFAULT_YEAR;yMob.addEventListener("change",e=>{if(yDesk)yDe
 
 /* ── Event bindings ── */
 document.getElementById("search").addEventListener("input",applyFilters);
-document.getElementById("searchType").addEventListener("change",applyFilters);
 document.getElementById("blockFilter").addEventListener("change",applyFilters);
-["deskAddBtn","filterAddBtn","mobAddBtn"].forEach(id=>{
-  document.getElementById(id)?.addEventListener("click",()=>openModal({mode:"web"}));
+document.getElementById("expandAllBtn")?.addEventListener("click",()=>{
+  allCollapsed=!allCollapsed;
+  if(allCollapsed) allBlocks.forEach(bn=>collapsedBlocks.add(bn));
+  else collapsedBlocks.clear();
+  document.getElementById("expandAllLabel").textContent=allCollapsed?"Expand all":"Collapse all";
+  document.getElementById("expandAllBtn").classList.toggle("is-collapsed",allCollapsed);
+  applyFilters();
+});
+["deskAddBtn","mobAddBtn"].forEach(id=>{
+  document.getElementById(id)?.addEventListener("click",()=>openModal());
 });
 document.getElementById("refreshBtn")?.addEventListener("click",fetchAllMonthData);
 document.getElementById("closeModal").addEventListener("click",closeModal);
@@ -2631,57 +2928,14 @@ document.getElementById("fDate").addEventListener("change",e=>{
   const today=getToday(); if(e.target.value>today)e.target.value=today;
 });
 
-/* ── Table click ── */
-document.getElementById("tableBody").addEventListener("click",e=>{
-  const editT=e.target.closest('[data-action="edit"]');
-  if(editT){
-    const ctx=findCtx(editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi||-1));
-    if(ctx)openEditModal(ctx);
-    return;
-  }
-  const addT=e.target.closest('[data-action="add"]');
-  if(addT){
-    openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
-  }
-});
-
-/* ── Mobile card clicks ── */
-document.getElementById("mobileCards").addEventListener("click",e=>{
-  const edit=e.target.closest('[data-action="edit"]');
-  if(edit){e.stopPropagation();const ctx=findCtx(edit.dataset.block||"",edit.dataset.flat||"",edit.dataset.year||"",Number(edit.dataset.mi||-1));if(ctx)openEditModal(ctx);return;}
-  const add=e.target.closest('[data-action="add"]');
-  if(add){e.stopPropagation();openAddModalForCell(add.dataset.block||"",add.dataset.flat||"",add.dataset.year||"",Number(add.dataset.mi??-1));return;}
-  const yr=e.target.closest(".year-row");
-  if(yr){yr.classList.toggle("expanded");return;}
-  const head=e.target.closest(".mob-card-head");
-  if(head){const card=head.closest(".mob-card");if(card)card.classList.toggle("expanded");return;}
-});
-
 /* ── Date default ── */
 document.getElementById("fDate").max=getToday();
 
-/* ── Theme toggle ── */
-(function(){
-  const KEY="society_dark_mode";
-  const moonSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" transform="scale(0.85) translate(1.5,1.5)"/></svg>`;
-  const sunSVG=`<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="4"/><line x1="10" y1="2" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18"/><line x1="2" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18" y2="10"/><line x1="4.22" y1="4.22" x2="5.28" y2="5.28"/><line x1="14.72" y1="14.72" x2="15.78" y2="15.78"/><line x1="14.72" y1="5.28" x2="15.78" y2="4.22"/><line x1="4.22" y1="15.78" x2="5.28" y2="14.72"/></svg>`;
-  function apply(dark){
-    document.body.classList.toggle("dark-mode",dark);
-    const btn=document.getElementById("mobThemeBtn");
-    if(btn)btn.innerHTML=dark?sunSVG:moonSVG;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content",dark?"#0f172a":"#2563eb");
-  }
-  apply(localStorage.getItem(KEY)==="1");
-  document.getElementById("mobThemeBtn")?.addEventListener("click",()=>{
-    const dark=!document.body.classList.contains("dark-mode");
-    localStorage.setItem(KEY,dark?"1":"0"); apply(dark);
-  });
-})();
 
 /* ── Init ── */
-if(sessionStorage.getItem(AUTH_SESSION_KEY)!=="true")sessionStorage.setItem(AUTH_SESSION_KEY,"true");
 loadEmergencyBadge();
 fetchAllMonthData();
+
 </script>
 </body>
 </html>
