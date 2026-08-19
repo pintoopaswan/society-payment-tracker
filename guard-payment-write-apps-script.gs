@@ -132,13 +132,7 @@ const READABLE_SHEET_IDS = [
   "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE", // resident directory + vehicles + emergency contacts (config.js: sheets.directory.id)
   "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",  // payments — 2026 (config.js: sheets.paymentsByYear["2026"])
   "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP",              // payments — 2025 (config.js: sheets.paymentsByYear["2025"])
-  "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo",   // expenses, as read by fund-ledger.html (config.js: sheets.expenses.id)
-  // NOTE: this does NOT include "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8"
-  // (EXPENSE_SPREADSHEET_ID below, used by the expense WRITE handlers) —
-  // that's a different ID than the one fund-ledger.html actually reads.
-  // That mismatch predates this change and needs its own investigation;
-  // don't paper over it by adding both IDs here without first confirming
-  // which spreadsheet is actually the source of truth for expenses.
+  "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo",   // expenses — reads AND writes (config.js: sheets.expenses.id; EXPENSE_SPREADSHEET_ID below)
 ];
 
 function isReadRequest(e) {
@@ -1021,13 +1015,22 @@ function jsonResponse(data) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FUND LEDGER — Expense Sheet Write Handlers
-// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8
+// Sheet ID  : 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo
 // Tab       : Sheet1 (or whichever the active tab is)
 // Columns   : TRANSACTION DATE | TRANSACTION TYPE | DESCRIPTION | AMOUNT |
 //             PAYMENT MODE | OPENING BALANCE | CLOSING BALANCE | PAID BY BILL
+//
+// CORRECTED — this constant previously pointed at
+// "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8", a DIFFERENT spreadsheet
+// than the one fund-ledger.html actually reads from. That meant every
+// expense saved through the UI was silently written to a sheet the UI
+// never displayed — confirmed and corrected per explicit instruction to
+// use 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo (matches
+// config.js's sheets.expenses.id and fund-ledger.html's EXPENSE_SHEET_ID).
+// Redeploy this script for the fix to take effect.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const EXPENSE_SPREADSHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+const EXPENSE_SPREADSHEET_ID = "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
 // Candidate tab names — the handler tries each until one is found
 const EXPENSE_TAB_CANDIDATES = ["Sheet1", "Ledger", "LEDGER", "Fund Ledger",
                                  "FUND LEDGER", "Expense", "EXPENSE"];
@@ -1226,8 +1229,19 @@ function recomputeAllBalances(sheet) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GUARD PAYMENT MATRIX — Flat-wise Security Guard Collection Sync
-// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8 (same file as the
-//             Fund Ledger / EXPENSE_SPREADSHEET_ID above — just different tabs)
+// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8
+//
+// UNVERIFIED — this comment used to claim this was "the same file as the
+// Fund Ledger / EXPENSE_SPREADSHEET_ID above, just different tabs." That
+// was wrong: EXPENSE_SPREADSHEET_ID itself turned out to be pointing at
+// the wrong spreadsheet and has since been corrected to
+// 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo — a DIFFERENT id than the
+// one below. Whether THIS id (the guard matrix) is itself correct hasn't
+// been confirmed the same way the expense one was, so it's left
+// unchanged rather than guessed at. If flat-wise guard payments aren't
+// syncing to where you expect, check this id against the actual guard
+// matrix spreadsheet in Drive before assuming it's right just because
+// it wasn't touched here.
 // Tabs      : one per year, e.g. "2025", "2026" — chosen from the payment's
 //             year, taken from payload.paymentDateInput (format YYYY-MM-DD)
 // Layout    : Row 1 = title, Row 2 = "Guard Amount Per Month" + total, Row 3
