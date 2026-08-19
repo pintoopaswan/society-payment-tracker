@@ -58,6 +58,20 @@ function doGet(e) {
   if (isPingRequest(e)) {
     return handlePingRequest(e);
   }
+  // Authenticated CSV reads — replaces the old "publish the Sheet to the
+  // web and let the client fetch the public gviz/export CSV URL directly"
+  // approach. That meant anyone with the sheet URL — not just people who
+  // signed in through login.html — could read every resident's phone
+  // number, every payment record, every emergency contact. This handler
+  // requires the same verified Google idToken every write already
+  // requires, checked against the same ALLOWED_USERS list, AND only ever
+  // serves a sheet+tab that's on the server-side READABLE_SHEETS
+  // allow-list below — a signed-in user can't pivot this into an open
+  // proxy for reading some other sheet the script's owner happens to
+  // have access to.
+  if (isReadRequest(e)) {
+    return handleReadRequest(e);
+  }
   // Fund Ledger expense operations
   if (isExpenseRequest(e)) {
     return handleExpenseRequest(e);
@@ -102,6 +116,104 @@ function handlePingRequest(e) {
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
   return jsonResponse(result);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AUTHENTICATED READS
+   Every sheet+tab this app has ever needed to read from, listed
+   explicitly. This is the REAL security boundary — not "is this a valid
+   idToken" alone, but "is this a valid idToken for one of the exact
+   sheets this app is supposed to serve." Add a new sheet ID here
+   whenever a new spreadsheet is wired into the app (e.g. next year's
+   payments sheet in config.js's paymentsByYear) — reads for anything not
+   listed here are refused even for a fully signed-in, allow-listed user.
+═══════════════════════════════════════════════════════════════════════ */
+const READABLE_SHEET_IDS = [
+  "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE", // resident directory + vehicles + emergency contacts (config.js: sheets.directory.id)
+  "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",  // payments — 2026 (config.js: sheets.paymentsByYear["2026"])
+  "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP",              // payments — 2025 (config.js: sheets.paymentsByYear["2025"])
+  "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo",   // expenses, as read by fund-ledger.html (config.js: sheets.expenses.id)
+  // NOTE: this does NOT include "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8"
+  // (EXPENSE_SPREADSHEET_ID below, used by the expense WRITE handlers) —
+  // that's a different ID than the one fund-ledger.html actually reads.
+  // That mismatch predates this change and needs its own investigation;
+  // don't paper over it by adding both IDs here without first confirming
+  // which spreadsheet is actually the source of truth for expenses.
+];
+
+function isReadRequest(e) {
+  const params = (e && e.parameter) || {};
+  return String(params.action || "").toLowerCase() === "read";
+}
+
+function handleReadRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  let result;
+  try {
+    // authorizePayload_ already does exactly what's needed here — verify
+    // the idToken against Google, then against ALLOWED_USERS — it just
+    // normally reads payload.idToken from a POST-style payload; a GET
+    // read request's idToken is a plain query param instead.
+    const auth = authorizePayload_({ idToken: params.idToken });
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
+    } else {
+      const sheetId = String(params.sheetId || "").trim();
+      const tab = String(params.tab || "").trim();
+      if (READABLE_SHEET_IDS.indexOf(sheetId) < 0) {
+        result = { ok: false, error: "This sheet is not on the server's readable list." };
+      } else if (!tab) {
+        result = { ok: false, error: "No tab specified." };
+      } else {
+        result = readSheetAsCsv_(sheetId, tab);
+      }
+    }
+  } catch (err) {
+    result = { ok: false, error: err.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+/* Returns a sheet tab as CSV text, in the SAME shape the client used to
+   get back from Google's public gviz/export CSV URL — so utils.js only
+   needed to change WHERE it fetches from, not how it parses the result.
+
+   Uses getDisplayValues() rather than getValues() specifically so dates
+   and numbers come back already formatted exactly as the sheet displays
+   them (matching what the old public CSV export produced) instead of
+   raw Date/number objects that would need new client-side formatting
+   logic to match the old behavior. */
+function readSheetAsCsv_(sheetId, tabName) {
+  let ss;
+  try {
+    ss = SpreadsheetApp.openById(sheetId);
+  } catch (err) {
+    return { ok: false, error: "Could not open sheet: " + err.message };
+  }
+  const sheet = ss.getSheetByName(tabName);
+  if (!sheet) return { ok: false, error: 'Tab "' + tabName + '" not found.' };
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 1 || lastCol < 1) return { ok: true, csv: "" };
+  const values = sheet.getRange(1, 1, lastRow, lastCol).getDisplayValues();
+  const csv = values.map(function (row) {
+    return row.map(csvEscapeCell_).join(",");
+  }).join("\n");
+  return { ok: true, csv: csv };
+}
+
+function csvEscapeCell_(cell) {
+  const v = String(cell == null ? "" : cell);
+  if (/[",\n]/.test(v)) {
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
+  return v;
 }
 
 function savePaymentFromAdmin(payload) {

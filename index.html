@@ -1919,31 +1919,27 @@ function renderRecentRes(rd){
 /* ── Load expenses ── */
 const EXPENSE_SHEET_ID="1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
 async function loadExpenses(){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`,
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=Sheet1`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});const csv=await r.text();
-      const p=csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
-      const lines=csv.split(/\r?\n/).filter(l=>l.trim());if(lines.length<2)continue;
-      const headerRaw=parseCSV(lines[0]).map(h=>String(h||"").trim().toLowerCase());
-      const colIdx=(pats,fallback)=>{const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));return i>=0?i:fallback;};
-      const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","txn type","payment type","type"],4),desc:colIdx(["description","desc","particulars","narration","detail"],3),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],1),paymode:colIdx(["payment mode","pay mode","mode","payment method"],2)};
-      const entries=lines.slice(1).map(line=>{
-        const cols=parseCSV(line);const rawType=String(cols[C.type]||"").trim().toUpperCase();
-        const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;
-        const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
-        const rawDate=String(cols[C.date]||"").trim();
-        return{date:rawDate,description:cols[C.desc]||"",type,amount:amt,paymode:cols[C.paymode]||""};
-      }).filter(e=>e.amount>0);
-      const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
-      const totalDebits=entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
-      return{entries,totalCredits,totalDebits};
-    }catch(_){}
-  }
+  try{
+    const csv=await Utils.fetchCsv(EXPENSE_SHEET_ID,"Sheet1");
+    if(csv){
+      const lines=csv.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length>=2){
+        const headerRaw=parseCSV(lines[0]).map(h=>String(h||"").trim().toLowerCase());
+        const colIdx=(pats,fallback)=>{const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));return i>=0?i:fallback;};
+        const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","txn type","payment type","type"],4),desc:colIdx(["description","desc","particulars","narration","detail"],3),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],1),paymode:colIdx(["payment mode","pay mode","mode","payment method"],2)};
+        const entries=lines.slice(1).map(line=>{
+          const cols=parseCSV(line);const rawType=String(cols[C.type]||"").trim().toUpperCase();
+          const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;
+          const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
+          const rawDate=String(cols[C.date]||"").trim();
+          return{date:rawDate,description:cols[C.desc]||"",type,amount:amt,paymode:cols[C.paymode]||""};
+        }).filter(e=>e.amount>0);
+        const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
+        const totalDebits=entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
+        return{entries,totalCredits,totalDebits};
+      }
+    }
+  }catch(_){}
   return{entries:[],totalCredits:0,totalDebits:0};
 }
 

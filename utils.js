@@ -105,37 +105,93 @@
     } catch {}
   }
 
+  /* ── JSONP helper ──
+     Apps Script Web Apps don't reliably support fetch()-with-custom-
+     headers cross-origin, so — matching the exact pattern every write
+     in this app already uses — reads go out as a <script src="..."> tag
+     with a callback param, sidestepping CORS entirely. The idToken rides
+     along as a URL query param here too, same as it already does for
+     every write; that's a known, already-flagged characteristic of this
+     app's JSONP approach (see the security audit notes), not something
+     new introduced by moving reads onto this same mechanism. */
+  let jsonpSeq = 0;
+  function jsonpRequest(url, timeoutMs = 20000) {
+    return new Promise((resolve, reject) => {
+      const cbName = `__sp_jsonp_${Date.now()}_${jsonpSeq++}`;
+      const script = document.createElement("script");
+      let settled = false;
+      let timer;
+      const cleanup = () => {
+        delete window[cbName];
+        script.remove();
+        clearTimeout(timer);
+      };
+      window[cbName] = (data) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(data);
+      };
+      timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error("Request timed out"));
+      }, timeoutMs);
+      script.onerror = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error("Network error"));
+      };
+      script.src = `${url}${url.includes("?") ? "&" : "?"}callback=${cbName}`;
+      document.head.appendChild(script);
+    });
+  }
+
+  /* ── doFetchCsv ──
+     Reads now go through the same authenticated Apps Script endpoint
+     writes already use (guard-payment-write-apps-script.gs's
+     handleReadRequest), instead of Google's PUBLIC gviz/export CSV URLs.
+     That public-URL approach meant anyone with a sheet's URL — signed in
+     through this app's login or not — could read every resident's phone
+     number, every payment record, every emergency contact, regardless of
+     what auth.js enforced at the page level. The backend now verifies
+     the same Google idToken every write verifies, checks it against
+     ALLOWED_USERS, AND only serves sheet+tab combinations on its own
+     server-side allow-list (READABLE_SHEET_IDS) — never an arbitrary
+     sheetId a caller might pass.
+
+     This is NOT a purely client-side change: the underlying Google
+     Sheets must ALSO be switched from "Anyone with the link" to
+     Restricted sharing for this fix to be complete — Apps Script reads
+     them via the script owner's own access, so they don't need to be
+     public anymore. Until that sharing setting is changed, the old
+     public URLs would still work for anyone who already has them
+     bookmarked, even though this app no longer calls them itself. */
   async function doFetchCsv(sheetId, tab) {
-    const urls = [
-      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-      `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab.replace(/-/g, " "))}`,
-    ];
-    for (const url of urls) {
-      try {
-        const r = await fetch(url, { cache: "no-cache" });
-        const csv = await r.text();
-        const head = csv.trim().slice(0, 200).toLowerCase();
-        if (
-          !csv.trim() ||
-          head.startsWith("<!doctype html") ||
-          head.includes("<html") ||
-          head.includes("google.visualization.query.setresponse") ||
-          csv.includes("File not found")
-        ) continue;
-        return csv;
-      } catch { /* try next URL */ }
+    const readUrl = window.CONFIG?.appsScript?.read;
+    if (!readUrl) return ""; // config.js not loaded — fail safe, not fail open
+    const idToken = window.Auth?.getIdToken?.();
+    if (!idToken) return ""; // not signed in; auth.js will already be redirecting to login.html
+
+    try {
+      const params = new URLSearchParams({ action: "read", sheetId, tab, idToken });
+      const result = await jsonpRequest(`${readUrl}?${params.toString()}`);
+      if (!result || !result.ok) return "";
+      return typeof result.csv === "string" ? result.csv : "";
+    } catch {
+      return "";
     }
-    return "";
   }
 
   /* ── fetchCsv ──
-     Tries the gviz endpoint first (works for any tab name, including
-     ones with spaces/hyphens), then the plain CSV export as a fallback,
-     then a hyphen→space variant of the tab name as a last resort — the
-     same fallback chain most pages already hand-rolled independently.
-     Returns "" (not a throw) on total failure so callers can render an
-     empty state instead of an unhandled rejection.
+     Fetches a sheet+tab as CSV text via the authenticated backend
+     endpoint (see doFetchCsv above) — requires the caller to already be
+     signed in (auth.js guarantees this on every real page). Returns ""
+     (not a throw) on total failure — unauthorized, network error, or an
+     unrecognized sheet/tab — so callers can render an empty state
+     instead of an unhandled rejection.
 
      Cache-aware (see CSV cache block above). Pass {forceRefresh:true} to
      bypass the cache entirely — this is what a page's "Refresh" button

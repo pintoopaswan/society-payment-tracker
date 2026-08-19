@@ -2139,20 +2139,7 @@ function showToast(msg){
    LOAD DIRECTORY DATA
 ═══════════════════════════════════════════════ */
 async function loadDirectory(){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
-    `https://docs.google.com/spreadsheets/d/${DIRECTORY_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(DIRECTORY_TAB_NAME)}`,
-  ];
-  let csv="";
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const t=await r.text();
-      const p=t.trim().slice(0,200).toLowerCase();
-      if(!t.trim()||p.startsWith("<!doctype")||p.includes("<html")||t.includes("File not found"))continue;
-      csv=t;break;
-    }catch(_){}
-  }
+  const csv = await Utils.fetchCsv(DIRECTORY_SHEET_ID, DIRECTORY_TAB_NAME);
   if(!csv)return;
   const lines=parseCSVRows(csv);
   const rawH=parseCSV(lines[0]);

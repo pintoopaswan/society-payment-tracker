@@ -90,7 +90,8 @@ window.CONFIG = Object.freeze({
     },
   },
 
-  // Apps Script Web App deployment(s) that accept writes.
+  // Apps Script Web App deployment(s) that accept writes AND (as of the
+  // authenticated-reads fix) reads.
   //
   // NOTE — these are genuinely two different deployment URLs in the
   // current codebase, not a typo introduced here: owner-tenant.html,
@@ -103,9 +104,19 @@ window.CONFIG = Object.freeze({
   // payments.html simply having drifted from a redeploy that updated
   // the others. If they should be one deployment, point both keys below
   // at the same URL and redeploy once.
+  //
+  // `read` is used by every page for CSV reads (see utils.js fetchCsv).
+  // It's set to `residentsVehiclesExpenses` because that deployment is
+  // already the one most pages depend on — but for this to actually
+  // work, whichever Google account owns/deployed THAT script must have
+  // at least Viewer access to every sheet listed in
+  // guard-payment-write-apps-script.gs's READABLE_SHEET_IDS, including
+  // the payment-year sheets that only payments.html used to write to
+  // through the OTHER deployment. Confirm that access after deploying.
   appsScript: {
     residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec",
     payments: "https://script.google.com/macros/s/AKfycbzOOKgbKaeTzmIPc6KMMtQn69ic66KSCHSWq0bD787ZUCL6dpDxaHNK0npp3VNeje320A/exec",
+    read: "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec",
   },
 
   cache: {

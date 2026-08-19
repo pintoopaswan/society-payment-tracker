@@ -1039,22 +1039,8 @@ async function loadEmergencyContacts(){
   document.getElementById("sections").innerHTML=loadHTML;
   document.getElementById("mobileContactList").innerHTML=loadHTML;
   try{
-    const urls=[
-      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`,
-      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME)}`,
-      `https://docs.google.com/spreadsheets/d/${CONTACT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONTACT_TAB_NAME.replace(/-/g," "))}`,
-    ];
-    let csv="";
-    for(const url of urls){
-      try{
-        const r=await fetch(url,{cache:"no-cache"});
-        const t=await r.text();
-        const p=t.trim().slice(0,200).toLowerCase();
-        if(!t.trim()||p.startsWith("<!doctype")||p.includes("<html")||p.includes("setresponse")||t.includes("File not found"))continue;
-        csv=t;break;
-      }catch(_){}
-    }
-    if(!csv)throw new Error("Unable to load sheet. Share the Google Sheet publicly (Anyone with link → Viewer).");
+    const csv = await Utils.fetchCsv(CONTACT_SHEET_ID, CONTACT_TAB_NAME);
+    if(!csv)throw new Error("Unable to load emergency contacts. Check your connection and try again.");
     const allRows=csv.split(/\r?\n/).filter(l=>l.trim()).map(parseCSVLine);
     if(allRows.length<2)throw new Error("Sheet appears empty.");
     contactSections=buildSections(allRows.slice(1));
