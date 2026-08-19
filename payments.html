@@ -898,6 +898,40 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
   transition:background 0.12s;
 }
 .alert-close:hover{background:var(--surface-3)}
+
+/* ══════════════════════════════════════
+   COVERAGE MODAL — shown when a "covered" (green-tick, no transaction of
+   its own) month is clicked. Lists every transaction whose Paid-For-Months
+   include that month, plus a way to still record a brand-new payment dated
+   in that same month (Payment Date and Paid-For Month are different things
+   — see openCoverageModal / openAddPaymentDatedIn).
+══════════════════════════════════════ */
+.coverage-modal{width:min(480px,100%);max-height:88vh}
+.coverage-tx-card{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:13px 15px;
+  margin-bottom:10px;background:var(--surface-2);
+}
+.coverage-tx-card:last-child{margin-bottom:0}
+.coverage-tx-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.coverage-tx-amount{font-family:'DM Mono',monospace;font-weight:800;font-size:1.05rem;color:var(--green-700)}
+.coverage-tx-mode{
+  font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  padding:2px 8px;border-radius:999px;flex-shrink:0;
+}
+.coverage-tx-mode.online{background:var(--blue-50);color:var(--blue-700);border:1px solid var(--blue-100)}
+.coverage-tx-mode.cash{background:var(--amber-50);color:var(--amber-700);border:1px solid var(--amber-100)}
+.coverage-tx-date{font-size:0.76rem;color:var(--ink-3);font-weight:600;margin-top:2px}
+.coverage-tx-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:10px}
+.coverage-tx-grid dt{color:var(--ink-4);font-weight:700;text-transform:uppercase;font-size:0.6rem;letter-spacing:0.05em;padding-top:2px;white-space:nowrap}
+.coverage-tx-grid dd{color:var(--ink-2);font-weight:500;font-size:0.79rem;line-height:1.4;word-break:break-word}
+.coverage-months-chip{
+  display:inline-block;font-size:0.66rem;font-weight:600;color:var(--blue-700);background:var(--blue-50);
+  border:1px solid var(--blue-100);border-radius:999px;padding:2px 8px;margin:1px 4px 1px 0;
+}
+.coverage-months-chip.is-this-month{color:var(--green-700);background:var(--green-50);border-color:var(--green-200)}
+.coverage-empty{padding:18px 4px;text-align:center;color:var(--ink-4);font-size:0.82rem}
+.coverage-footer{display:flex;justify-content:flex-end;gap:9px;padding-top:14px;margin-top:2px;border-top:1px solid var(--line)}
+.coverage-hint{font-size:0.76rem;color:var(--ink-3);margin-bottom:12px;line-height:1.45}
 .alert-body{padding:16px 18px;font-size:0.88rem;font-weight:500;color:var(--ink-2);line-height:1.5}
 .alert-footer{padding:0 18px 16px;display:flex;justify-content:flex-end}
 .alert-ok{
@@ -1174,6 +1208,7 @@ body.dark-mode .toolbar-block-sel{background-image:url("data:image/svg+xml,%3Csv
 .bulk-collapse-btn.is-collapsed svg{transform:rotate(-90deg)}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:5px;vertical-align:-1px}
 .legend-dot.ld-paid{background:var(--green-500)}
+.legend-dot.ld-covered{background:var(--green-300)}
 .legend-dot.ld-due{border:1.5px solid var(--red-500);background:transparent}
 .legend-dot.ld-review{background:var(--violet-500)}
 .legend-dot.ld-locked{border:1.5px solid var(--ink-4);background:transparent}
@@ -1244,8 +1279,14 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 }
 .chip:hover{transform:translateY(-1px) scale(1.04)}
 .chip.paid{background:var(--green-50);color:var(--green-700);border-color:var(--green-200)}
-.chip.paid-covered{background:var(--green-50);color:var(--green-700);opacity:0.72;cursor:default}
-.chip.paid-covered:hover{transform:none}
+/* Covered = paid via a payment recorded in a DIFFERENT month (not locked,
+   not read-only — still a real, clickable cell). Lighter/softer green than
+   .chip.paid so "this month's own transaction" stays visually primary,
+   but it keeps the base .chip's pointer cursor + hover lift so it never
+   reads as disabled. Click opens the coverage detail popup (see
+   openCoverageModal), which itself offers "Record New Payment". */
+.chip.covered{background:var(--green-50);color:var(--green-700);opacity:0.82;border-color:var(--green-100)}
+.chip.covered:hover{background:#d1fae5;opacity:1}
 .chip.due{background:transparent;color:var(--red-600);border-color:var(--red-300);border-style:dashed}
 .chip.review{background:var(--violet-50);color:var(--violet-600);border-color:var(--violet-100)}
 .chip.locked{background:var(--surface-3);color:var(--ink-4);cursor:not-allowed}
@@ -1484,6 +1525,7 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
     <!-- Legend -->
     <div class="legend-row">
       <span><span class="legend-dot ld-paid"></span>Paid</span>
+      <span><span class="legend-dot ld-covered"></span>Covered (tap to view)</span>
       <span><span class="legend-dot ld-due"></span>Due</span>
       <span><span class="legend-dot ld-review"></span>Needs review</span>
       <span><span class="legend-dot ld-locked"></span>Locked</span>
@@ -1592,6 +1634,27 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
     </div>
     <div class="alert-body" id="alertBody"></div>
     <div class="alert-footer"><button class="alert-ok" id="alertOk" type="button">OK</button></div>
+  </div>
+</div>
+
+<!-- ══ COVERAGE MODAL — which transaction(s) cover a "covered" month ══ -->
+<div class="modal-overlay" id="coverageModalOverlay" aria-hidden="true">
+  <div class="payment-modal coverage-modal" role="dialog" aria-modal="true" aria-labelledby="coverageModalTitle">
+    <div class="modal-head">
+      <div class="modal-head-copy">
+        <div class="modal-title" id="coverageModalTitle">Payment Coverage</div>
+        <div class="modal-subtitle" id="coverageModalSubtitle">—</div>
+      </div>
+      <button class="modal-close" id="coverageModalClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="coverage-hint" id="coverageHint"></div>
+      <div id="coverageTxList"></div>
+      <div class="coverage-footer">
+        <button class="btn-cancel" id="coverageCloseBtn" type="button">Close</button>
+        <button class="btn-save" id="coverageAddBtn" type="button">Record New Payment</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1732,10 +1795,16 @@ function lockedKey(block,flat){
 }
 function ensureFlatRecord(block,flat){
   const nb=blockName(block), fk=flatKey(flat), key=`${nb}-${fk}`;
-  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(fk,10),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{}};
+  if(!groupedData[key])groupedData[key]={Block:nb,Flat:parseInt(fk,10),years:{},months:{},total:0,paidMonthIndices:new Set(),paidMonthYears:new Set(),coverageByKey:{},coverageListByKey:{}};
   if(!groupedData[key].paidMonthIndices)groupedData[key].paidMonthIndices=new Set();
   if(!groupedData[key].paidMonthYears)groupedData[key].paidMonthYears=new Set();
   if(!groupedData[key].coverageByKey)groupedData[key].coverageByKey={};
+  // Month-Year key -> ARRAY of every entry whose own Paid-For-Months list
+  // includes that key (coverageByKey above only ever keeps one "best"
+  // entry per key). Needed so the coverage popup can show every
+  // contributing transaction when more than one payment lists the same
+  // covered month, instead of silently hiding all but one.
+  if(!groupedData[key].coverageListByKey)groupedData[key].coverageListByKey={};
   return groupedData[key];
 }
 function markFlatLocked(block,flat,year,monthIndex,statusRaw){
@@ -1854,6 +1923,17 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
     const newIsActual=parsed&&parsed.year===entry.txYear&&parsed.monthIndex===entry.txMonthIndex;
     const existingIsActual=existing&&parsed&&parsed.year===existing.txYear&&parsed.monthIndex===existing.txMonthIndex;
     if(!existing||newIsActual||!existingIsActual)groupedData[key].coverageByKey[k]=entry;
+  });
+  // Flat-level Month-Year -> LIST of every entry covering that key (see
+  // ensureFlatRecord). Deduped by transaction identity (year+month+amount+
+  // date) so re-processing the same sheet row twice — e.g. the spillover-
+  // year refetch that exists purely to recover cross-year coverage — never
+  // lists the same transaction as two separate rows in the coverage popup.
+  paidKeys.forEach(k=>{
+    if(!groupedData[key].coverageListByKey[k])groupedData[key].coverageListByKey[k]=[];
+    const list=groupedData[key].coverageListByKey[k];
+    const isDupe=list.some(e=>e.txYear===entry.txYear&&e.txMonthIndex===entry.txMonthIndex&&e.amount===entry.amount&&e.date===entry.date);
+    if(!isDupe)list.push(entry);
   });
 
   // The rest of this function feeds flat-level and grid-footer totals
@@ -2042,39 +2122,60 @@ function isFutureCell(year,mi){
   return (year>cy)||(year===cy&&mi>cm);
 }
 
-/* Classifies a single (row, year, monthIndex) cell using the exact same
-   lookups the original grid used (txEntry / coverageByKey / isTxMonth /
-   entryCoversMonth / isFlatMonthLocked) — see processRow()/renderAll's
-   original comments above for what each of those means. The one
-   deliberate behavior change: a locked month is now genuinely
-   non-interactive (action:null) instead of only *looking*
-   not-allowed while still opening the edit modal on click. */
+/* Classifies a single (row, year, monthIndex) cell.
+
+   PAYMENT DATE vs PAID-FOR MONTH are treated as two separate lookups here
+   on purpose (see the ownEntry / coverageListByKey split below), so that a
+   month which is already PAID via someone else's transaction never blocks
+   a brand-new, unrelated payment from being recorded with a transaction
+   date that happens to fall in that same month. Example: a ₹400 payment
+   made in January can cover Jan+Feb; a later ₹200 payment actually made in
+   February (covering March) must still be recordable even though February
+   itself already shows green/paid from January's payment.
+
+   ownEntry = the transaction actually recorded THIS calendar month (its
+   own sheet row) — i.e. this cell IS that transaction's payment date.
+   coverageListByKey = every entry (regardless of which month it was
+   recorded in) whose own Paid-For-Months list includes this cell's month.
+
+   The one other deliberate behavior carried over unchanged: a locked
+   month is genuinely non-interactive (action:null) rather than only
+   *looking* not-allowed while still opening a modal on click. */
 function computeCellState(row,year,mi,canEdit){
   const locked=canEdit&&isFlatMonthLocked(row.Block,row.Flat,Number(year),mi);
-  let txEntry=null;
+  let ownEntry=null;
   if(year==="all"){
     const yrs=Object.keys(row.years||{});
-    for(const yr of yrs){ const yd=row.years?.[yr]; if(yd?.months?.[mi]){ txEntry=yd.months[mi]; break; } }
+    for(const yr of yrs){ const yd=row.years?.[yr]; if(yd?.months?.[mi]){ ownEntry=yd.months[mi]; break; } }
   }else{
-    txEntry=row.years?.[year]?.months?.[mi]||row.coverageByKey?.[PaymentMonths.toKey(year,mi)]||null;
+    ownEntry=row.years?.[year]?.months?.[mi]||null;
   }
-  if(locked)return{status:"locked",entry:txEntry,action:null,year,mi};
-  if(txEntry){
-    const isTxMonth=(year==="all")||(Number(year)===txEntry.txYear&&mi===txEntry.txMonthIndex);
-    if(isTxMonth){
-      const cellYear=year==="all"?txEntry.txYear:Number(year);
-      const cellKey=PaymentMonths.toKey(cellYear,mi);
-      const isCovered=entryCoversMonth(txEntry,cellYear,mi)||!!row.coverageByKey?.[cellKey];
-      // isCovered=false here means: a transaction WAS recorded this month,
-      // but its own Paid-For-Months list doesn't include this month — the
-      // money exists but isn't allocated here, so it needs a human to
-      // reconcile. This mirrors the original .empty.has-tx / .mt-amount-red
-      // treatment, just named honestly as "review" instead of a second
-      // flavour of red.
-      return{status:isCovered?"paid":"review",entry:txEntry,action:canEdit?"edit":null,year,mi};
-    }
-    return{status:"paid-covered",entry:null,action:null,year,mi};
+  if(locked)return{status:"locked",entry:ownEntry,action:null,year,mi};
+
+  if(ownEntry){
+    const cellYear=year==="all"?ownEntry.txYear:Number(year);
+    const cellKey=PaymentMonths.toKey(cellYear,mi);
+    const isCovered=entryCoversMonth(ownEntry,cellYear,mi)||!!(row.coverageListByKey?.[cellKey]?.length);
+    // isCovered=false here means: a transaction WAS recorded this month,
+    // but its own Paid-For-Months list doesn't include this month — the
+    // money exists but isn't allocated here, so it needs a human to
+    // reconcile ("review").
+    return{status:isCovered?"paid":"review",entry:ownEntry,action:canEdit?"edit":null,year,mi};
   }
+
+  // No transaction of its own this month — but it may already be PAID via
+  // a payment recorded elsewhere. Show it green + covered, and — unlike
+  // before — keep it genuinely clickable: this month is still a valid
+  // transaction date for a brand-new, unrelated payment. Clicking opens a
+  // details view of whatever already covers it (openCoverageModal), which
+  // itself offers a "Record New Payment" action rather than silently
+  // treating the cell as locked.
+  if(year!=="all"){
+    const cellKey=PaymentMonths.toKey(Number(year),mi);
+    const coverers=row.coverageListByKey?.[cellKey]||[];
+    if(coverers.length)return{status:"covered",entry:coverers[0],coverers,action:canEdit?"coverage":null,year,mi};
+  }
+
   const future=year!=="all"&&isFutureCell(Number(year),mi);
   return{status:future?"future":"due",entry:null,action:canEdit?"add":null,year,mi};
 }
@@ -2103,7 +2204,11 @@ function chipHtml(row,cs){
   const attrs=cs.action?` data-action="${cs.action}" data-year="${cs.year}" data-mi="${cs.mi}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
   if(cs.status==="paid")return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}</span>`;
   if(cs.status==="review")return`<span class="chip review"${attrs} title="Recorded ${fmt$(cs.entry.amount)} this month, but not allocated to it yet — needs review">${fmt$(cs.entry.amount)}<span class="c-sub">Review</span></span>`;
-  if(cs.status==="paid-covered")return`<span class="chip paid-covered" title="Covered by a payment recorded in another month">✓</span>`;
+  if(cs.status==="covered"){
+    const n=(cs.coverers||[]).length;
+    const title=n>1?`Covered by ${n} payments — click to view, or record a new one`:"Covered by a payment recorded in another month — click to view, or record a new one";
+    return`<span class="chip covered"${attrs} title="${title}">✓${n>1?`<span class="c-sub">${n}×</span>`:""}</span>`;
+  }
   if(cs.status==="locked")return`<span class="chip locked" title="Locked — closed to edits">${CHIP_ICO_LOCK}</span>`;
   if(cs.status==="due")return`<span class="chip due"${attrs} title="Add payment for ${MONTH_SHORT[cs.mi]} ${cs.year}">Due</span>`;
   return`<span class="chip future"${attrs} title="Not yet due — click to record an advance payment">—</span>`;
@@ -2528,6 +2633,11 @@ document.getElementById("blocksWrap").addEventListener("click",e=>{
   const addT=e.target.closest('[data-action="add"]');
   if(addT){
     openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
+    return;
+  }
+  const covT=e.target.closest('[data-action="coverage"]');
+  if(covT){
+    openCoverageModal(covT.dataset.block||"",covT.dataset.flat||"",covT.dataset.year||"",Number(covT.dataset.mi??-1));
   }
 });
 
@@ -2619,6 +2729,92 @@ function findCtx(block,flat,year,mi){
   if(!md)return null;
   const paidMonths=(md.paidMonthKeys&&md.paidMonthKeys.length)?md.paidMonthKeys.slice():PaymentMonths.parseField(md.paidMonths,Number(year),Number(mi));
   return{ block,flat:String(flat),year:String(year),monthIndex:Number(mi),amount:Number(md.amount||0),date:md.date||"",paymentMode:md.paymentMode||"ONLINE",receivedBy:md.receivedBy||"",notes:md.notes||"",paidMonths };
+}
+function findRowByBlockFlat(block,flat){
+  let row=groupedData[`${block}-${flat}`];
+  if(!row)row=Object.values(groupedData).find(r=>r.Block===block&&String(r.Flat)===String(flat));
+  return row||null;
+}
+
+/* ── Coverage modal ── "Which transaction(s) already cover this month?"
+   Opened by clicking a "covered" (green-tick) cell — a month with no
+   transaction of its own but paid via a payment recorded elsewhere. Lists
+   every contributing transaction (date, amount, mode, everything it
+   covers, and notes/received-by as the closest available fields to a
+   reference — the sheet has no separate transaction-ID column), and
+   offers "Record New Payment" so the month stays fully usable for a
+   brand-new, unrelated payment instead of acting locked. */
+function escapeHtml(s){
+  return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+let coverageModalCtx=null;
+function openCoverageModal(block,flat,year,mi){
+  const row=findRowByBlockFlat(block,flat);
+  const cellKey=PaymentMonths.toKey(Number(year),Number(mi));
+  const coverers=(row&&row.coverageListByKey&&row.coverageListByKey[cellKey])||[];
+  const monthLabel=`${MONTH_SHORT[Number(mi)]} ${year}`;
+
+  document.getElementById("coverageModalTitle").textContent=coverers.length>1?`${coverers.length} Payments Cover This Month`:"Covered By This Payment";
+  document.getElementById("coverageModalSubtitle").textContent=`${block} · Flat ${flat} · ${monthLabel}`;
+  document.getElementById("coverageHint").textContent=`${monthLabel} is already paid — covered by the transaction${coverers.length>1?"s":""} below. This doesn't stop a brand-new payment from being recorded with a transaction date in ${monthLabel} for a different month owed.`;
+
+  const listEl=document.getElementById("coverageTxList");
+  if(!coverers.length){
+    listEl.innerHTML=`<div class="coverage-empty">No transaction details found for ${escapeHtml(monthLabel)}.</div>`;
+  }else{
+    listEl.innerHTML=coverers.map(entry=>{
+      const modeUp=String(entry.paymentMode||"").toUpperCase();
+      const monthsHtml=(entry.paidMonthKeys&&entry.paidMonthKeys.length)
+        ?entry.paidMonthKeys.slice().sort().map(k=>`<span class="coverage-months-chip${k===cellKey?" is-this-month":""}">${escapeHtml(PaymentMonths.label(k))}</span>`).join("")
+        :"—";
+      return`<div class="coverage-tx-card">
+        <div class="coverage-tx-top">
+          <span class="coverage-tx-amount">${fmt$(entry.amount)}</span>
+          <span class="coverage-tx-mode ${modeUp==="CASH"?"cash":"online"}">${escapeHtml(modeUp||"—")}</span>
+        </div>
+        <div class="coverage-tx-date">Paid on ${escapeHtml(entry.date||"—")}</div>
+        <dl class="coverage-tx-grid">
+          <dt>Covers</dt><dd>${monthsHtml}</dd>
+          <dt>Received By</dt><dd>${escapeHtml(entry.receivedBy||"—")}</dd>
+          <dt>Reference / Notes</dt><dd>${escapeHtml(entry.notes||"—")}</dd>
+        </dl>
+      </div>`;
+    }).join("");
+  }
+
+  coverageModalCtx={block,flat:String(flat),year:String(year),mi:Number(mi)};
+  const overlay=document.getElementById("coverageModalOverlay");
+  overlay.classList.add("open"); overlay.setAttribute("aria-hidden","false");
+  lockScroll();
+}
+function closeCoverageModal(){
+  const overlay=document.getElementById("coverageModalOverlay");
+  overlay.classList.remove("open"); overlay.setAttribute("aria-hidden","true");
+  if(!document.getElementById("payModalOverlay").classList.contains("open")&&!document.getElementById("alertOverlay").classList.contains("open"))unlockScroll();
+}
+function firstOfMonthISO(year,mi){
+  return `${Number(year)}-${String(Number(mi)+1).padStart(2,"0")}-01`;
+}
+/* Opens the normal Add Payment modal, dated in (year,mi) — the transaction
+   month the user actually clicked — but deliberately does NOT pre-select
+   that month in the Paid-For picker (it's already covered by something
+   else; repeating it here would double-count it). The user picks whichever
+   month(s) this brand-new payment actually covers, e.g. the next due one. */
+function openAddPaymentDatedIn(block,flat,year,mi){
+  if(!block||!flat||!year||mi<0)return;
+  openModal();
+  populateBlockOptions(block);
+  populateFlatOptions(block,flat);
+  document.getElementById("fBlock").value=block;
+  document.getElementById("fFlat").value=flat;
+  document.getElementById("payYear").value=String(Number(year));
+  refreshMonthPicker([]);
+  const now=new Date();
+  const isCurrentMonth=(Number(year)===now.getFullYear())&&(Number(mi)===now.getMonth());
+  if(!isCurrentMonth){
+    const iso=firstOfMonthISO(year,mi);
+    if(iso<=getToday())document.getElementById("fDate").value=iso;
+  }
 }
 
 /* Auto-generated note segments (the "<amount> <MODE> received on <date>"
@@ -2901,18 +3097,22 @@ _mobOverlay?.addEventListener("click",closeDrawer);
 /* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
    automatically) — no per-page dropdown or logout code needed here. */
 
-/* ── Year sync ── */
+/* ── Year sync ──
+   "All Years" is a first-class value everywhere it's read (computeCellState,
+   computeFlatBucket, updateKpis, downloadReport all already branch on
+   year==="all"), so it's offered as a normal dropdown option on BOTH the
+   desktop and mobile year selectors — one extra option, not a separate UI,
+   which is the least cluttered way to let someone view a flat's payment
+   history across every year at once. */
 const yDesk=document.getElementById("yearDesk"),yMob=document.getElementById("yearMob");
 function addYearAll(){
-  if(window.innerWidth<=768&&!yMob.querySelector('[value="all"]')){
-    const o=document.createElement("option"); o.value="all"; o.textContent="ALL YEARS";
-    yMob.insertBefore(o,yMob.firstChild);
-  }else if(window.innerWidth>768){
-    const o=yDesk.querySelector('[value="all"]');
-    if(o){if(yDesk.value==="all")yDesk.value=DEFAULT_YEAR;yDesk.removeChild(o);}
-  }
+  [yDesk,yMob].forEach(sel=>{
+    if(sel&&!sel.querySelector('[value="all"]')){
+      const o=document.createElement("option"); o.value="all"; o.textContent="ALL YEARS";
+      sel.insertBefore(o,sel.firstChild);
+    }
+  });
 }
-window.addEventListener("resize",addYearAll);
 addYearAll();
 if(yDesk){yDesk.value=DEFAULT_YEAR;yDesk.addEventListener("change",e=>{if(yMob)yMob.value=e.target.value;fetchAllMonthData();});}
 if(yMob){yMob.value=DEFAULT_YEAR;yMob.addEventListener("change",e=>{if(yDesk)yDesk.value=e.target.value;fetchAllMonthData();});}
@@ -2940,6 +3140,15 @@ document.getElementById("payModalOverlay").addEventListener("click",e=>{ if(e.ta
 document.getElementById("alertClose").addEventListener("click",closeAlert);
 document.getElementById("alertOk").addEventListener("click",closeAlert);
 document.getElementById("alertOverlay").addEventListener("click",e=>{ if(e.target.id==="alertOverlay")closeAlert(); });
+document.getElementById("coverageModalClose").addEventListener("click",closeCoverageModal);
+document.getElementById("coverageCloseBtn").addEventListener("click",closeCoverageModal);
+document.getElementById("coverageModalOverlay").addEventListener("click",e=>{ if(e.target.id==="coverageModalOverlay")closeCoverageModal(); });
+document.getElementById("coverageAddBtn").addEventListener("click",()=>{
+  if(!coverageModalCtx)return;
+  const{block,flat,year,mi}=coverageModalCtx;
+  closeCoverageModal();
+  openAddPaymentDatedIn(block,flat,year,mi);
+});
 document.getElementById("monthPickerTrigger").addEventListener("click",e=>{ e.stopPropagation();setMonthPickerOpen(!document.getElementById("monthPickerWrap").classList.contains("open")); });
 document.getElementById("monthPickerDropdown").addEventListener("click",e=>e.stopPropagation());
 document.addEventListener("click",e=>{ if(!e.target.closest("#monthPickerWrap"))setMonthPickerOpen(false); });
