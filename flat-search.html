@@ -1636,7 +1636,7 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
       <div class="kpi-cell kpi-pending">
         <div class="kpi-label">
           <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><circle cx="10" cy="14" r="0.5" fill="currentColor"/></svg>
-          Pending
+          Due
         </div>
         <div class="kpi-val" id="sumPending">—</div>
         <div class="kpi-sub">months outstanding</div>
@@ -1685,8 +1685,8 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
           </select>
           <select class="pay-filter-select" id="payStatusFilter">
             <option value="">All Statuses</option>
-            <option value="DONE">Done</option>
-            <option value="PENDING">Pending</option>
+            <option value="DONE">Paid</option>
+            <option value="PENDING">Due</option>
             <option value="LOCKED">Locked</option>
           </select>
           <span class="pay-count-badge" id="payCountBadge">0 records</span>
@@ -2575,6 +2575,23 @@ function renderProfile(block,flat,row){
 
   paymentFiltered=flatPayments;
 
+  // Status shown in the table is derived from the Paid Months field, not
+  // from whether THIS record's own tab-row happens to carry an amount/date.
+  // A single payment can be recorded once (e.g. in the January tab) but
+  // cover several months via its Paid Months field (e.g. Nov, Dec, Jan) —
+  // the November/December tab rows for this flat then have no amount of
+  // their own and were showing as "Pending" even though they're actually
+  // covered. Build the set of every month this flat has ever been marked
+  // paid for (across ALL of its records), then decide each row's status
+  // by membership in that set instead of the row's own amount/date.
+  const coveredMonthKeys=new Set();
+  flatPayments.forEach(p=>{ paidMonthsForRecord(p).forEach(k=>coveredMonthKeys.add(k)); });
+  flatPayments.forEach(p=>{
+    if(p.status==="LOCKED")return; // locked is a separate flat-status concept, leave as-is
+    const ownKey=paymentRecordMonthKey(p);
+    p.status=(ownKey&&coveredMonthKeys.has(ownKey))?"DONE":"PENDING";
+  });
+
   // Payment summary KPI strip
   const paid=flatPayments.filter(p=>p.status==="DONE").length;
   const pending=flatPayments.filter(p=>p.status==="PENDING").length;
@@ -2587,7 +2604,7 @@ function renderProfile(block,flat,row){
 
   // Alerts
   let alertsHtml="";
-  if(pending>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2l8 15H2z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="16" r="0.5" fill="currentColor"/></svg>${pending} pending payment${pending>1?"s":""} need to be collected</div>`;
+  if(pending>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2l8 15H2z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="16" r="0.5" fill="currentColor"/></svg>${pending} payment${pending>1?"s":""} due and need${pending>1?"":"s"} to be collected</div>`;
   if(locked>0)alertsHtml+=`<div class="pay-alert warning"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V7a3 3 0 0 1 6 0v2"/></svg>${locked} month${locked>1?"s are":" is"} marked locked for this flat</div>`;
   document.getElementById("payAlerts").innerHTML=alertsHtml;
 
@@ -3038,7 +3055,7 @@ function renderPaymentTable(records){
 function statusBadge(status){
   const map={DONE:"status-paid",PAID:"status-paid",PENDING:"status-pending",LOCKED:"status-locked",PARTIAL:"status-partial",OVERDUE:"status-overdue"};
   const cls=map[status]||"status-pending";
-  const label=status==="DONE"?"Done":(status?status.charAt(0)+status.slice(1).toLowerCase():"Unknown");
+  const label=status==="DONE"?"Paid":status==="PENDING"?"Due":(status?status.charAt(0)+status.slice(1).toLowerCase():"Unknown");
   return`<span class="status-badge ${cls}" role="status" aria-label="Payment status: ${label}">${label}</span>`;
 }
 
