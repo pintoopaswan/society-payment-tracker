@@ -1266,6 +1266,10 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 .flat-cell{text-align:left!important;padding-left:22px!important}
 .flat-num{font-family:'DM Mono',monospace;font-weight:700;font-size:0.84rem;color:var(--ink)}
 .flat-warn{color:var(--violet-600);display:inline-flex;margin-left:5px;vertical-align:-2px}
+/* "All Years" mode shows one row per (flat, year) — this badge is what
+   tells them apart on screen (see expandRowsAllYears in the script). */
+.flat-year-badge{font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:700;color:var(--blue-700);background:var(--blue-50,rgba(37,99,235,0.10));border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blue-400)}
 .flat-warn svg{width:12px;height:12px}
 .total-col{min-width:82px}
 .total-chip{font-family:'DM Mono',monospace;font-weight:700;font-size:0.82rem;color:var(--ink);display:flex;flex-direction:column;align-items:center}
@@ -1936,21 +1940,21 @@ function processRow(block,flat,amount,date,year,monthIndex,paidMonthsRaw,modeRaw
     if(!isDupe)list.push(entry);
   });
 
-  // The rest of this function feeds flat-level and grid-footer totals
-  // (row.total, monthlyTotals) that are rendered for the currently active
-  // year. A spillover-year fetch has already done its job above by
-  // registering coverageByKey/paidMonthYears entries — stop here so its
-  // amount doesn't get double-counted into (or leak into) those totals.
+  // The rest of this function feeds the flat-level grand total (row.total)
+  // rendered for the currently active year. A spillover-year fetch has
+  // already done its job above by registering coverageByKey/paidMonthYears
+  // entries — stop here so its amount doesn't get double-counted into (or
+  // leak into) that total.
   if(!primary)return;
 
-  if(!groupedData[key].months[monthIndex]){
-    groupedData[key].months[monthIndex]={amount:0,date:fmtDate,paidMonthsHtml:"",paymentMode:"",receivedBy:"",notes:"",paidMonths:"",paidMonthKeys:[]};
-  }
-  const mc=groupedData[key].months[monthIndex];
-  mc.amount+=amtN; mc.paidMonthsHtml=mc.paidMonthsHtml||paidHtml;
-  mc.paymentMode=mc.paymentMode||mode; mc.receivedBy=mc.receivedBy||entry.receivedBy;
-  mc.notes=mc.notes||entry.notes; mc.paidMonths=mc.paidMonths||entry.paidMonths;
-  if(!mc.paidMonthKeys||!mc.paidMonthKeys.length)mc.paidMonthKeys=paidKeys;
+  // NOTE: this used to also write into a flat-level, year-BLIND
+  // `groupedData[key].months[monthIndex]` accumulator (`mc.amount+=amtN`)
+  // that summed every fetched year's amount for a given month index into
+  // one bucket — e.g. Jan 2025 + Jan 2026 → one "Jan" number. Nothing
+  // ever read it (the grid/exports all correctly go through
+  // `.years[year].months[...]`), but it was exactly the same class of
+  // year-merging bug reported in the "All Years" grid, so it's been
+  // removed rather than left as a landmine for future code to pick up.
 
   groupedData[key].total+=amtN; monthlyTotals[monthIndex]+=amtN;
 }
@@ -2184,11 +2188,41 @@ function computeCellState(row,year,mi,canEdit){
   return{status:future?"future":"due",entry:null,action:canEdit?"add":null,year,mi};
 }
 
+/* ── "All Years" row expansion ──────────────────────────────────────
+   BUG FIX: the render path below (bodyRows/mobCards/downloadReport) used
+   to hand the SAME flat-level `row` + the literal string "all" straight
+   to computeCellState()/computeFlatBucket(). Those two functions only
+   ever resolve ONE month-index → ONE entry, so when a flat had a payment
+   recorded in, say, Jan 2025 AND Jan 2026, computeCellState's
+   `year==="all"` branch just grabbed whichever year happened to come
+   first in Object.keys(row.years) and silently dropped the other — the
+   two years visually "merged" into a single Jan cell, and row.total
+   (the flat's ALL-time grand total) was shown as if it were one year's
+   total. That's the exact symptom reported.
+
+   The fix removes the ambiguity at its source instead of teaching the
+   cell/bucket functions to somehow render two years in one cell: for
+   "All Years", explode each flat into one row PER (flat, year) pair
+   that actually has data, tag it with an explicit real `_year`, and
+   always pass THAT down. computeCellState/computeFlatBucket never see
+   the literal "all" anymore — every cell they resolve is unambiguously
+   scoped to one real year, so the existing single-year logic (which was
+   already correct) just works, once per year, on its own row. */
+function expandRowsAllYears(rows){
+  const out=[];
+  rows.forEach(row=>{
+    const yrs=Object.keys(row.years||{}).sort((a,b)=>b-a); // newest year first
+    if(!yrs.length){ out.push({...row,_year:DEFAULT_YEAR,_yearTotal:0,_noHistory:true}); return; }
+    yrs.forEach(yr=>out.push({...row,_year:yr,_yearTotal:row.years[yr]?.total||0}));
+  });
+  return out;
+}
+
 /* Whole-flat status used for the status-pill filters and each block-card's
    progress %. Locked months are excluded from this judgement on purpose —
    a closed/audited month says nothing about whether the flat is currently
-   up to date. "All Years" has no single coherent due/undue notion, so it
-   is treated as neutral. */
+   up to date. Callers now always pass a real year (see expandRowsAllYears
+   above) — the "all" branch below is kept only as a defensive fallback. */
 function computeFlatBucket(row,year){
   if(year==="all")return"paid";
   let hasReview=false,hasDue=false;
@@ -2293,6 +2327,13 @@ function applyFilters(){
     const pct=allInBlock.length?Math.round(paidCount/allInBlock.length*100):0;
     const collapsed=collapsedBlocks.has(bn);
 
+    // One row per (flat, year) pair in "All Years" mode — see
+    // expandRowsAllYears() for why this is required to keep 2025/2026
+    // (etc.) from colliding into the same cell.
+    const displayRows=year==="all"
+      ?expandRowsAllYears(rows)
+      :rows.map(r=>({...r,_year:year,_yearTotal:r.years?.[year]?.total??r.total}));
+
     const theadCells=MONTH_SHORT.map((m,i)=>{
       let sum="—";
       if(year!=="all")sum=fmt$(rows.reduce((s,r)=>s+(r.years?.[year]?.months?.[i]?.amount||0),0));
@@ -2300,26 +2341,28 @@ function applyFilters(){
       return`<th class="${isCur?"is-current":""}">${m}<span class="m-sum">${sum}</span></th>`;
     }).join("");
 
-    const bodyRows=rows.map(row=>{
-      const cells=MONTH_SHORT.map((_,i)=>`<td>${chipHtml(row,computeCellState(row,year,i,canEdit))}</td>`).join("");
-      const bucket=computeFlatBucket(row,year);
+    const bodyRows=displayRows.map(row=>{
+      const cells=MONTH_SHORT.map((_,i)=>`<td>${chipHtml(row,computeCellState(row,row._year,i,canEdit))}</td>`).join("");
+      const bucket=computeFlatBucket(row,row._year);
       const warn=bucket==="review"?`<span class="flat-warn" title="Needs review"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.2" r="0.6" fill="currentColor"/></svg></span>`:"";
-      return`<tr><td class="flat-cell"><span class="flat-num">${row.Flat}</span>${warn}</td>${cells}<td class="total-col"><div class="total-chip">${fmt$(row.total)}</div></td></tr>`;
+      const yearBadge=year==="all"?`<span class="flat-year-badge">${row._noHistory?"—":row._year}</span>`:"";
+      return`<tr><td class="flat-cell"><span class="flat-num">${row.Flat}</span>${yearBadge}${warn}</td>${cells}<td class="total-col"><div class="total-chip">${fmt$(row._yearTotal)}</div></td></tr>`;
     }).join("");
 
-    const mobCards=rows.map(row=>{
-      const bucket=computeFlatBucket(row,year);
+    const mobCards=displayRows.map(row=>{
+      const bucket=computeFlatBucket(row,row._year);
       const badgeCls=bucket==="paid"?"ok":bucket==="review"?"review":"due";
       const badgeLabel=bucket==="paid"?"Up to date":bucket==="review"?"Needs review":"Has dues";
       const warn=bucket==="review"?`<span class="flat-warn" title="Needs review"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.2" r="0.6" fill="currentColor"/></svg></span>`:"";
+      const yearBadge=year==="all"?`<span class="flat-year-badge">${row._noHistory?"—":row._year}</span>`:"";
       const cells=MONTH_SHORT.map((m,i)=>`<div class="mob-cell">
-        <span class="mob-cell-month">${m}</span>${chipHtml(row,computeCellState(row,year,i,canEdit))}
+        <span class="mob-cell-month">${m}</span>${chipHtml(row,computeCellState(row,row._year,i,canEdit))}
       </div>`).join("");
       return`<div class="mob-card">
         <div class="mob-card-head">
-          <span class="flat-num">${row.Flat}</span>${warn}
+          <span class="flat-num">${row.Flat}</span>${yearBadge}${warn}
           <div style="margin-left:auto;text-align:right">
-            <div class="mob-card-total">${fmt$(row.total)}</div>
+            <div class="mob-card-total">${fmt$(row._yearTotal)}</div>
             <span class="mob-status ${badgeCls}">${badgeLabel}</span>
           </div>
         </div>
@@ -2452,24 +2495,29 @@ function updateKpis(){
    giant table, and scraping is fragile regardless of markup). ── */
 function downloadReport(){
   const year=currentYear||activeYear();
-  const rows=(currentSorted&&currentSorted.length?currentSorted:Object.values(groupedData))
+  const baseRows=(currentSorted&&currentSorted.length?currentSorted:Object.values(groupedData))
     .slice().sort((a,b)=>{const c=a.Block.localeCompare(b.Block,undefined,{numeric:true});return c!==0?c:a.Flat-b.Flat;});
-  const header=["Block","Flat",...MONTH_SHORT,"Total"];
+  // Same fix as the on-screen grid: one exported row per (flat, year) in
+  // "All Years" mode, with an explicit Year column, instead of summing
+  // every year's amount for a given month into a single ambiguous cell.
+  const rows=year==="all"
+    ?expandRowsAllYears(baseRows)
+    :baseRows.map(r=>({...r,_year:year,_yearTotal:r.years?.[year]?.total??r.total}));
+  const header=year==="all"?["Block","Flat","Year",...MONTH_SHORT,"Total"]:["Block","Flat",...MONTH_SHORT,"Total"];
   const aoa=[header];
   const monthSums=new Array(12).fill(0);
   rows.forEach(row=>{
-    const line=[row.Block,row.Flat];
+    const line=year==="all"?[row.Block,row.Flat,row._noHistory?"":row._year]:[row.Block,row.Flat];
     MONTH_SHORT.forEach((_,i)=>{
-      let amt=0;
-      if(year==="all"){ Object.values(row.years||{}).forEach(yd=>{ amt+=Number(yd?.months?.[i]?.amount||0); }); }
-      else{ amt=Number(row.years?.[year]?.months?.[i]?.amount||0); }
+      const amt=Number(row.years?.[row._year]?.months?.[i]?.amount||0);
       monthSums[i]+=amt;
       line.push(amt);
     });
-    line.push(Number(row.total||0));
+    line.push(Number(row._yearTotal||0));
     aoa.push(line);
   });
-  aoa.push(["TOTAL","",...monthSums,monthSums.reduce((s,v)=>s+v,0)]);
+  const totalRow=year==="all"?["TOTAL","",""]:["TOTAL",""];
+  aoa.push([...totalRow,...monthSums,monthSums.reduce((s,v)=>s+v,0)]);
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"Payments");
