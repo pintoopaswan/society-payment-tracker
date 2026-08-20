@@ -1274,7 +1274,7 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 
 .chip{
   display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
-  width:56px;height:38px;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:700;
+  width:56px;height:44px;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.66rem;font-weight:700;
   border:1.5px solid transparent;cursor:pointer;transition:transform 0.12s ease;position:relative;
 }
 .chip:hover{transform:translateY(-1px) scale(1.04)}
@@ -1332,7 +1332,7 @@ table.pay-matrix tbody tr:hover{background:var(--surface-2)}
 .mob-card-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:0 13px 12px}
 .mob-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
 .mob-cell-month{font-size:0.56rem;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.03em}
-.mob-cell .chip{width:100%;height:32px;font-size:0.6rem}
+.mob-cell .chip{width:100%;height:38px;font-size:0.6rem}
 .mob-status{font-size:0.6rem;font-weight:800;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:2px;white-space:nowrap}
 .mob-status.ok{background:var(--green-50);color:var(--green-700)}
 .mob-status.due{background:var(--red-50);color:var(--red-600)}
@@ -1977,17 +1977,21 @@ function entryCoversMonth(entry,year,mi){
 
 function resolvePaymentCsvLayout(lines){
   const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,recv:6,notes:7,paid:8,flatStatus:9};
-  let headerRowIndex=0, headers=[];
-  for(let i=0;i<Math.min(lines.length,12);i++){
-    const parsed=parseCSV(lines[i]).map(h=>norm(h));
-    const joined=parsed.join(" ");
-    if(joined.includes("payment status")||joined.includes("paid month")||joined.includes("flat status")){
-      headerRowIndex=i;
-      headers=parsed;
-      break;
-    }
-  }
-  if(!headers.length)headers=parseCSV(lines[0]||"").map(h=>norm(h));
+  // The header is ALWAYS the first CSV line — readSheetAsCsv_ on the
+  // backend exports starting at sheet row 1, so there's no reason to go
+  // hunting for it further down. A previous version of this function
+  // scanned up to the first 12 rows looking for phrases like "paid
+  // month"/"flat status" ANYWHERE in the row, to guard against a header
+  // row that might not be first — but that scan could match a plain DATA
+  // row instead of the real header, if a Remarks note happened to contain
+  // similar wording (e.g. "confirmed paid month coverage"). When that
+  // happened, `headers` became that row's cell VALUES, and every
+  // header-matched field below could resolve to wherever in that data row
+  // the coincidental phrase sat — which is how Received By/Remarks/Paid
+  // Months ended up reading each other's columns. Trusting row 0 removes
+  // that failure mode entirely.
+  const headerRowIndex=0;
+  const headers=parseCSV(lines[0]||"").map(h=>norm(h));
   const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
   const flatIdx=headers.findIndex(h=>/^(flat|flat no|flat no\.|flat number|room|house|apartment)$/.test(h));
   return {
@@ -2000,7 +2004,7 @@ function resolvePaymentCsvLayout(lines){
     status: idx(["status","done","paid"],fallback.status),
     recv: idx(["received by","collected by","received"],fallback.recv),
     notes: idx(["remark","note","description"],fallback.notes),
-    paid: idx(["paid month","month paid"],fallback.paid),
+    paid: idx(["paid month","month paid","months covered","month covered"],fallback.paid),
     flatStatus: idx(["flat status","flatstatus"],fallback.flatStatus)
   };
 }
@@ -2200,9 +2204,23 @@ function computeFlatBucket(row,year){
 
 const CHIP_ICO_LOCK='<svg viewBox="0 0 20 20"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.5 9V6a3.5 3.5 0 0 1 7 0v3"/></svg>';
 
+/* entry.date is stored "DD/MM/YYYY" (see fmtDate in processRow). For the
+   in-cell sub-label we drop the year (the column/year-selector already
+   gives that context) — except in the "All Years" view, where a bare
+   DD/MM would be ambiguous across years, so a 2-digit year is kept. */
+function shortDate(dateStr,includeYear){
+  const parts=String(dateStr||"").split("/");
+  if(parts.length!==3)return"";
+  const[dd,mm,yyyy]=parts;
+  return includeYear?`${dd}/${mm}/${yyyy.slice(-2)}`:`${dd}/${mm}`;
+}
+
 function chipHtml(row,cs){
   const attrs=cs.action?` data-action="${cs.action}" data-year="${cs.year}" data-mi="${cs.mi}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
-  if(cs.status==="paid")return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}</span>`;
+  if(cs.status==="paid"){
+    const dateLbl=shortDate(cs.entry.date,cs.year==="all");
+    return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}${dateLbl?`<span class="c-sub">${dateLbl}</span>`:""}</span>`;
+  }
   if(cs.status==="review")return`<span class="chip review"${attrs} title="Recorded ${fmt$(cs.entry.amount)} this month, but not allocated to it yet — needs review">${fmt$(cs.entry.amount)}<span class="c-sub">Review</span></span>`;
   if(cs.status==="covered"){
     const n=(cs.coverers||[]).length;

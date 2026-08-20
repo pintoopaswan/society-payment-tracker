@@ -398,9 +398,36 @@
      one fixes that latent bug as a side effect of removing the
      duplication. */
   function parseCSVLine(line) {
-    return String(line ?? "")
-      .match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)
-      ?.map(v => v.replace(/(^"|"$)/g, "").trim()) || [];
+    // Was previously a regex — /(".*?"|[^",\n]+)(?=\s*,|\s*$)/g — which only
+    // matches fields with at least one character. Any genuinely empty cell
+    // (very common for Received By / Remarks on real payment rows) produced
+    // NO match at all instead of "", so the field vanished from the result
+    // array rather than appearing as an empty string — silently shifting
+    // every later field one position to the left. That's what caused
+    // Received By / Remarks / Paid Months to read each other's data
+    // whenever an earlier cell in the row was blank. This version walks
+    // the string and pushes a field at every comma, so empty cells are
+    // preserved as "" and column positions never drift.
+    const s = String(line ?? "");
+    const row = [];
+    let field = "", inQuotes = false;
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (s[i + 1] === '"') { field += '"'; i++; }
+          else inQuotes = false;
+        } else field += c;
+      } else if (c === '"') {
+        inQuotes = true;
+      } else if (c === ",") {
+        row.push(field.trim()); field = "";
+      } else {
+        field += c;
+      }
+    }
+    row.push(field.trim());
+    return row;
   }
 
   /* ── splitCSVRows ──

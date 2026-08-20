@@ -2221,17 +2221,21 @@ function isLockedStatus(value){
 
 function resolvePaymentCsvLayout(lines){
   const fallback={block:0,flat:1,amount:2,mode:3,date:4,status:5,receivedBy:6,remarks:7,paidMonths:8,flatStatus:9};
-  let headerRowIndex=0,headers=[];
-  for(let i=0;i<Math.min(lines.length,12);i++){
-    const parsed=parseCSV(lines[i]).map(h=>norm(h));
-    const joined=parsed.join(" ");
-    if(joined.includes("payment status")||joined.includes("paid month")||joined.includes("flat status")){
-      headerRowIndex=i;
-      headers=parsed;
-      break;
-    }
-  }
-  if(!headers.length)headers=parseCSV(lines[0]||"").map(h=>norm(h));
+  // The header is ALWAYS the first CSV line — readSheetAsCsv_ on the
+  // backend exports starting at sheet row 1, so there's no reason to go
+  // hunting for it further down. A previous version of this function
+  // scanned up to the first 12 rows looking for phrases like "paid
+  // month"/"flat status" ANYWHERE in the row, to guard against a header
+  // row that might not be first — but that scan could match a plain DATA
+  // row instead of the real header, if a Remarks note happened to contain
+  // similar wording (e.g. "confirmed paid month coverage"). When that
+  // happened, `headers` became that row's cell VALUES, and every
+  // header-matched field below could resolve to wherever in that data row
+  // the coincidental phrase sat — which is how Received By/Remarks/Paid
+  // Months ended up reading each other's columns. Trusting row 0 removes
+  // that failure mode entirely.
+  const headerRowIndex=0;
+  const headers=parseCSV(lines[0]||"").map(h=>norm(h));
   const idx=(patterns,fb)=>{const found=headers.findIndex(h=>patterns.some(p=>h.includes(p)));return found>=0?found:fb;};
   const flatIdx=headers.findIndex(h=>/^(flat|flat no|flat no\.|flat number|room|house|apartment)$/.test(h));
   return {
@@ -2244,7 +2248,7 @@ function resolvePaymentCsvLayout(lines){
     status: idx(["status","done","paid"],fallback.status),
     receivedBy: idx(["received by","collected by","received"],fallback.receivedBy),
     remarks: idx(["remark","note","description"],fallback.remarks),
-    paidMonths: idx(["paid month","month paid"],fallback.paidMonths),
+    paidMonths: idx(["paid month","month paid","months covered","month covered"],fallback.paidMonths),
     flatStatus: idx(["flat status","flatstatus"],fallback.flatStatus)
   };
 }
