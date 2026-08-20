@@ -496,10 +496,18 @@ tr:hover td{background:var(--surface-2)}
 /* Received by */
 .recv-cell{font-size:0.76rem;color:var(--ink-2);font-weight:500}
 
-/* Remarks */
+/* Remarks — was overflow:hidden + text-overflow:ellipsis on a plain
+   <span>, but those only take effect on a block/inline-block box; a
+   default `display:inline` span ignores max-width/ellipsis entirely, so
+   this was rendering at full natural width and forcing the column (and
+   the whole table) wider than its container — that's what was putting
+   .table-wrap into a horizontal scrollbar. Wrapping onto multiple lines
+   within a capped width, instead of single-line ellipsis truncation,
+   keeps the full remark visible without needing the tooltip. */
 .remarks-cell{
-  font-size:0.73rem;color:var(--ink-3);font-weight:400;max-width:220px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;
+  display:inline-block;font-size:0.73rem;color:var(--ink-3);font-weight:400;
+  max-width:220px;white-space:normal;word-break:break-word;line-height:1.4;
+  vertical-align:middle;
 }
 
 /* Empty state */

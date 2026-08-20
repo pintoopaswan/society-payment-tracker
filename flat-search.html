@@ -740,6 +740,16 @@ body.dark-mode .search-box{background:#1a1730;border-color:rgba(167,139,250,0.18
 .pay-table .mono{font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--ink)}
 .pay-table .month-col{font-weight:600;color:var(--ink)}
 .pay-table .amount-col{font-family:'DM Mono',monospace;font-weight:700;color:var(--ink)}
+/* Remarks / Months Covered — a raw max-width on a <td> isn't reliably
+   honored by the browser's table auto-layout algorithm (it still sizes
+   the column to fit long unwrapped content), which is what was letting
+   a long Remarks note stretch the whole table wider than its container
+   and force .pay-table-wrap into a horizontal scrollbar. Capping the
+   width on an inner inline-block span instead is respected regardless
+   of table layout, so the column now stays a fixed width and the full
+   text is still reachable via a native title tooltip on hover — same
+   pattern already used for this column on the Payment History page. */
+.pay-table .clip-cell{display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:default}
 
 /* Mobile payment cards */
 .pay-card-list{display:none}
@@ -2882,8 +2892,8 @@ function renderPaymentTable(records){
       <td class="amount-col">${esc(amt)}</td>
       <td class="mono">${esc(displayPaymentDateDMY(p.paymentDate,p))||"—"}</td>
       <td>${esc(p.paymentMode)||"—"}</td>
-      <td style="max-width:140px;font-size:0.75rem;color:var(--ink-3)">${esc(displayPaidMonths(p)||"—")}</td>
-      <td style="max-width:160px;font-size:0.75rem;color:var(--ink-3);white-space:pre-line">${esc(p.remarks||"—")}</td>
+      <td style="font-size:0.75rem;color:var(--ink-3)"><span class="clip-cell" style="max-width:140px" title="${esc(displayPaidMonths(p)||"")}">${esc(displayPaidMonths(p)||"—")}</span></td>
+      <td style="font-size:0.75rem;color:var(--ink-3)"><span class="clip-cell" title="${esc(p.remarks||"")}">${esc(p.remarks||"—")}</span></td>
       <td>${badge}</td>
       <td><div class="pay-row-actions">
         ${actionsHtml}
