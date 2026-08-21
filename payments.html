@@ -900,13 +900,95 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 .alert-close:hover{background:var(--surface-3)}
 
 /* ══════════════════════════════════════
-   COVERAGE MODAL — shown when a "covered" (green-tick, no transaction of
-   its own) month is clicked. Lists every transaction whose Paid-For-Months
-   include that month, plus a way to still record a brand-new payment dated
-   in that same month (Payment Date and Paid-For Month are different things
-   — see openCoverageModal / openAddPaymentDatedIn).
+   PAYMENT DETAILS MODAL — the single, unified "view" popup opened by
+   clicking ANY interactive grid cell. Shows what's known about that
+   month before committing to anything else: full payment data (+ Edit /
+   Delete) for a month with its own transaction, a friendly empty state
+   (+ Add Payment) for a month with none, and the coverage-transaction
+   cards below (+ Add Payment) for a month paid via a different month's
+   transaction. Replaces the old "click = jump straight into the form"
+   behavior — the form (payModalOverlay) is now one deliberate step away,
+   reached via this modal's primary button.
 ══════════════════════════════════════ */
-.coverage-modal{width:min(480px,100%);max-height:88vh}
+.details-modal{width:min(460px,100%);max-height:90vh;overflow-y:auto}
+.details-modal.is-covered{width:min(510px,100%)}
+.details-close{
+  position:absolute;top:14px;right:14px;z-index:2;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.32);
+  color:#fff;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:background 0.14s;
+}
+.details-close:hover{background:rgba(255,255,255,0.28)}
+.details-hero{
+  position:relative;overflow:hidden;padding:22px 22px 20px;
+  background:linear-gradient(140deg,var(--blue-900),var(--blue-700) 52%,var(--violet-600));
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+}
+.details-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,rgba(255,255,255,0.22),transparent 55%);pointer-events:none}
+.details-hero>*{position:relative;z-index:1}
+.details-status-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:4px 10px;border-radius:999px;background:rgba(255,255,255,0.16);
+  color:#fff;border:1px solid rgba(255,255,255,0.3);
+}
+.details-status-chip.st-paid{background:rgba(52,211,153,0.24);border-color:rgba(52,211,153,0.5)}
+.details-status-chip.st-review{background:rgba(139,92,246,0.26);border-color:rgba(139,92,246,0.55)}
+.details-status-chip.st-covered{background:rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.45)}
+.details-status-chip.st-due{background:rgba(248,113,113,0.22);border-color:rgba(248,113,113,0.5)}
+.details-status-chip.st-future{background:rgba(255,255,255,0.14)}
+.details-hero-flat{font-family:'Fraunces',serif;font-weight:700;font-size:1.14rem;color:#fff;letter-spacing:-0.01em;margin-top:10px}
+.details-hero-month{font-size:0.76rem;color:rgba(255,255,255,0.72);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:0.05em}
+.details-hero-amount{font-family:'DM Mono',monospace;font-weight:800;font-size:1.9rem;color:#fff;margin-top:14px;letter-spacing:-0.01em}
+.details-hero-amount.hidden{display:none}
+
+.details-body{padding:20px 22px 4px}
+.details-meta-list{display:flex;flex-direction:column;gap:0}
+.details-meta-row{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.details-meta-row:last-child{border-bottom:none}
+.details-meta-row dt{display:flex;align-items:center;gap:8px;flex:0 0 128px;font-size:0.72rem;font-weight:700;color:var(--ink-3)}
+.details-meta-row dd{flex:1;font-size:0.86rem;font-weight:600;color:var(--ink);word-break:break-word}
+.details-ico{
+  flex-shrink:0;width:24px;height:24px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--blue-50);color:var(--blue-600);
+}
+.details-ico svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.details-months-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.details-review-note{
+  display:flex;align-items:flex-start;gap:9px;padding:11px 13px;margin-bottom:6px;
+  background:var(--violet-50);border:1px solid var(--violet-100);border-radius:var(--r-md);
+  font-size:0.78rem;font-weight:600;color:var(--violet-600);line-height:1.45;
+}
+.details-review-note .details-ico{background:rgba(139,92,246,0.14);color:var(--violet-600)}
+.details-notes-card{margin:14px 0 4px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md)}
+.details-notes-label{font-size:0.64rem;font-weight:800;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px}
+.details-notes-text{font-size:0.82rem;color:var(--ink-2);line-height:1.5;white-space:pre-wrap}
+
+.details-empty-state{text-align:center;padding:22px 10px 14px}
+.details-empty-icon{
+  width:56px;height:56px;border-radius:50%;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);border:1.5px dashed var(--line-lg);color:var(--ink-3);
+}
+.details-empty-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.details-empty-title{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:6px}
+.details-empty-hint{font-size:0.82rem;color:var(--ink-3);line-height:1.5;max-width:320px;margin:0 auto}
+
+.details-footer{display:flex;justify-content:flex-end;align-items:center;gap:9px;padding:16px 22px 20px;border-top:1px solid var(--line);margin-top:12px}
+.details-footer.hidden{display:none}
+.details-confirm-footer{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 18px;margin:12px 22px 20px;
+  background:var(--red-50);border-radius:var(--r-md);border:1px solid var(--red-100);
+}
+.details-confirm-footer.hidden{display:none}
+.details-confirm-text{font-size:0.79rem;font-weight:600;color:var(--red-600);line-height:1.4}
+.details-confirm-actions{display:flex;gap:8px;flex-shrink:0}
+.btn-delete.solid{background:var(--red-600);color:#fff;border-color:var(--red-600)}
+.btn-delete.solid:hover{background:var(--red-700)}
+
 .coverage-tx-card{
   border:1px solid var(--line);border-radius:var(--r-md);padding:13px 15px;
   margin-bottom:10px;background:var(--surface-2);
@@ -930,7 +1012,6 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 }
 .coverage-months-chip.is-this-month{color:var(--green-700);background:var(--green-50);border-color:var(--green-200)}
 .coverage-empty{padding:18px 4px;text-align:center;color:var(--ink-4);font-size:0.82rem}
-.coverage-footer{display:flex;justify-content:flex-end;gap:9px;padding-top:14px;margin-top:2px;border-top:1px solid var(--line)}
 .coverage-hint{font-size:0.76rem;color:var(--ink-3);margin-bottom:12px;line-height:1.45}
 .alert-body{padding:16px 18px;font-size:0.88rem;font-weight:500;color:var(--ink-2);line-height:1.5}
 .alert-footer{padding:0 18px 16px;display:flex;justify-content:flex-end}
@@ -975,6 +1056,14 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
   .month-options-grid{grid-template-columns:repeat(3,1fr)}
   .form-actions{flex-direction:column-reverse;gap:8px}
   .btn-save,.btn-cancel,.btn-delete{width:100%;height:44px;font-size:0.86rem}
+  .details-footer{flex-direction:column-reverse;gap:8px;padding:14px 16px 18px}
+  .details-footer .btn-save,.details-footer .btn-cancel,.details-footer .btn-delete{width:100%;height:44px;font-size:0.86rem}
+  .details-confirm-footer{flex-direction:column;align-items:stretch;margin:10px 16px 18px}
+  .details-confirm-actions{width:100%}
+  .details-confirm-actions .btn-cancel,.details-confirm-actions .btn-delete{flex:1;height:42px}
+  .details-hero{padding:20px 18px 18px}
+  .details-body{padding:18px 18px 4px}
+  .details-meta-row dt{flex-basis:112px}
   .month-picker-dropdown{position:static;margin-top:6px;box-shadow:none;border:1px solid var(--line-md);max-height:220px}
   .month-grid{grid-template-columns:1fr 1fr}
 }
@@ -1014,6 +1103,12 @@ body.dark-mode .year-row{background:var(--surface-2)}
 body.dark-mode .year-row:hover{background:var(--surface-3)}
 body.dark-mode .month-tile{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .payment-modal,.body.dark-mode .alert-modal{background:var(--surface);border-color:var(--line-md)}
+body.dark-mode .details-meta-row{border-color:var(--line-md)}
+body.dark-mode .details-ico{background:var(--surface-3);color:var(--blue-400)}
+body.dark-mode .details-notes-card{background:var(--surface-2);border-color:var(--line-md)}
+body.dark-mode .details-empty-icon{background:var(--surface-2);border-color:var(--line-lg)}
+body.dark-mode .details-footer{border-color:var(--line-md)}
+body.dark-mode .coverage-tx-card{background:var(--surface-2);border-color:var(--line-md)}
 body.dark-mode .form-field input,.body.dark-mode .form-field select,.body.dark-mode .form-field textarea{background:var(--surface-2);border-color:var(--line-md);color:var(--ink)}
 body.dark-mode .pay-year-select{background-color:var(--surface-2);border-color:var(--line-md);color:var(--ink)}
 body.dark-mode .month-picker-trigger{background:var(--surface-2);border-color:var(--line-md);color:var(--ink-2)}
@@ -1287,8 +1382,8 @@ body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blu
    not read-only — still a real, clickable cell). Lighter/softer green than
    .chip.paid so "this month's own transaction" stays visually primary,
    but it keeps the base .chip's pointer cursor + hover lift so it never
-   reads as disabled. Click opens the coverage detail popup (see
-   openCoverageModal), which itself offers "Record New Payment". */
+   reads as disabled. Click opens the Payment Details modal (see
+   openDetailsModal), which lists what covers it and offers Add Payment. */
 .chip.covered{background:var(--green-50);color:var(--green-700);opacity:0.82;border-color:var(--green-100)}
 .chip.covered:hover{background:#d1fae5;opacity:1}
 .chip.due{background:transparent;color:var(--red-600);border-color:var(--red-300);border-style:dashed}
@@ -1641,22 +1736,31 @@ body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blu
   </div>
 </div>
 
-<!-- ══ COVERAGE MODAL — which transaction(s) cover a "covered" month ══ -->
-<div class="modal-overlay" id="coverageModalOverlay" aria-hidden="true">
-  <div class="payment-modal coverage-modal" role="dialog" aria-modal="true" aria-labelledby="coverageModalTitle">
-    <div class="modal-head">
-      <div class="modal-head-copy">
-        <div class="modal-title" id="coverageModalTitle">Payment Coverage</div>
-        <div class="modal-subtitle" id="coverageModalSubtitle">—</div>
-      </div>
-      <button class="modal-close" id="coverageModalClose" type="button" aria-label="Close">×</button>
+<!-- ══ PAYMENT DETAILS MODAL — unified "view" popup opened by clicking any
+     grid cell. Shows full payment data (+ Edit/Delete) for a month that
+     has its own transaction, a friendly empty state (+ Add Payment) for
+     a month that doesn't, and covering-transaction cards (+ Add Payment)
+     for a month paid via a different month's transaction. ══ -->
+<div class="modal-overlay" id="detailsModalOverlay" aria-hidden="true">
+  <div class="payment-modal details-modal" role="dialog" aria-modal="true" aria-labelledby="detailsHeroFlat">
+    <button class="details-close" id="detailsModalClose" type="button" aria-label="Close">×</button>
+    <div class="details-hero">
+      <span class="details-status-chip" id="detailsStatusChip">—</span>
+      <div class="details-hero-flat" id="detailsHeroFlat">—</div>
+      <div class="details-hero-month" id="detailsHeroMonth">—</div>
+      <div class="details-hero-amount hidden" id="detailsHeroAmount">₹0</div>
     </div>
-    <div class="modal-body">
-      <div class="coverage-hint" id="coverageHint"></div>
-      <div id="coverageTxList"></div>
-      <div class="coverage-footer">
-        <button class="btn-cancel" id="coverageCloseBtn" type="button">Close</button>
-        <button class="btn-save" id="coverageAddBtn" type="button">Record New Payment</button>
+    <div class="modal-body details-body" id="detailsBody"></div>
+    <div class="details-footer" id="detailsFooterNormal">
+      <button class="btn-cancel" id="detailsCloseBtn" type="button">Close</button>
+      <button class="btn-delete hidden" id="detailsDeleteBtn" type="button">Delete</button>
+      <button class="btn-save" id="detailsPrimaryBtn" type="button">Edit Payment</button>
+    </div>
+    <div class="details-confirm-footer hidden" id="detailsFooterConfirm">
+      <span class="details-confirm-text">Delete this payment? This can't be undone.</span>
+      <div class="details-confirm-actions">
+        <button class="btn-cancel" id="detailsCancelDeleteBtn" type="button">Cancel</button>
+        <button class="btn-delete solid" id="detailsConfirmDeleteBtn" type="button">Yes, Delete</button>
       </div>
     </div>
   </div>
@@ -1680,6 +1784,10 @@ const PAYMENT_WRITE_URL = CONFIG.appsScript.payments;
 const months     = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_LBLS = ["JAN","FEB","MAR","APR","MAY","JUNE","JULY","AUG","SEP","OCT","NOV","DEC"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// Full month names — used only for the Payment Details modal's hero label,
+// where there's room to spell it out (MONTH_SHORT stays the compact form
+// used everywhere else: grid headers, chips, coverage chips).
+const MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 // null in config.js's monthTabsByYear means "this year has all twelve
 // months" — resolved against the local `months` array here.
 const monthSheetNamesByYear = Object.fromEntries(
@@ -2175,8 +2283,8 @@ function computeCellState(row,year,mi,canEdit){
   // a payment recorded elsewhere. Show it green + covered, and — unlike
   // before — keep it genuinely clickable: this month is still a valid
   // transaction date for a brand-new, unrelated payment. Clicking opens a
-  // details view of whatever already covers it (openCoverageModal), which
-  // itself offers a "Record New Payment" action rather than silently
+  // details view of whatever already covers it (openDetailsModal), which
+  // itself offers an "Add Payment" action rather than silently
   // treating the cell as locked.
   if(year!=="all"){
     const cellKey=PaymentMonths.toKey(Number(year),mi);
@@ -2250,7 +2358,7 @@ function shortDate(dateStr,includeYear){
 }
 
 function chipHtml(row,cs){
-  const attrs=cs.action?` data-action="${cs.action}" data-year="${cs.year}" data-mi="${cs.mi}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
+  const attrs=cs.action?` data-action="${cs.action}" data-status="${cs.status}" data-year="${cs.year}" data-mi="${cs.mi}" data-block="${row.Block}" data-flat="${row.Flat}"`:"";
   if(cs.status==="paid"){
     const dateLbl=shortDate(cs.entry.date,cs.year==="all");
     return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}${dateLbl?`<span class="c-sub">${dateLbl}</span>`:""}</span>`;
@@ -2692,18 +2800,17 @@ document.getElementById("blocksWrap").addEventListener("click",e=>{
   }
   const editT=e.target.closest('[data-action="edit"]');
   if(editT){
-    const ctx=findCtx(editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi||-1));
-    if(ctx)openEditModal(ctx);
+    openDetailsModal(editT.dataset.status||"paid",editT.dataset.block||"",editT.dataset.flat||"",editT.dataset.year||"",Number(editT.dataset.mi??-1));
     return;
   }
   const addT=e.target.closest('[data-action="add"]');
   if(addT){
-    openAddModalForCell(addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
+    openDetailsModal(addT.dataset.status||"due",addT.dataset.block||"",addT.dataset.flat||"",addT.dataset.year||"",Number(addT.dataset.mi??-1));
     return;
   }
   const covT=e.target.closest('[data-action="coverage"]');
   if(covT){
-    openCoverageModal(covT.dataset.block||"",covT.dataset.flat||"",covT.dataset.year||"",Number(covT.dataset.mi??-1));
+    openDetailsModal("covered",covT.dataset.block||"",covT.dataset.flat||"",covT.dataset.year||"",Number(covT.dataset.mi??-1));
   }
 });
 
@@ -2802,62 +2909,202 @@ function findRowByBlockFlat(block,flat){
   return row||null;
 }
 
-/* ── Coverage modal ── "Which transaction(s) already cover this month?"
-   Opened by clicking a "covered" (green-tick) cell — a month with no
-   transaction of its own but paid via a payment recorded elsewhere. Lists
-   every contributing transaction (date, amount, mode, everything it
-   covers, and notes/received-by as the closest available fields to a
-   reference — the sheet has no separate transaction-ID column), and
-   offers "Record New Payment" so the month stays fully usable for a
-   brand-new, unrelated payment instead of acting locked. */
 function escapeHtml(s){
   return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-let coverageModalCtx=null;
-function openCoverageModal(block,flat,year,mi){
-  const row=findRowByBlockFlat(block,flat);
-  const cellKey=PaymentMonths.toKey(Number(year),Number(mi));
-  const coverers=(row&&row.coverageListByKey&&row.coverageListByKey[cellKey])||[];
-  const monthLabel=`${MONTH_SHORT[Number(mi)]} ${year}`;
 
-  document.getElementById("coverageModalTitle").textContent=coverers.length>1?`${coverers.length} Payments Cover This Month`:"Covered By This Payment";
-  document.getElementById("coverageModalSubtitle").textContent=`${block} · Flat ${flat} · ${monthLabel}`;
-  document.getElementById("coverageHint").textContent=`${monthLabel} is already paid — covered by the transaction${coverers.length>1?"s":""} below. This doesn't stop a brand-new payment from being recorded with a transaction date in ${monthLabel} for a different month owed.`;
+/* ── Payment Details modal ── the unified "view" popup opened by clicking
+   ANY interactive grid cell, before anything gets edited/added/deleted.
+   Three flavors, driven entirely by the clicked cell's status:
+     • paid / review → this month has its own transaction. Show its full
+       data (amount, date, mode, received by, paid-for months, notes) with
+       Edit + Delete.
+     • due / future  → no transaction at all this month. Friendly empty
+       state with a single Add Payment action.
+     • covered       → no transaction of its OWN, but already paid via a
+       payment recorded in a different month. Lists every contributing
+       transaction (same data the old, now-retired, Coverage modal
+       showed) with Add Payment to record a brand-new, separate one.
+   Icons are small inline SVGs — see DETAILS_ICONS just below. */
+const DETAILS_ICONS = {
+  calendar:'<svg viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v3M13 2.5v3"/></svg>',
+  mode:'<svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16"/></svg>',
+  user:'<svg viewBox="0 0 20 20"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c1-3.3 4-5 6.5-5s5.5 1.7 6.5 5"/></svg>',
+  months:'<svg viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>',
+  alert:'<svg viewBox="0 0 20 20"><path d="M10 3 2 17h16L10 3z"/><path d="M10 8.5v3.5M10 14.5h.01"/></svg>',
+  receiptOff:'<svg viewBox="0 0 20 20"><path d="M5 3h10v14l-2.5-1.5L10 17l-2.5-1.5L5 17V3z"/><path d="M7.5 7h5M7.5 10h5"/></svg>',
+  calendarPlus:'<svg viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v3M13 2.5v3M10 11v4M8 13h4"/></svg>'
+};
+function detailsIco(name){ return `<span class="details-ico">${DETAILS_ICONS[name]||""}</span>`; }
 
-  const listEl=document.getElementById("coverageTxList");
-  if(!coverers.length){
-    listEl.innerHTML=`<div class="coverage-empty">No transaction details found for ${escapeHtml(monthLabel)}.</div>`;
-  }else{
-    listEl.innerHTML=coverers.map(entry=>{
-      const modeUp=String(entry.paymentMode||"").toUpperCase();
-      const monthsHtml=(entry.paidMonthKeys&&entry.paidMonthKeys.length)
-        ?entry.paidMonthKeys.slice().sort().map(k=>`<span class="coverage-months-chip${k===cellKey?" is-this-month":""}">${escapeHtml(PaymentMonths.label(k))}</span>`).join("")
-        :"—";
-      return`<div class="coverage-tx-card">
-        <div class="coverage-tx-top">
-          <span class="coverage-tx-amount">${fmt$(entry.amount)}</span>
-          <span class="coverage-tx-mode ${modeUp==="CASH"?"cash":"online"}">${escapeHtml(modeUp||"—")}</span>
-        </div>
-        <div class="coverage-tx-date">Paid on ${escapeHtml(entry.date||"—")}</div>
-        <dl class="coverage-tx-grid">
-          <dt>Covers</dt><dd>${monthsHtml}</dd>
-          <dt>Received By</dt><dd>${escapeHtml(entry.receivedBy||"—")}</dd>
-          <dt>Reference / Notes</dt><dd>${escapeHtml(entry.notes||"—")}</dd>
-        </dl>
-      </div>`;
-    }).join("");
+const DETAILS_STATUS_META = {
+  paid:   {label:"Paid",              chip:"st-paid"},
+  review: {label:"Needs Review",      chip:"st-review"},
+  covered:{label:"Covered",           chip:"st-covered"},
+  due:    {label:"Payment Due",       chip:"st-due"},
+  future: {label:"Not Yet Due",       chip:"st-future"}
+};
+
+let detailsCtx=null; // whatever the currently-open Details modal needs for its footer actions
+
+function buildPaidDetailsHtml(ctx,status){
+  const monthsHtml=(ctx.paidMonths&&ctx.paidMonths.length)
+    ?ctx.paidMonths.slice().sort().map(k=>`<span class="coverage-months-chip">${escapeHtml(PaymentMonths.label(k))}</span>`).join("")
+    :"—";
+  const modeUp=String(ctx.paymentMode||"").toUpperCase();
+  const reviewNote=status==="review"
+    ?`<div class="details-review-note">${detailsIco("alert")}<span>Recorded this month, but not allocated to a specific month yet — edit the payment to confirm which month(s) it covers.</span></div>`
+    :"";
+  const notesHtml=ctx.notes
+    ?`<div class="details-notes-card"><div class="details-notes-label">Notes</div><div class="details-notes-text">${escapeHtml(ctx.notes)}</div></div>`
+    :"";
+  return`${reviewNote}<dl class="details-meta-list">
+    <div class="details-meta-row"><dt>${detailsIco("calendar")}Payment Date</dt><dd>${escapeHtml(ctx.date||"—")}</dd></div>
+    <div class="details-meta-row"><dt>${detailsIco("mode")}Mode</dt><dd><span class="coverage-tx-mode ${modeUp==="CASH"?"cash":"online"}">${escapeHtml(modeUp||"—")}</span></dd></div>
+    <div class="details-meta-row"><dt>${detailsIco("user")}Received By</dt><dd>${escapeHtml(ctx.receivedBy||"—")}</dd></div>
+    <div class="details-meta-row"><dt>${detailsIco("months")}Paid For</dt><dd class="details-months-wrap">${monthsHtml}</dd></div>
+  </dl>${notesHtml}`;
+}
+function buildEmptyDetailsHtml(status,monthLabel){
+  const isFuture=status==="future";
+  const title=isFuture?"Not Due Yet":"No Payment Recorded";
+  const hint=isFuture
+    ?`${escapeHtml(monthLabel)} isn't due yet, but you can still record an advance payment now if one's already been made.`
+    :`No payment has been recorded for ${escapeHtml(monthLabel)}. Add one to mark this month as paid.`;
+  return`<div class="details-empty-state">
+    <div class="details-empty-icon">${DETAILS_ICONS[isFuture?"calendarPlus":"receiptOff"]}</div>
+    <div class="details-empty-title">${title}</div>
+    <div class="details-empty-hint">${hint}</div>
+  </div>`;
+}
+function buildCoveredDetailsHtml(coverers,cellKey,monthLabel){
+  if(!coverers.length)return`<div class="coverage-empty">No transaction details found for ${escapeHtml(monthLabel)}.</div>`;
+  const hint=`<div class="coverage-hint">${escapeHtml(monthLabel)} is already paid — covered by the transaction${coverers.length>1?"s":""} below. You can still record a brand-new payment dated in ${escapeHtml(monthLabel)} for a different month owed.</div>`;
+  const cards=coverers.map(entry=>{
+    const modeUp=String(entry.paymentMode||"").toUpperCase();
+    const monthsHtml=(entry.paidMonthKeys&&entry.paidMonthKeys.length)
+      ?entry.paidMonthKeys.slice().sort().map(k=>`<span class="coverage-months-chip${k===cellKey?" is-this-month":""}">${escapeHtml(PaymentMonths.label(k))}</span>`).join("")
+      :"—";
+    return`<div class="coverage-tx-card">
+      <div class="coverage-tx-top">
+        <span class="coverage-tx-amount">${fmt$(entry.amount)}</span>
+        <span class="coverage-tx-mode ${modeUp==="CASH"?"cash":"online"}">${escapeHtml(modeUp||"—")}</span>
+      </div>
+      <div class="coverage-tx-date">Paid on ${escapeHtml(entry.date||"—")}</div>
+      <dl class="coverage-tx-grid">
+        <dt>Covers</dt><dd>${monthsHtml}</dd>
+        <dt>Received By</dt><dd>${escapeHtml(entry.receivedBy||"—")}</dd>
+        <dt>Reference / Notes</dt><dd>${escapeHtml(entry.notes||"—")}</dd>
+      </dl>
+    </div>`;
+  }).join("");
+  return hint+cards;
+}
+
+function openDetailsModal(status,block,flat,year,mi){
+  if(!block||!flat||!year||mi<0)return;
+  const monthLabel=`${MONTH_FULL[Number(mi)]} ${year}`;
+  const bodyEl=document.getElementById("detailsBody");
+  const heroAmountEl=document.getElementById("detailsHeroAmount");
+  const deleteBtn=document.getElementById("detailsDeleteBtn");
+  const primaryBtn=document.getElementById("detailsPrimaryBtn");
+  const modalEl=document.querySelector("#detailsModalOverlay .details-modal");
+
+  let ctx=null,coverers=null;
+  if(status==="paid"||status==="review"){
+    ctx=findCtx(block,flat,year,mi);
+    if(!ctx)return; // stale click (data refreshed under the user) — silently no-op rather than show a broken popup
+  }else if(status==="covered"){
+    const row=findRowByBlockFlat(block,flat);
+    const cellKey=PaymentMonths.toKey(Number(year),Number(mi));
+    coverers=(row&&row.coverageListByKey&&row.coverageListByKey[cellKey])||[];
   }
 
-  coverageModalCtx={block,flat:String(flat),year:String(year),mi:Number(mi)};
-  const overlay=document.getElementById("coverageModalOverlay");
+  detailsCtx={status,block,flat,year:String(year),mi:Number(mi),ctx,coverers};
+  exitDeleteConfirm();
+
+  document.getElementById("detailsHeroFlat").textContent=`${block} · Flat ${flat}`;
+  document.getElementById("detailsHeroMonth").textContent=monthLabel;
+  const meta=DETAILS_STATUS_META[status]||DETAILS_STATUS_META.due;
+  const chipEl=document.getElementById("detailsStatusChip");
+  chipEl.textContent=meta.label;
+  chipEl.className="details-status-chip "+meta.chip;
+  modalEl.classList.toggle("is-covered",status==="covered");
+
+  if(status==="paid"||status==="review"){
+    heroAmountEl.textContent=fmt$(ctx.amount);
+    heroAmountEl.classList.remove("hidden");
+    bodyEl.innerHTML=buildPaidDetailsHtml(ctx,status);
+    deleteBtn.classList.remove("hidden");
+    primaryBtn.textContent="Edit Payment";
+  }else if(status==="covered"){
+    heroAmountEl.classList.add("hidden");
+    bodyEl.innerHTML=buildCoveredDetailsHtml(coverers,PaymentMonths.toKey(Number(year),Number(mi)),monthLabel);
+    deleteBtn.classList.add("hidden");
+    primaryBtn.textContent="+ Add Payment";
+  }else{
+    heroAmountEl.classList.add("hidden");
+    bodyEl.innerHTML=buildEmptyDetailsHtml(status,monthLabel);
+    deleteBtn.classList.add("hidden");
+    primaryBtn.textContent="+ Add Payment";
+  }
+
+  const overlay=document.getElementById("detailsModalOverlay");
   overlay.classList.add("open"); overlay.setAttribute("aria-hidden","false");
   lockScroll();
 }
-function closeCoverageModal(){
-  const overlay=document.getElementById("coverageModalOverlay");
+/* keepScrollLocked=true when immediately opening another modal on top
+   (Edit/Add/Delete follow-through) — avoids an unlock→relock flicker. */
+function closeDetailsModal(keepScrollLocked){
+  const overlay=document.getElementById("detailsModalOverlay");
   overlay.classList.remove("open"); overlay.setAttribute("aria-hidden","true");
-  if(!document.getElementById("payModalOverlay").classList.contains("open")&&!document.getElementById("alertOverlay").classList.contains("open"))unlockScroll();
+  exitDeleteConfirm();
+  if(!keepScrollLocked&&!document.getElementById("payModalOverlay").classList.contains("open")&&!document.getElementById("alertOverlay").classList.contains("open"))unlockScroll();
 }
+function showDeleteConfirm(){
+  document.getElementById("detailsFooterNormal").classList.add("hidden");
+  document.getElementById("detailsFooterConfirm").classList.remove("hidden");
+}
+function exitDeleteConfirm(){
+  document.getElementById("detailsFooterNormal").classList.remove("hidden");
+  document.getElementById("detailsFooterConfirm").classList.add("hidden");
+}
+/* The primary footer button means different things depending on why the
+   modal was opened: jump into the existing Edit form (own transaction),
+   or the existing Add form, dated appropriately (empty / covered month). */
+function handleDetailsPrimaryAction(){
+  if(!detailsCtx)return;
+  const{status,block,flat,year,mi,ctx}=detailsCtx;
+  closeDetailsModal(true);
+  if(status==="paid"||status==="review"){ if(ctx)openEditModal(ctx); }
+  else if(status==="covered"){ openAddPaymentDatedIn(block,flat,year,mi); }
+  else{ openAddModalForCell(block,flat,year,mi); }
+}
+/* Deleting from this modal reuses the existing edit-form delete path
+   (deletePayment()/getPayload() build the request straight from the
+   #paymentForm fields) — so it silently populates those hidden fields
+   exactly as openEditModal() would, without visually showing the form,
+   then triggers the real delete. */
+async function runConfirmedDelete(){
+  if(!detailsCtx||!detailsCtx.ctx)return;
+  if(!requireStaffAuth())return;
+  const ctx=detailsCtx.ctx;
+  modalAction="update"; editCtx=ctx;
+  populateBlockOptions(ctx.block);
+  populateFlatOptions(ctx.block,ctx.flat);
+  document.getElementById("fBlock").value=ctx.block;
+  document.getElementById("fFlat").value=ctx.flat;
+  document.getElementById("fAmount").value=String(ctx.amount||"");
+  document.getElementById("fMode").value=ctx.paymentMode||"ONLINE";
+  document.getElementById("fRecv").value=ctx.receivedBy||"";
+  const id=toInputDate(ctx.date); if(id)document.getElementById("fDate").value=id;
+  document.getElementById("fNotes").value=ctx.notes||"";
+  document.getElementById("payYear").value=String(Number(ctx.year)||new Date().getFullYear());
+  refreshMonthPicker(ctx.paidMonths||[]);
+  closeDetailsModal(true);
+  await deletePayment();
+}
+
 function firstOfMonthISO(year,mi){
   return `${Number(year)}-${String(Number(mi)+1).padStart(2,"0")}-01`;
 }
@@ -3206,15 +3453,13 @@ document.getElementById("payModalOverlay").addEventListener("click",e=>{ if(e.ta
 document.getElementById("alertClose").addEventListener("click",closeAlert);
 document.getElementById("alertOk").addEventListener("click",closeAlert);
 document.getElementById("alertOverlay").addEventListener("click",e=>{ if(e.target.id==="alertOverlay")closeAlert(); });
-document.getElementById("coverageModalClose").addEventListener("click",closeCoverageModal);
-document.getElementById("coverageCloseBtn").addEventListener("click",closeCoverageModal);
-document.getElementById("coverageModalOverlay").addEventListener("click",e=>{ if(e.target.id==="coverageModalOverlay")closeCoverageModal(); });
-document.getElementById("coverageAddBtn").addEventListener("click",()=>{
-  if(!coverageModalCtx)return;
-  const{block,flat,year,mi}=coverageModalCtx;
-  closeCoverageModal();
-  openAddPaymentDatedIn(block,flat,year,mi);
-});
+document.getElementById("detailsModalClose").addEventListener("click",()=>closeDetailsModal(false));
+document.getElementById("detailsCloseBtn").addEventListener("click",()=>closeDetailsModal(false));
+document.getElementById("detailsModalOverlay").addEventListener("click",e=>{ if(e.target.id==="detailsModalOverlay")closeDetailsModal(false); });
+document.getElementById("detailsDeleteBtn").addEventListener("click",showDeleteConfirm);
+document.getElementById("detailsCancelDeleteBtn").addEventListener("click",exitDeleteConfirm);
+document.getElementById("detailsConfirmDeleteBtn").addEventListener("click",runConfirmedDelete);
+document.getElementById("detailsPrimaryBtn").addEventListener("click",handleDetailsPrimaryAction);
 document.getElementById("monthPickerTrigger").addEventListener("click",e=>{ e.stopPropagation();setMonthPickerOpen(!document.getElementById("monthPickerWrap").classList.contains("open")); });
 document.getElementById("monthPickerDropdown").addEventListener("click",e=>e.stopPropagation());
 document.addEventListener("click",e=>{ if(!e.target.closest("#monthPickerWrap"))setMonthPickerOpen(false); });
