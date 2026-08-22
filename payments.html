@@ -1844,6 +1844,10 @@ function parseCSV(line){ return Utils.parseCSVLine(line); } // shared in utils.j
 function parseCSVRows(csv){ return Utils.splitCSVRows(csv); } // shared in utils.js
 const norm = v => String(v||"").trim().toLowerCase();
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
+// "Block-1" / "Block 1" / "1" → "1" — just the block's number/letter part, so
+// flat labels can read "1-101" (block-flat) instead of just "101". Same
+// convention as povBlockNum() in app.js's Payments Overview page.
+const blockNum = v => { const s=String(v==null?"":v).trim(); return s.replace(/^block[\s-]?/i,"")||s; };
 const flatKey = v => String(v||"").trim();
 const isValidPaymentFlatRow = (block,flat) => {
   const b=norm(block), f=norm(flat);
@@ -2454,7 +2458,7 @@ function applyFilters(){
       const bucket=computeFlatBucket(row,row._year);
       const warn=bucket==="review"?`<span class="flat-warn" title="Needs review"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.2" r="0.6" fill="currentColor"/></svg></span>`:"";
       const yearBadge=year==="all"?`<span class="flat-year-badge">${row._noHistory?"—":row._year}</span>`:"";
-      return`<tr><td class="flat-cell"><span class="flat-num">${row.Flat}</span>${yearBadge}${warn}</td>${cells}<td class="total-col"><div class="total-chip">${fmt$(row._yearTotal)}</div></td></tr>`;
+      return`<tr><td class="flat-cell"><span class="flat-num">${blockNum(row.Block)}-${row.Flat}</span>${yearBadge}${warn}</td>${cells}<td class="total-col"><div class="total-chip">${fmt$(row._yearTotal)}</div></td></tr>`;
     }).join("");
 
     const mobCards=displayRows.map(row=>{
@@ -2468,7 +2472,7 @@ function applyFilters(){
       </div>`).join("");
       return`<div class="mob-card">
         <div class="mob-card-head">
-          <span class="flat-num">${row.Flat}</span>${yearBadge}${warn}
+          <span class="flat-num">${blockNum(row.Block)}-${row.Flat}</span>${yearBadge}${warn}
           <div style="margin-left:auto;text-align:right">
             <div class="mob-card-total">${fmt$(row._yearTotal)}</div>
             <span class="mob-status ${badgeCls}">${badgeLabel}</span>
