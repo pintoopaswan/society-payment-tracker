@@ -938,6 +938,7 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 .details-status-chip.st-covered{background:rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.45)}
 .details-status-chip.st-due{background:rgba(248,113,113,0.22);border-color:rgba(248,113,113,0.5)}
 .details-status-chip.st-future{background:rgba(255,255,255,0.14)}
+.details-status-chip.st-short{background:rgba(245,158,11,0.26);border-color:rgba(245,158,11,0.55)}
 .details-hero-flat{font-family:'Fraunces',serif;font-weight:700;font-size:1.14rem;color:#fff;letter-spacing:-0.01em;margin-top:10px}
 .details-hero-month{font-size:0.76rem;color:rgba(255,255,255,0.72);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:0.05em}
 .details-hero-amount{font-family:'DM Mono',monospace;font-weight:800;font-size:1.9rem;color:#fff;margin-top:14px;letter-spacing:-0.01em}
@@ -962,6 +963,8 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
   font-size:0.78rem;font-weight:600;color:var(--violet-600);line-height:1.45;
 }
 .details-review-note .details-ico{background:rgba(139,92,246,0.14);color:var(--violet-600)}
+.details-review-note.is-short{background:var(--amber-50);border-color:var(--amber-100);color:var(--amber-700)}
+.details-review-note.is-short .details-ico{background:rgba(245,158,11,0.16);color:var(--amber-700)}
 .details-notes-card{margin:14px 0 4px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md)}
 .details-notes-label{font-size:0.64rem;font-weight:800;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px}
 .details-notes-text{font-size:0.82rem;color:var(--ink-2);line-height:1.5;white-space:pre-wrap}
@@ -1388,6 +1391,12 @@ body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blu
 .chip.covered:hover{background:#d1fae5;opacity:1}
 .chip.due{background:transparent;color:var(--red-600);border-color:var(--red-300);border-style:dashed}
 .chip.review{background:var(--violet-50);color:var(--violet-600);border-color:var(--violet-100)}
+/* Short = a real transaction was recorded and covers this month, but the
+   amount fell short of ₹{FEE}×months-claimed (e.g. ₹200 paid against two
+   claimed months). Same amber family used elsewhere for "cash" tags, just
+   stronger since this needs to catch the eye in the grid. No text label —
+   the amount + yellow fill is the signal (see chipHtml()). */
+.chip.short{background:var(--amber-50);color:var(--amber-700);border-color:var(--amber-100)}
 .chip.locked{background:var(--surface-3);color:var(--ink-4);cursor:not-allowed}
 .chip.locked:hover{transform:none}
 .chip.future{background:transparent;color:var(--ink-4);border-color:var(--line);cursor:default}
@@ -1849,6 +1858,20 @@ const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`
 // convention as povBlockNum() in app.js's Payments Overview page.
 const blockNum = v => { const s=String(v==null?"":v).trim(); return s.replace(/^block[\s-]?/i,"")||s; };
 const flatKey = v => String(v||"").trim();
+// Standard guard-fee per month — same ₹200 figure enforced by
+// PaymentMonths.validateAmountMonths() on the Add/Edit form. Underpaid
+// entries only reach the grid via data that bypassed that form (raw sheet
+// edits, historical imports), so this is re-checked here for display.
+const MONTHLY_FEE = 200;
+/* How far short (in ₹) a transaction's amount falls of ₹{MONTHLY_FEE} ×
+   the number of months it claims to cover. 0 (or less) means fully paid. */
+function entryShortfall(entry){
+  if(!entry)return 0;
+  const monthCount=(entry.paidMonthKeys&&entry.paidMonthKeys.length)?entry.paidMonthKeys.length:1;
+  const expected=MONTHLY_FEE*monthCount;
+  const short=expected-Number(entry.amount||0);
+  return short>0?short:0;
+}
 const isValidPaymentFlatRow = (block,flat) => {
   const b=norm(block), f=norm(flat);
   if(!b||!f||b==="block"||f==="flat"||b==="total")return false;
@@ -2280,7 +2303,13 @@ function computeCellState(row,year,mi,canEdit){
     // but its own Paid-For-Months list doesn't include this month — the
     // money exists but isn't allocated here, so it needs a human to
     // reconcile ("review").
-    return{status:isCovered?"paid":"review",entry:ownEntry,action:canEdit?"edit":null,year,mi};
+    if(!isCovered)return{status:"review",entry:ownEntry,action:canEdit?"edit":null,year,mi};
+    // isCovered=true but the amount itself ran short of ₹{MONTHLY_FEE} ×
+    // months claimed (e.g. ₹500 recorded against 3 claimed months) — flag
+    // it as "short" instead of a plain "paid" so the grid highlights it.
+    const shortfall=entryShortfall(ownEntry);
+    if(shortfall>0)return{status:"short",entry:ownEntry,shortfall,action:canEdit?"edit":null,year,mi};
+    return{status:"paid",entry:ownEntry,action:canEdit?"edit":null,year,mi};
   }
 
   // No transaction of its own this month — but it may already be PAID via
@@ -2340,7 +2369,9 @@ function computeFlatBucket(row,year){
   let hasReview=false,hasDue=false;
   for(let mi=0;mi<12;mi++){
     const cs=computeCellState(row,year,mi,true);
-    if(cs.status==="review")hasReview=true;
+    // "short" (underpaid) folds into the same "needs review" bucket as
+    // unallocated money — both need a human to reconcile the amount.
+    if(cs.status==="review"||cs.status==="short")hasReview=true;
     if(cs.status==="due")hasDue=true;
   }
   if(hasReview)return"review";
@@ -2368,6 +2399,10 @@ function chipHtml(row,cs){
     return`<span class="chip paid"${attrs} title="${fmt$(cs.entry.amount)} · ${cs.entry.paymentMode||""} · ${cs.entry.date||""}">${fmt$(cs.entry.amount)}${dateLbl?`<span class="c-sub">${dateLbl}</span>`:""}</span>`;
   }
   if(cs.status==="review")return`<span class="chip review"${attrs} title="Recorded ${fmt$(cs.entry.amount)} this month, but not allocated to it yet — needs review">${fmt$(cs.entry.amount)}<span class="c-sub">Review</span></span>`;
+  if(cs.status==="short"){
+    const dateLbl=shortDate(cs.entry.date,cs.year==="all");
+    return`<span class="chip short"${attrs} title="${fmt$(cs.entry.amount)} recorded — short by ${fmt$(cs.shortfall)} of the expected amount">${fmt$(cs.entry.amount)}${dateLbl?`<span class="c-sub">${dateLbl}</span>`:""}</span>`;
+  }
   if(cs.status==="covered"){
     const n=(cs.coverers||[]).length;
     const title=n>1?`Covered by ${n} payments — click to view, or record a new one`:"Covered by a payment recorded in another month — click to view, or record a new one";
@@ -2944,6 +2979,7 @@ function detailsIco(name){ return `<span class="details-ico">${DETAILS_ICONS[nam
 const DETAILS_STATUS_META = {
   paid:   {label:"Paid",              chip:"st-paid"},
   review: {label:"Needs Review",      chip:"st-review"},
+  short:  {label:"Underpaid",         chip:"st-short"},
   covered:{label:"Covered",           chip:"st-covered"},
   due:    {label:"Payment Due",       chip:"st-due"},
   future: {label:"Not Yet Due",       chip:"st-future"}
@@ -2959,10 +2995,19 @@ function buildPaidDetailsHtml(ctx,status){
   const reviewNote=status==="review"
     ?`<div class="details-review-note">${detailsIco("alert")}<span>Recorded this month, but not allocated to a specific month yet — edit the payment to confirm which month(s) it covers.</span></div>`
     :"";
+  const shortNote=status==="short"?(()=>{
+    const monthCount=(ctx.paidMonths&&ctx.paidMonths.length)?ctx.paidMonths.length:1;
+    const expected=MONTHLY_FEE*monthCount;
+    const shortfall=expected-Number(ctx.amount||0);
+    const monthsLabel=(ctx.paidMonths&&ctx.paidMonths.length)
+      ?ctx.paidMonths.slice().sort().map(k=>PaymentMonths.label(k)).join(", ")
+      :"this month";
+    return`<div class="details-review-note is-short">${detailsIco("alert")}<span>Short by ${fmt$(shortfall)} for ${escapeHtml(monthsLabel)} — ₹${fmtN(expected)} expected (₹${fmtN(MONTHLY_FEE)}/month) but only ${fmt$(ctx.amount)} was recorded.</span></div>`;
+  })():"";
   const notesHtml=ctx.notes
     ?`<div class="details-notes-card"><div class="details-notes-label">Notes</div><div class="details-notes-text">${escapeHtml(ctx.notes)}</div></div>`
     :"";
-  return`${reviewNote}<dl class="details-meta-list">
+  return`${reviewNote}${shortNote}<dl class="details-meta-list">
     <div class="details-meta-row"><dt>${detailsIco("calendar")}Payment Date</dt><dd>${escapeHtml(ctx.date||"—")}</dd></div>
     <div class="details-meta-row"><dt>${detailsIco("mode")}Mode</dt><dd><span class="coverage-tx-mode ${modeUp==="CASH"?"cash":"online"}">${escapeHtml(modeUp||"—")}</span></dd></div>
     <div class="details-meta-row"><dt>${detailsIco("user")}Received By</dt><dd>${escapeHtml(ctx.receivedBy||"—")}</dd></div>
@@ -3015,7 +3060,7 @@ function openDetailsModal(status,block,flat,year,mi){
   const modalEl=document.querySelector("#detailsModalOverlay .details-modal");
 
   let ctx=null,coverers=null;
-  if(status==="paid"||status==="review"){
+  if(status==="paid"||status==="review"||status==="short"){
     ctx=findCtx(block,flat,year,mi);
     if(!ctx)return; // stale click (data refreshed under the user) — silently no-op rather than show a broken popup
   }else if(status==="covered"){
@@ -3035,7 +3080,7 @@ function openDetailsModal(status,block,flat,year,mi){
   chipEl.className="details-status-chip "+meta.chip;
   modalEl.classList.toggle("is-covered",status==="covered");
 
-  if(status==="paid"||status==="review"){
+  if(status==="paid"||status==="review"||status==="short"){
     heroAmountEl.textContent=fmt$(ctx.amount);
     heroAmountEl.classList.remove("hidden");
     bodyEl.innerHTML=buildPaidDetailsHtml(ctx,status);
