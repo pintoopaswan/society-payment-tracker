@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;height:100%}
@@ -54,6 +55,9 @@ button{cursor:pointer}
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
 <div class="mob-overlay" id="mobOverlay"></div>
 <aside class="mob-drawer" id="mobDrawer" aria-label="Mobile navigation"></aside>
+<script src="config.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 <div class="main" id="mainContent">
   <header class="topbar">
@@ -138,17 +142,24 @@ button{cursor:pointer}
           <tbody id="resultBody"><tr><td colspan="10"><div class="empty-state"><strong>No verification run yet</strong>Select a PDF and date range, then click Verify.</div></td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="resultDeskPagination"></div>
+      <div class="mob-pagination" id="resultMobPagination" style="display:none"></div>
     </section>
   </main>
 </div>
 </div>
 <script src="payment-months.js"></script>
 <script>
-const SHEET_IDS_BY_YEAR={"2026":"1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU","2025":"1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"};
+const SHEET_IDS_BY_YEAR=CONFIG.sheets.paymentsByYear;
 const MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-const MONTH_TABS_BY_YEAR={"2026":MONTHS,"2025":[null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]};
-const AUTH_SESSION_KEY="society_dashboard_auth";
+// null in config.js's monthTabsByYear means "this year has all twelve
+// months" — resolved against the local MONTHS array here.
+const MONTH_TABS_BY_YEAR=Object.fromEntries(
+  Object.entries(CONFIG.sheets.monthTabsByYear).map(([y,tabs])=>[y, tabs || MONTHS])
+);
 let pdfRows=[],sheetRows=[],discrepancies=[],rawPdfText="";
+let resultPage=1;
+const RESULT_PAGE_SIZE=25;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
@@ -162,43 +173,9 @@ const modeKey=v=>{const s=String(v||"").trim().toUpperCase();if(/CASH|C\.?A\.?S\
 const setTxt=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
 function setPill(id,text,type){const el=$(id);if(!el)return;el.textContent=text;el.className=`pill ${type||""}`.trim();}
 
-function parseCSV(line){
-  const out=[];let cur="",q=false;
-  for(let i=0;i<String(line||"").length;i++){
-    const c=line[i];
-    if(c==='"'&&line[i+1]==='"'){cur+='"';i++;}
-    else if(c==='"')q=!q;
-    else if(c===","&&!q){out.push(cur.trim());cur="";}
-    else cur+=c;
-  }
-  out.push(cur.trim());return out;
-}
-function parseCSVRows(csv){
-  const rows=[];let cur="",q=false;
-  for(let i=0;i<String(csv||"").length;i++){
-    const c=csv[i];
-    if(c==='"'&&csv[i+1]==='"'){cur+=c+csv[i+1];i++;}
-    else if(c==='"'){q=!q;cur+=c;}
-    else if((c==="\n"||c==="\r")&&!q){if(c==="\r"&&csv[i+1]==="\n")i++;if(cur.trim())rows.push(cur);cur="";}
-    else cur+=c;
-  }
-  if(cur.trim())rows.push(cur);return rows;
-}
-async function fetchCsv(sid,tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const csv=await r.text();
-      const probe=csv.trim().slice(0,200).toLowerCase();
-      if(csv.trim()&&!probe.startsWith("<!doctype")&&!probe.includes("<html")&&!csv.includes("File not found"))return csv;
-    }catch(_){}
-  }
-  return "";
-}
+function parseCSV(line){ return Utils.parseCSVLine(line); } // shared in utils.js (this also fixes a subtle bug: the old version treated a `""` sequence as an escaped quote even outside quoted context)
+function parseCSVRows(csv){ return Utils.splitCSVRows(csv); } // shared in utils.js
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 function parseDate(raw){
   const s=String(raw||"").trim();
   if(!s)return null;
@@ -330,11 +307,19 @@ function renderResults(matchedCount=0){
   $("csvBtn").disabled=$("pdfBtn").disabled=$("mobCsvBtn").disabled=!discrepancies.length;
   if(!rows.length){
     $("resultBody").innerHTML=`<tr><td colspan="10"><div class="empty-state"><strong>${discrepancies.length?"No rows match your search":"No discrepancies"}</strong>${discrepancies.length?"Clear the search to see all results.":"All imported PDF rows matched the payment sheet."}</div></td></tr>`;
+    document.getElementById("resultDeskPagination").innerHTML="";
+    document.getElementById("resultMobPagination").style.display="none";
     return;
   }
-  $("resultBody").innerHTML=rows.map(r=>`<tr><td class="mono">${esc(r.sn)}</td><td>${esc(r.block)}</td><td class="mono">${esc(r.flat)}</td><td class="mono">${r.pdfAmount!==""?fmtAmt(r.pdfAmount):"-"}</td><td class="mono">${r.sheetAmount!=null?fmtAmt(r.sheetAmount):"-"}</td><td>${esc(r.pdfMode||"-")}</td><td>${esc(r.sheetMode||"-")}</td><td class="mono">${esc(r.pdfDate||"-")}</td><td class="mono">${esc(r.sheetDate||"-")}</td><td class="reason">${esc(r.reason)}</td></tr>`).join("");
+  resultPage=Utils.renderPagination({
+    total:rows.length, page:resultPage, pageSize:RESULT_PAGE_SIZE,
+    deskId:"resultDeskPagination", mobId:"resultMobPagination", noun:"rows",
+    onChange:(p)=>{ resultPage=p; renderResults(matchedCount); document.querySelector(".table-wrap")?.scrollIntoView({behavior:"smooth",block:"start"}); }
+  });
+  const pageRows=rows.slice((resultPage-1)*RESULT_PAGE_SIZE,resultPage*RESULT_PAGE_SIZE);
+  $("resultBody").innerHTML=pageRows.map(r=>`<tr><td class="mono">${esc(r.sn)}</td><td>${esc(r.block)}</td><td class="mono">${esc(r.flat)}</td><td class="mono">${r.pdfAmount!==""?fmtAmt(r.pdfAmount):"-"}</td><td class="mono">${r.sheetAmount!=null?fmtAmt(r.sheetAmount):"-"}</td><td>${esc(r.pdfMode||"-")}</td><td>${esc(r.sheetMode||"-")}</td><td class="mono">${esc(r.pdfDate||"-")}</td><td class="mono">${esc(r.sheetDate||"-")}</td><td class="reason">${esc(r.reason)}</td></tr>`).join("");
 }
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function esc(v){return Utils.escapeHtml(v);} // shared in utils.js
 
 async function verify(){
   const file=$("pdfFile").files[0],from=parseDate($("fromDate").value),to=parseDate($("toDate").value);
@@ -349,6 +334,7 @@ async function verify(){
     setPill("sheetStatus",`${sheetRows.length} sheet rows loaded`,sheetRows.length?"ok":"warn");
     const result=compareRows();
     discrepancies=result.out;
+    resultPage=1;
     renderResults(result.matched);
     setPill("loadStatus",discrepancies.length?"Verification completed with discrepancies":"Verification completed cleanly",discrepancies.length?"warn":"ok");
   }catch(ex){
@@ -380,14 +366,13 @@ const mobOverlay=$("mobOverlay"),mobDrawer=$("mobDrawer");
 function openDrawer(){mobDrawer.classList.add("open");mobOverlay.classList.add("open");document.body.style.overflow="hidden";}
 function closeDrawer(){mobDrawer.classList.remove("open");mobOverlay.classList.remove("open");document.body.style.overflow="";}
 $("mobMenuBtn")?.addEventListener("click",openDrawer);mobOverlay?.addEventListener("click",closeDrawer);
-$("logoutDesk")?.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_SESSION_KEY);window.location.href="index.html";});
-$("drawerLogoutBtn")?.addEventListener("click",()=>{sessionStorage.removeItem(AUTH_SESSION_KEY);window.location.href="index.html";});
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page logout code needed here. */
 $("pdfFile").addEventListener("change",e=>{const f=e.target.files[0];setTxt("fileName",f?f.name:"Choose payment PDF");setPill("pdfStatus","PDF not parsed","");});
 $("verifyBtn").addEventListener("click",verify);
 $("csvBtn").addEventListener("click",downloadCsv);$("mobCsvBtn").addEventListener("click",downloadCsv);$("pdfBtn").addEventListener("click",downloadPdf);
-$("resultSearch").addEventListener("input",()=>renderResults(Number($("kpiMatch").textContent)||0));
+$("resultSearch").addEventListener("input",()=>{ resultPage=1; renderResults(Number($("kpiMatch").textContent)||0); });
 $("previewBtn").addEventListener("click",()=>{$("rawPreview").classList.toggle("open");$("rawPreview").textContent=rawPdfText||"No PDF text parsed yet.";});
-if(sessionStorage.getItem(AUTH_SESSION_KEY)!=="true")sessionStorage.setItem(AUTH_SESSION_KEY,"true");
 </script>
 </body>
 </html>

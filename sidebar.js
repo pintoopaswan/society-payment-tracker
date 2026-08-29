@@ -17,11 +17,19 @@
    every page picks it up automatically. No other file needs to
    change.
 
-   Load order matters: include this script right after the two
-   <aside> placeholders (near the top of <body>), BEFORE each page's
-   own script, since that script binds click handlers (sidebarToggle,
-   logoutDesk, drawerLogoutBtn, badge counters, etc.) to elements
-   this file creates.
+   Load order matters: include auth.js first, then this script right
+   after the two <aside> placeholders (near the top of <body>), BEFORE
+   each page's own script, since that script binds click handlers
+   (sidebarToggle, badge counters, etc.) to elements this file creates.
+
+     <script src="auth.js"></script>
+     <script src="sidebar.js"></script>
+
+   The signed-in person's name/email (from window.Auth, set up by
+   auth.js) is rendered in the sidebar footer, and logging out is
+   handled right here — clicking that footer calls Auth.logout(). A
+   page never needs its own "who's signed in" or "log out" code; it
+   just needs the two script tags above.
    ════════════════════════════════════════════════════════════════ */
 (function(){
 
@@ -97,11 +105,23 @@
         +`</div>`;
   }
 
-  function footerHtml(userId){
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g, c=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  // Pulls the signed-in identity from window.Auth (set up by auth.js,
+  // which must load before this file). Falls back gracefully if for some
+  // reason auth.js hasn't run yet, so the sidebar never renders blank.
+  function footerHtml(cardId){
+    const name  = (window.Auth && window.Auth.getName())  || "Signed in";
+    const email = (window.Auth && window.Auth.getEmail()) || "";
+    const initial = (name||"?").trim().charAt(0).toUpperCase() || "?";
     return`<div class="sb-footer">`
-        +`<div class="sb-user" id="${userId}">`
-        +`<div class="sb-avatar">A</div>`
-        +`<div class="sb-user-info"><div class="sb-user-name">Admin</div><div class="sb-user-role">Society Manager</div></div>`
+        +`<div class="sb-user" id="${cardId}" title="${escapeHtml(email)}">`
+        +`<div class="sb-avatar">${escapeHtml(initial)}</div>`
+        +`<div class="sb-user-info"><div class="sb-user-name">${escapeHtml(name)}</div><div class="sb-user-role">${escapeHtml(email)}</div></div>`
         +`<div class="sb-logout" title="Logout">${LOGOUT_SVG}</div>`
         +`</div></div>`;
   }
@@ -119,12 +139,33 @@
         +footerHtml("drawerLogoutBtn");
   }
 
+  // Both the desktop card and the mobile-drawer card carry the same
+  // logout affordance; clicking either signs the person out everywhere
+  // (Auth.logout() clears the session and sends them to login.html) with
+  // zero per-page wiring required.
+  function bindLogout(){
+    ["logoutDesk","drawerLogoutBtn"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.style.cursor="pointer";
+      el.addEventListener("click",()=>{
+        if(window.Auth && typeof window.Auth.logout==="function"){
+          window.Auth.logout();
+        }else{
+          try{ sessionStorage.clear(); }catch{}
+          window.location.href="login.html";
+        }
+      });
+    });
+  }
+
   function inject(){
     const active=currentPage();
     const sidebar=document.getElementById("sidebar");
     if(sidebar)sidebar.innerHTML=desktopSidebarHtml(active);
     const drawer=document.getElementById("mobDrawer");
     if(drawer)drawer.innerHTML=drawerHtml(active);
+    bindLogout();
   }
 
   inject();

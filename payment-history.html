@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 
 <style>
 /* ════════════════════════════════════════════════
@@ -495,10 +496,18 @@ tr:hover td{background:var(--surface-2)}
 /* Received by */
 .recv-cell{font-size:0.76rem;color:var(--ink-2);font-weight:500}
 
-/* Remarks */
+/* Remarks — was overflow:hidden + text-overflow:ellipsis on a plain
+   <span>, but those only take effect on a block/inline-block box; a
+   default `display:inline` span ignores max-width/ellipsis entirely, so
+   this was rendering at full natural width and forcing the column (and
+   the whole table) wider than its container — that's what was putting
+   .table-wrap into a horizontal scrollbar. Wrapping onto multiple lines
+   within a capped width, instead of single-line ellipsis truncation,
+   keeps the full remark visible without needing the tooltip. */
 .remarks-cell{
-  font-size:0.73rem;color:var(--ink-3);font-weight:400;max-width:220px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;
+  display:inline-block;font-size:0.73rem;color:var(--ink-3);font-weight:400;
+  max-width:220px;white-space:normal;word-break:break-word;line-height:1.4;
+  vertical-align:middle;
 }
 
 /* Empty state */
@@ -696,6 +705,9 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -727,15 +739,6 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
           <button type="button" data-export="pdf">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 2h7l3 3v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v3h3"/></svg>
             Export as PDF
-          </button>
-        </div>
-      </div>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
           </button>
         </div>
       </div>
@@ -1010,12 +1013,9 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
 <script>
-/* ── Constants (exact match to payments.html) ── */
-const SHEET_IDS_BY_YEAR = {
-  "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
-  "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
-};
-const START_YEAR   = 2025;
+/* ── Constants (sourced from config.js — see that file to change) ── */
+const SHEET_IDS_BY_YEAR = CONFIG.sheets.paymentsByYear;
+const START_YEAR   = Math.min(...Object.keys(SHEET_IDS_BY_YEAR).map(Number));
 const DEFAULT_YEAR = String(new Date().getFullYear());
 
 /* ── Populate year dropdowns dynamically ── */
@@ -1031,14 +1031,13 @@ const DEFAULT_YEAR = String(new Date().getFullYear());
     ).join("");
   });
 })();
-const AUTH_SESSION_KEY = "society_dashboard_auth";
-const AUTH_CREDENTIALS = { username:"admin", password:"MigSociety@123" };
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 const MONTH_SHORT= ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const monthSheetNamesByYear = {
-  "2026": MONTHS,
-  "2025": [null,null,null,null,null,"JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
-};
+// null in config.js's monthTabsByYear means "this year has all twelve
+// months" — resolved against the local MONTHS array here.
+const monthSheetNamesByYear = Object.fromEntries(
+  Object.entries(CONFIG.sheets.monthTabsByYear).map(([y, tabs]) => [y, tabs || MONTHS])
+);
 
 /* ── State ── */
 let allRecords = [];    // flat array of every transaction row
@@ -1052,7 +1051,7 @@ function isMobile(){ return window.innerWidth <= 768; }
 function pageSize(){ return isMobile() ? PAGE_SIZE_MOB : PAGE_SIZE_DESK; }
 
 /* ── Utils ── */
-const parseCSV = l => l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 const blockName = v => { const d=String(v||"").replace(/[^0-9]/g,""); return d?`Block-${Number(d)}`:String(v||"").trim(); };
 const fmt$  = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN  = v => Number(v||0).toLocaleString("en-IN");
@@ -1082,37 +1081,9 @@ function getMonthIndex(dateStr){
   return -1;
 }
 
-/* ── Auth ── */
-function isLoggedIn(){ return !!sessionStorage.getItem(AUTH_SESSION_KEY); }
-function logout(){ sessionStorage.removeItem(AUTH_SESSION_KEY); showLoginModal(); }
-
-function showLoginModal(){
-  const html=`<div id="loginOverlay" style="position:fixed;inset:0;z-index:9999;background:rgba(7,15,35,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px">
-    <div style="background:#fff;border-radius:20px;padding:32px;max-width:360px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.22)">
-      <div style="font-size:1.2rem;font-weight:800;color:#0b1628;margin-bottom:6px;letter-spacing:-0.03em">Sign in</div>
-      <div style="font-size:0.8rem;color:#6a86a4;margin-bottom:22px">MIG Society · Guard Payment Dashboard</div>
-      <input id="liUser" type="text" placeholder="Username" style="width:100%;height:40px;border:1.5px solid #d8e8f8;border-radius:10px;padding:0 14px;margin-bottom:10px;font-size:0.85rem;font-family:inherit">
-      <input id="liPass" type="password" placeholder="Password" style="width:100%;height:40px;border:1.5px solid #d8e8f8;border-radius:10px;padding:0 14px;margin-bottom:16px;font-size:0.85rem;font-family:inherit">
-      <div id="liErr" style="color:#dc2626;font-size:0.77rem;margin-bottom:10px;display:none"></div>
-      <button onclick="doLogin()" style="width:100%;height:42px;background:linear-gradient(135deg,#1e3a72,#274d96);color:#fff;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer">Sign in</button>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML("beforeend",html);
-  document.getElementById("liPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-}
-
-function doLogin(){
-  const u=document.getElementById("liUser")?.value||"";
-  const p=document.getElementById("liPass")?.value||"";
-  if(u===AUTH_CREDENTIALS.username && p===AUTH_CREDENTIALS.password){
-    sessionStorage.setItem(AUTH_SESSION_KEY,"1");
-    document.getElementById("loginOverlay")?.remove();
-    loadData();
-  } else {
-    const el=document.getElementById("liErr");
-    if(el){ el.textContent="Invalid credentials. Please try again."; el.style.display="block"; }
-  }
-}
+/* Auth is handled globally by auth.js (redirects to login.html if there's
+   no valid, verified Google session) — no page-specific login modal or
+   hardcoded credentials needed here anymore. */
 
 /* Parses a raw payment-date cell from the Google Sheet CSV export into
    {dy, mo, yr}. Does NOT trust a fixed field order or separator — see the
@@ -1139,22 +1110,7 @@ function parseSheetDateParts(raw){
 }
 
 /* ── Fetch CSV ── */
-async function fetchCsv(sid, tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-  ];
-  for(const url of urls){
-    try{
-      const r   = await fetch(url,{cache:"no-cache"});
-      const csv = await r.text();
-      const p   = csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype")||p.includes("<html")||csv.includes("File not found")) continue;
-      return csv;
-    }catch(_){}
-  }
-  return "";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ── Load all data ── */
 async function loadData(){
@@ -1596,7 +1552,7 @@ function drawKpiTile(doc, x, y, w, h, accent, bg, label, value, sub){
 function exportPdf(){
   const JsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
   if(!JsPDFCtor){
-    alert("PDF export isn't available right now — the PDF library failed to load. Check your connection and try again.");
+    Utils.showToast("PDF export isn't available right now — the PDF library failed to load. Check your connection and try again.","error");
     return;
   }
 
@@ -1819,7 +1775,7 @@ function wireControls(){
   });
 
   /* Refresh */
-  document.getElementById("refreshBtn")?.addEventListener("click", loadData);
+  document.getElementById("refreshBtn")?.addEventListener("click", ()=>{ Utils.clearAllCsvCache(); loadData(); });
 
   /* Export dropdowns (CSV / PDF) */
   [["exportWrapDesk","exportBtn"],["exportWrapPage","exportBtnPage"]].forEach(([wrapId,btnId])=>{
@@ -1843,26 +1799,14 @@ function wireControls(){
     });
   });
 
-  /* Profile dropdowns */
-  [["profileTogDesk","pdDesk"],["profileTogMob","pdMob"]].forEach(([tid,did])=>{
-    document.getElementById(tid)?.addEventListener("click", e=>{
-      e.stopPropagation();
-      const dd = document.getElementById(did);
-      dd?.classList.toggle("open");
-    });
-  });
+  /* No profile-menu markup left on this page (identity + logout live in
+     the sidebar now, via sidebar.js) — nothing to wire up here. */
   document.addEventListener("click", ()=>{
-    document.querySelectorAll(".profile-dropdown.open").forEach(d=>d.classList.remove("open"));
     document.querySelectorAll(".export-wrap.open").forEach(w=>{
       w.classList.remove("open");
       w.querySelector(".export-btn")?.setAttribute("aria-expanded","false");
     });
     setMonthFilterOpen(false);
-  });
-
-  /* Logout */
-  ["logoutDesk","logoutMob"].forEach(id=>{
-    document.getElementById(id)?.addEventListener("click", logout);
   });
 
   /* Mobile drawer (hamburger menu) */
@@ -1881,8 +1825,8 @@ function wireControls(){
   document.getElementById("mobMenuBtn")?.addEventListener("click", openDrawer);
   mobOverlay?.addEventListener("click", closeDrawer);
 
-  /* Drawer logout */
-  document.getElementById("drawerLogoutBtn")?.addEventListener("click", logout);
+  /* Logout is wired globally by sidebar.js (Auth.logout()) — nothing
+     needed here. */
 
   /* Sidebar collapse (desktop) */
   document.getElementById("sidebarToggle")?.addEventListener("click", ()=>{
@@ -1949,8 +1893,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   })();
 
   wireControls();
-  if(!isLoggedIn()){ showLoginModal(); }
-  else { loadData(); }
+  loadData();
 });
 </script>
 </body>

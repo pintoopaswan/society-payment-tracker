@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 
 <style>
 /* ════════════════════════════════════════════════
@@ -656,6 +657,9 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
 <!-- APP SHELL -->
 <div class="app-shell">
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 <div class="main" id="mainContent">
   <header class="topbar">
@@ -666,14 +670,7 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
     <div class="topbar-right">
       <button class="add-btn" id="deskAddBtn" type="button"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>Add Entry</button>
       <button id="refreshBtn" class="refresh-btn" type="button"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8A6.5 6.5 0 0 1 13.9 5M14.5 8A6.5 6.5 0 0 1 2.1 11"/><polyline points="13,2 14.5,5 11,5"/><polyline points="3,14 1.5,11 5,11"/></svg>Refresh</button>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button type="button" id="exportBtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>Export Excel</button>
-          <div class="pd-divider"></div>
-          <button id="logoutDeskMenu" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>Logout</button>
-        </div>
-      </div>
+      <button id="exportBtn" class="refresh-btn" type="button"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 2v9"/><polyline points="4,7 8,11 12,7"/><path d="M2 14h12"/></svg>Export Excel</button>
     </div>
   </header>
 
@@ -899,14 +896,16 @@ body.dark-mode .profile-dropdown{background:var(--surface-2);border-color:var(--
      and paste its /exec URL here to enable Add/Edit/Delete.
      Leave empty for read-only mode.
 ══════════════════════════════════════════════════ */
-const EXPENSE_SHEET_ID   = "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
-const EXPENSE_WRITE_URL  = "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec"; // <- Paste your Apps Script /exec URL here after deploying
-const EXPENSE_SECRET     = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
-const AUTH_SESSION_KEY   = "society_dashboard_auth";
+const EXPENSE_SHEET_ID   = CONFIG.sheets.expenses.id;
+const EXPENSE_WRITE_URL  = CONFIG.appsScript.residentsVehiclesExpenses;
+/* Writes now authorize with the signed-in person's verified Google ID
+   token (window.Auth.getIdToken(), from auth.js) instead of a shared
+   secret that used to sit here in plaintext — see authorizePayload_ in
+   guard-payment-write-apps-script.gs, which checks idToken against
+   Google and against ALLOWED_USERS on every request. */
 const SHEET_TABS         = ["Sheet1"];
 
-/* ── Auth guard ── */
-if(sessionStorage.getItem(AUTH_SESSION_KEY) !== "true") window.location.href = "index.html";
+/* Auth is handled globally by auth.js — nothing page-specific needed here. */
 
 /* ── State ── */
 let allEntries = [];    // parsed entries from sheet
@@ -920,7 +919,7 @@ const fmt$ = v => `₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN = v => Number(v||0).toLocaleString("en-IN");
 const setTxt = (id,v) => { const e=document.getElementById(id); if(e)e.textContent=v; };
 const getToday = () => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; };
-function parseCSV(line){ return line.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[]; }
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 function toDisplayDate(iso){
   const p=String(iso||"").split("-"); if(p.length!==3)return iso||"";
   return `${p[2]}/${p[1]}/${p[0]}`;
@@ -974,20 +973,12 @@ function toIsoDate(display){
 function compareDates(a,b){ return new Date(a.isoDate)-new Date(b.isoDate); }
 
 /* ── Fetch CSV with fallback tabs ── */
-async function fetchSheetCsv(){
-  const urls = SHEET_TABS.flatMap(tab=>[
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-  ]);
-
-  for(const url of urls){
-    try{
-      const r = await fetch(url,{cache:"no-cache"});
-      const csv = await r.text();
-      const preview = csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||preview.startsWith("<!doctype html")||preview.includes("google.visualization.query.setresponse")||csv.includes("File not found")) continue;
-      return csv;
-    }catch(_){}
+async function fetchSheetCsv(force){
+  // SHEET_TABS is currently always a single tab ("Sheet1") — Utils.fetchCsv
+  // (utils.js) now handles the caching that used to be absent here.
+  for(const tab of SHEET_TABS){
+    const csv = await Utils.fetchCsv(EXPENSE_SHEET_ID, tab, { forceRefresh: !!force });
+    if(csv) return csv;
   }
   return "";
 }
@@ -1095,7 +1086,7 @@ function computeBalances(entries){
 }
 
 /* ── Load data ── */
-async function loadData(){
+async function loadData(force){
   const btn = document.getElementById("refreshBtn");
   if(btn) btn.classList.add("loading");
   ["kpiCredits","kpiDebits","kpiBalance","kpiCount"].forEach(id=>document.getElementById(id)?.classList.add("sk"));
@@ -1103,7 +1094,7 @@ async function loadData(){
   document.getElementById("mobileCards").innerHTML = "";
 
   try{
-    const csv = await fetchSheetCsv();
+    const csv = await fetchSheetCsv(force);
     if(!csv){
       allEntries = [];
       showAlert("Could not load data from the expense sheet. Check the sheet is publicly accessible.","error");
@@ -1485,7 +1476,7 @@ function getPayload(){
   const paidBy  = document.getElementById("fPaidBy").value.trim();
   const bill    = document.getElementById("fNotes").value.trim();
   return {
-    secret:      EXPENSE_SECRET,
+    idToken:     window.Auth?.getIdToken(),
     actionType:  editRowId ? "updateexpense" : "saveexpense",
     rowId:       editRowId,
     date:        document.getElementById("fDate").value,
@@ -1546,7 +1537,8 @@ async function saveEntry(e){
     if(!r.ok) throw new Error(r.error||"Save failed.");
     setFormMsg("Saved!",true);
     showAlert(editRowId ? "Entry updated successfully." : "Entry saved successfully.","success");
-    await loadData();
+    Utils.invalidateCsvCache(EXPENSE_SHEET_ID, SHEET_TABS[0]);
+    await loadData(true);
     closeModal();
   }catch(ex){
     setFormMsg(ex.message||"Unable to save.");
@@ -1566,7 +1558,8 @@ async function deleteEntry(){
     const r = await submitPayload(payload);
     if(!r.ok) throw new Error(r.error||"Delete failed.");
     showAlert("Entry deleted.","success");
-    await loadData();
+    Utils.invalidateCsvCache(EXPENSE_SHEET_ID, SHEET_TABS[0]);
+    await loadData(true);
     closeModal();
   }catch(ex){
     setFormMsg(ex.message||"Unable to delete.");
@@ -1635,26 +1628,11 @@ mobOverlay?.addEventListener("click", closeDrawer);
   });
 })();
 
-/* ── Profile dropdowns ── */
-function setupDD(togId,ddId){
-  const tog=document.getElementById(togId), dd=document.getElementById(ddId);
-  if(!tog||!dd)return;
-  tog.addEventListener("click",e=>{ e.stopPropagation(); const o=dd.classList.toggle("open"); tog.setAttribute("aria-expanded",o?"true":"false"); });
-}
-setupDD("profileTogDesk","pdDesk");
-document.addEventListener("click",()=>{
-  document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));
-  document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));
-});
-
-/* ── Logout ── */
-["logoutDesk","logoutDeskMenu","drawerLogoutBtn"].forEach(id=>{
-  const btn=document.getElementById(id);
-  if(btn)btn.addEventListener("click",()=>{ sessionStorage.removeItem(AUTH_SESSION_KEY); window.location.href="index.html"; });
-});
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Event bindings ── */
-document.getElementById("refreshBtn")?.addEventListener("click", loadData);
+document.getElementById("refreshBtn")?.addEventListener("click", ()=>{ Utils.clearAllCsvCache(); loadData(); });
 document.getElementById("exportBtn")?.addEventListener("click", exportExcel);
 ["deskAddBtn","filterAddBtn","mobAddBtn"].forEach(id=>document.getElementById(id)?.addEventListener("click",()=>openModal(null)));
 document.getElementById("closeModal").addEventListener("click", closeModal);
@@ -1720,7 +1698,6 @@ document.getElementById("mobPagination").addEventListener("click", e=>{
 });
 
 /* ── Init ── */
-if(sessionStorage.getItem(AUTH_SESSION_KEY)!=="true") sessionStorage.setItem(AUTH_SESSION_KEY,"true");
 loadData();
 </script>
 </body>

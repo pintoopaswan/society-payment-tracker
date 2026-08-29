@@ -1,5 +1,21 @@
 const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
-const PAYMENT_WRITE_SECRET = "MigSocietyPaymentWrite_2026_9xK4pL72Qz";
+
+// ── Legacy shared secret — REMOVED ───────────────────────────────────────────
+// Every page (payments.html, owner-tenant.html, vehicles.html,
+// fund-ledger.html) now signs in once through login.html and sends a
+// verified Google idToken with every write, so the old shared secret that
+// used to sit in plaintext in the client source is gone rather than kept as
+// a fallback. If you deployed the previous version of this script, that
+// secret should be treated as already compromised — nothing else to do
+// about it now that no caller sends it, but don't reintroduce it.
+
+// ── Google Sign-In (new) ─────────────────────────────────────────────────────
+// OAuth 2.0 Client ID from Google Cloud Console → APIs & Services →
+// Credentials → "OAuth client ID" → Application type "Web application".
+// Must match the client_id the frontend initializes Google Identity
+// Services with (see GOOGLE_OAUTH_CLIENT_ID in payments.html) — a token
+// issued for a different client ID will correctly fail verification below.
+const GOOGLE_OAUTH_CLIENT_ID = "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.apps.googleusercontent.com";
 // Each calendar year's guard-payment data lives in its OWN spreadsheet (one
 // spreadsheet only ever contains tabs for a single year). Every payment
 // write must open the spreadsheet matching the YEAR of payload.paymentDateInput
@@ -41,6 +57,20 @@ function getPaymentSpreadsheetId_(paymentDateInput) {
 function doGet(e) {
   if (isPingRequest(e)) {
     return handlePingRequest(e);
+  }
+  // Authenticated CSV reads — replaces the old "publish the Sheet to the
+  // web and let the client fetch the public gviz/export CSV URL directly"
+  // approach. That meant anyone with the sheet URL — not just people who
+  // signed in through login.html — could read every resident's phone
+  // number, every payment record, every emergency contact. This handler
+  // requires the same verified Google idToken every write already
+  // requires, checked against the same ALLOWED_USERS list, AND only ever
+  // serves a sheet+tab that's on the server-side READABLE_SHEETS
+  // allow-list below — a signed-in user can't pivot this into an open
+  // proxy for reading some other sheet the script's owner happens to
+  // have access to.
+  if (isReadRequest(e)) {
+    return handleReadRequest(e);
   }
   // Fund Ledger expense operations
   if (isExpenseRequest(e)) {
@@ -88,6 +118,98 @@ function handlePingRequest(e) {
   return jsonResponse(result);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   AUTHENTICATED READS
+   Every sheet+tab this app has ever needed to read from, listed
+   explicitly. This is the REAL security boundary — not "is this a valid
+   idToken" alone, but "is this a valid idToken for one of the exact
+   sheets this app is supposed to serve." Add a new sheet ID here
+   whenever a new spreadsheet is wired into the app (e.g. next year's
+   payments sheet in config.js's paymentsByYear) — reads for anything not
+   listed here are refused even for a fully signed-in, allow-listed user.
+═══════════════════════════════════════════════════════════════════════ */
+const READABLE_SHEET_IDS = [
+  "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE", // resident directory + vehicles + emergency contacts (config.js: sheets.directory.id)
+  "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",  // payments — 2026 (config.js: sheets.paymentsByYear["2026"])
+  "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP",              // payments — 2025 (config.js: sheets.paymentsByYear["2025"])
+  "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo",   // expenses — reads AND writes (config.js: sheets.expenses.id; EXPENSE_SPREADSHEET_ID below)
+];
+
+function isReadRequest(e) {
+  const params = (e && e.parameter) || {};
+  return String(params.action || "").toLowerCase() === "read";
+}
+
+function handleReadRequest(e) {
+  const params = (e && e.parameter) || {};
+  const callback = String(params.callback || "").trim();
+  let result;
+  try {
+    // authorizePayload_ already does exactly what's needed here — verify
+    // the idToken against Google, then against ALLOWED_USERS — it just
+    // normally reads payload.idToken from a POST-style payload; a GET
+    // read request's idToken is a plain query param instead.
+    const auth = authorizePayload_({ idToken: params.idToken });
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
+    } else {
+      const sheetId = String(params.sheetId || "").trim();
+      const tab = String(params.tab || "").trim();
+      if (READABLE_SHEET_IDS.indexOf(sheetId) < 0) {
+        result = { ok: false, error: "This sheet is not on the server's readable list." };
+      } else if (!tab) {
+        result = { ok: false, error: "No tab specified." };
+      } else {
+        result = readSheetAsCsv_(sheetId, tab);
+      }
+    }
+  } catch (err) {
+    result = { ok: false, error: err.message };
+  }
+  if (callback && /^[A-Za-z0-9_$.]+$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(result) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return jsonResponse(result);
+}
+
+/* Returns a sheet tab as CSV text, in the SAME shape the client used to
+   get back from Google's public gviz/export CSV URL — so utils.js only
+   needed to change WHERE it fetches from, not how it parses the result.
+
+   Uses getDisplayValues() rather than getValues() specifically so dates
+   and numbers come back already formatted exactly as the sheet displays
+   them (matching what the old public CSV export produced) instead of
+   raw Date/number objects that would need new client-side formatting
+   logic to match the old behavior. */
+function readSheetAsCsv_(sheetId, tabName) {
+  let ss;
+  try {
+    ss = SpreadsheetApp.openById(sheetId);
+  } catch (err) {
+    return { ok: false, error: "Could not open sheet: " + err.message };
+  }
+  const sheet = ss.getSheetByName(tabName);
+  if (!sheet) return { ok: false, error: 'Tab "' + tabName + '" not found.' };
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 1 || lastCol < 1) return { ok: true, csv: "" };
+  const values = sheet.getRange(1, 1, lastRow, lastCol).getDisplayValues();
+  const csv = values.map(function (row) {
+    return row.map(csvEscapeCell_).join(",");
+  }).join("\n");
+  return { ok: true, csv: csv };
+}
+
+function csvEscapeCell_(cell) {
+  const v = String(cell == null ? "" : cell);
+  if (/[",\n]/.test(v)) {
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
+  return v;
+}
+
 function savePaymentFromAdmin(payload) {
   assertAllowedUser();
   return handlePaymentMutation(payload);
@@ -96,8 +218,10 @@ function savePaymentFromAdmin(payload) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      return jsonResponse({ ok: false, error: "Unauthorized" });
+    Logger.log(JSON.stringify(payload));
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      return jsonResponse({ ok: false, error: auth.error });
     }
     const postAction = String(payload.action || "").toLowerCase();
     if (postAction === "saveresident") {
@@ -136,10 +260,12 @@ function handleApiSaveRequest(e) {
   const params = (e && e.parameter) || {};
   const callback = String(params.callback || "").trim();
   const payload = parseApiPayload(params.payload);
+  Logger.log(JSON.stringify(payload));
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       result = handlePaymentMutation(payload);
     }
@@ -161,8 +287,9 @@ function handleApiResidentSaveRequest(e) {
   const action = String(params.action || payload.action || "").toLowerCase();
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else if (action === "deleteresidentfields") {
       result = deleteResidentFieldsPayload(payload);
     } else {
@@ -559,6 +686,82 @@ function isAllowedEmail(email) {
   }).indexOf(normalizedEmail) >= 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Google ID token verification (for requests that reach this script over
+   a plain fetch()/JSONP call, i.e. NOT google.script.run — those calls
+   have no ambient Google session for Session.getActiveUser() to read, so
+   the client sends a short-lived Google ID token instead and this
+   verifies it server-side before trusting anything in the payload).
+
+   Uses Google's tokeninfo endpoint rather than local JWT signature
+   verification — Apps Script has no built-in JWT/JWKS support, and
+   Google's own docs list tokeninfo as an acceptable verification method
+   for low-volume server-side use, which this guard-payment app is (a
+   handful of writes per day, not a public API). If this project's write
+   volume ever grows enough for tokeninfo's rate limits to matter, switch
+   to local RS256 verification against Google's published JWKS instead.
+═══════════════════════════════════════════════════════════════════════ */
+function verifyGoogleIdToken_(idToken) {
+  const token = String(idToken || "").trim();
+  if (!token) return { ok: false, error: "No ID token supplied." };
+
+  let resp;
+  try {
+    resp = UrlFetchApp.fetch(
+      "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(token),
+      { muteHttpExceptions: true }
+    );
+  } catch (err) {
+    return { ok: false, error: "Could not reach Google to verify sign-in: " + err.message };
+  }
+
+  if (resp.getResponseCode() !== 200) {
+    // tokeninfo returns 400 for anything invalid/expired — treat all
+    // non-200 responses as "not a valid current sign-in", not a crash.
+    return { ok: false, error: "Google sign-in has expired or is invalid. Please sign in again." };
+  }
+
+  let claims;
+  try {
+    claims = JSON.parse(resp.getContentText());
+  } catch (err) {
+    return { ok: false, error: "Unexpected response verifying Google sign-in." };
+  }
+
+  if (claims.aud !== GOOGLE_OAUTH_CLIENT_ID) {
+    return { ok: false, error: "Sign-in token was issued for a different app." };
+  }
+  if (String(claims.email_verified) !== "true") {
+    return { ok: false, error: "Google account email is not verified." };
+  }
+  const email = String(claims.email || "").trim().toLowerCase();
+  if (!email) return { ok: false, error: "No email in Google sign-in token." };
+
+  return { ok: true, email: email, name: claims.name || email };
+}
+
+/* Single authorization gate for every fetch()/JSONP write request
+   (doPost and handleApiSaveRequest below both call this instead of
+   comparing a shared secret directly).
+
+   payload.idToken is verified via Google (verifyGoogleIdToken_), then
+   checked against ALLOWED_USERS — the same allow-list doGet()/
+   savePaymentFromAdmin() already trust for the google.script.run path, so
+   there's one allow-list for the whole app. Every client page now signs in
+   once through login.html and sends this idToken with every write; there
+   is no shared-secret fallback anymore. */
+function authorizePayload_(payload) {
+  if (payload && payload.idToken) {
+    const verified = verifyGoogleIdToken_(payload.idToken);
+    if (!verified.ok) return { ok: false, error: verified.error };
+    if (!isAllowedEmail(verified.email)) {
+      return { ok: false, error: "Signed in as " + verified.email + ", which isn't on the approved list. Ask an admin to add you." };
+    }
+    return { ok: true, email: verified.email, name: verified.name };
+  }
+  return { ok: false, error: "Unauthorized" };
+}
+
 function getUnauthorizedHtml(email) {
   const shownEmail = email || "No Google account email detected";
   return '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:Arial,sans-serif;background:#f3f7fb;color:#17314f;margin:0;min-height:100vh;display:grid;place-items:center}.card{background:#fff;border-radius:18px;box-shadow:0 18px 38px rgba(27,37,54,.08);padding:28px;max-width:460px;margin:18px}h1{font-size:1.35rem;margin:0 0 10px}p{line-height:1.45}.email{font-weight:700}</style></head><body><div class="card"><h1>Access denied</h1><p>This admin page is restricted to approved Google accounts.</p><p>Signed in as: <span class="email">' + escapeHtml(shownEmail) + '</span></p></div></body></html>';
@@ -812,13 +1015,22 @@ function jsonResponse(data) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FUND LEDGER — Expense Sheet Write Handlers
-// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8
+// Sheet ID  : 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo
 // Tab       : Sheet1 (or whichever the active tab is)
 // Columns   : TRANSACTION DATE | TRANSACTION TYPE | DESCRIPTION | AMOUNT |
 //             PAYMENT MODE | OPENING BALANCE | CLOSING BALANCE | PAID BY BILL
+//
+// CORRECTED — this constant previously pointed at
+// "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8", a DIFFERENT spreadsheet
+// than the one fund-ledger.html actually reads from. That meant every
+// expense saved through the UI was silently written to a sheet the UI
+// never displayed — confirmed and corrected per explicit instruction to
+// use 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo (matches
+// config.js's sheets.expenses.id and fund-ledger.html's EXPENSE_SHEET_ID).
+// Redeploy this script for the fix to take effect.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const EXPENSE_SPREADSHEET_ID = "12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8";
+const EXPENSE_SPREADSHEET_ID = "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
 // Candidate tab names — the handler tries each until one is found
 const EXPENSE_TAB_CANDIDATES = ["Sheet1", "Ledger", "LEDGER", "Fund Ledger",
                                  "FUND LEDGER", "Expense", "EXPENSE"];
@@ -836,8 +1048,9 @@ function handleExpenseRequest(e) {
   const payload  = parseApiPayload(params.payload);
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       const action = String(params.action || payload.actionType || "").toLowerCase();
       if (action === "deleteexpense") {
@@ -1016,8 +1229,19 @@ function recomputeAllBalances(sheet) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GUARD PAYMENT MATRIX — Flat-wise Security Guard Collection Sync
-// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8 (same file as the
-//             Fund Ledger / EXPENSE_SPREADSHEET_ID above — just different tabs)
+// Sheet ID  : 12xUQSim5hPYi1TmI51WzYn3-tph9vFJHopwCaWx76D8
+//
+// UNVERIFIED — this comment used to claim this was "the same file as the
+// Fund Ledger / EXPENSE_SPREADSHEET_ID above, just different tabs." That
+// was wrong: EXPENSE_SPREADSHEET_ID itself turned out to be pointing at
+// the wrong spreadsheet and has since been corrected to
+// 1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo — a DIFFERENT id than the
+// one below. Whether THIS id (the guard matrix) is itself correct hasn't
+// been confirmed the same way the expense one was, so it's left
+// unchanged rather than guessed at. If flat-wise guard payments aren't
+// syncing to where you expect, check this id against the actual guard
+// matrix spreadsheet in Drive before assuming it's right just because
+// it wasn't touched here.
 // Tabs      : one per year, e.g. "2025", "2026" — chosen from the payment's
 //             year, taken from payload.paymentDateInput (format YYYY-MM-DD)
 // Layout    : Row 1 = title, Row 2 = "Guard Amount Per Month" + total, Row 3
@@ -1174,8 +1398,9 @@ function handleVehicleRequest(e) {
   const payload  = parseApiPayload(params.payload);
   let result;
   try {
-    if (payload.secret !== PAYMENT_WRITE_SECRET) {
-      result = { ok: false, error: "Unauthorized" };
+    const auth = authorizePayload_(payload);
+    if (!auth.ok) {
+      result = { ok: false, error: auth.error };
     } else {
       const action = String(params.action || payload.actionType || "").toLowerCase();
       if (action === "deletevehicle") {
@@ -1389,4 +1614,9 @@ function deleteVehiclePayload(payload) {
     lock.releaseLock();
   }
   return { ok: true, action: "deleteVehicle", deletedRow: targetRow };
+  
+  function testAuthSetup(){
+  const result = verifyGoogleIdToken_("dummy");
+  Logger.log(JSON.stringify(result));
+}
 }

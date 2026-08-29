@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:15px;scroll-behavior:smooth;height:100%}
@@ -686,47 +687,6 @@ body.modal-open{overflow:hidden}
 .page{padding:20px 28px 32px;max-width:1600px;margin:0 auto;flex:1}
 
 /* ══════════════════════════════════════
-   QUICK ACTION TILES
-══════════════════════════════════════ */
-.quick-row{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:14px;margin-bottom:24px;
-  animation:fadeUp 0.5s 0.1s var(--ease-out) both;
-}
-.qt{
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-lg);padding:18px;
-  display:flex;align-items:center;gap:14px;
-  box-shadow:var(--s-sm);
-  transition:transform 0.22s var(--ease-spring),box-shadow 0.22s,border-color 0.15s;
-}
-.qt:hover{transform:translateY(-3px);box-shadow:var(--s-md);border-color:var(--line-md)}
-.qt:active{transform:translateY(-1px)}
-.qt-ico{
-  width:44px;height:44px;border-radius:12px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform 0.22s var(--ease-spring);
-}
-.qt:hover .qt-ico{transform:scale(1.1) rotate(-4deg)}
-.ico-blue  {background:var(--blue-100);color:var(--blue-700)}
-.ico-green {background:var(--green-100);color:var(--green-700)}
-.ico-violet{background:var(--violet-100);color:var(--violet-600)}
-.ico-teal  {background:var(--teal-100);color:var(--teal-600)}
-.ico-amber {background:var(--amber-100);color:var(--amber-700)}
-.ico-red   {background:var(--red-100);color:var(--red-700)}
-.qt-body{min-width:0}
-.qt-title{font-size:0.84rem;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-0.01em}
-.qt-copy{font-size:0.72rem;color:var(--ink-3);margin-top:3px;line-height:1.4}
-.qt-stat{font-size:0.7rem;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:5px}
-.qt-stat::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
-.qt-stat-blue{color:var(--blue-600)}
-.qt-stat-green{color:var(--green-600)}
-.qt-stat-violet{color:var(--violet-600)}
-.qt-stat-teal{color:var(--teal-600)}
-.qt-stat-amber{color:var(--amber-600)}
-.qt-stat-red{color:var(--red-600)}
-
-/* ══════════════════════════════════════
    DASHBOARD GRID
 ══════════════════════════════════════ */
 .dash-grid{display:grid;grid-template-columns:1.5fr 0.5fr;gap:18px;align-items:start}
@@ -964,7 +924,6 @@ body.modal-open{overflow:hidden}
   .kpi-cell{min-width:160px}
 }
 @media (max-width:1024px){
-  .quick-row{grid-template-columns:repeat(2,1fr)}
   .split-grid{grid-template-columns:1fr}
   .kpi-cell{min-width:150px;padding:16px 16px 14px}
   .kpi-val{font-size:1.5rem}
@@ -978,7 +937,6 @@ body.modal-open{overflow:hidden}
   .kpi-scroll-dots{display:flex}
   .main{margin-left:0!important}
   .page{padding:12px 16px 24px}
-  .quick-row{grid-template-columns:1fr 1fr;gap:10px}
   .dash-grid{grid-template-columns:1fr}
   .dash-right{display:flex;flex-direction:column;gap:14px;margin-top:14px}
   .dash-right .card+.card{margin-top:0}
@@ -994,7 +952,6 @@ body.modal-open{overflow:hidden}
   .card-head-filters .card-sel{height:26px;font-size:0.69rem}
 }
 @media (max-width:520px){
-  .quick-row{grid-template-columns:1fr}
   .res-grid{grid-template-columns:1fr 1fr}
   .split-grid{gap:10px}
   .page{padding:12px 16px}
@@ -1083,6 +1040,9 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+<script src="config.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
 <script src="sidebar.js"></script>
 
 <!-- MAIN -->
@@ -1114,15 +1074,6 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
         </svg>
         Refresh
       </button>
-      <div class="profile-wrap">
-        <button class="profile-btn" id="profileTogDesk" type="button" aria-haspopup="true" aria-expanded="false">A</button>
-        <div class="profile-dropdown" id="pdDesk">
-          <button id="logoutDeskMenu" type="button">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3"/><polyline points="10,11 13,8 10,5"/><line x1="13" y1="8" x2="5" y2="8"/></svg>
-            Logout
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -1222,38 +1173,6 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
   <!-- PAGE BODY -->
   <div class="page">
-
-    <!-- Quick actions -->
-    <div class="quick-row">
-      <a class="qt" href="payments.html">
-        <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Add or edit payments</div><div class="qt-copy">Payment register &amp; month-wise entries</div><div class="qt-stat qt-stat-blue" id="qtStatPayments">—</div></div>
-      </a>
-      <a class="qt" href="fund-ledger.html">
-        <div class="qt-ico ico-green"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h12M2 8h12M2 11h12"/><path d="M5.5 2.5L4 13.5M12 2.5l-1.5 11"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Fund Ledger</div><div class="qt-copy">Society income &amp; expense register</div><div class="qt-stat qt-stat-green" id="qtStatLedger">—</div></div>
-      </a>
-      <a class="qt" href="owner-tenant.html">
-        <div class="qt-ico ico-violet"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Manage residents</div><div class="qt-copy">Owner, tenant, vehicle &amp; occupancy</div><div class="qt-stat qt-stat-violet" id="qtStatResidents">—</div></div>
-      </a>
-      <a class="qt" href="emergency-contact.html">
-        <div class="qt-ico ico-teal"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Emergency</div><div class="qt-copy">Vendors, guards &amp; services</div><div class="qt-stat qt-stat-teal" id="qtStatEmergency">—</div></div>
-      </a>
-      <a class="qt" href="vehicles.html">
-        <div class="qt-ico ico-amber"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="14" r="2.5"/><circle cx="15" cy="14" r="2.5"/><path d="M2.5 14H1V9l3-5h8l2 3.5H17a1.5 1.5 0 0 1 1.5 1.5V14h-2"/><path d="M7.5 4.5L5.5 9H13"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Vehicle Directory</div><div class="qt-copy">Registered cars, bikes &amp; scooters</div><div class="qt-stat qt-stat-amber" id="qtStatVehicles">—</div></div>
-      </a>
-      <a class="qt" href="payment-history.html">
-        <div class="qt-ico ico-red"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><polyline points="10,5 10,10 14,13"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Payment History</div><div class="qt-copy">Full transaction log &amp; receipts</div><div class="qt-stat qt-stat-red" id="qtStatHistory">—</div></div>
-      </a>
-      <a class="qt" href="flat-search.html">
-        <div class="qt-ico ico-blue"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><line x1="14" y1="14" x2="10.5" y2="10.5"/></svg></div>
-        <div class="qt-body"><div class="qt-title">Flat Search</div><div class="qt-copy">Look up any flat's payment status</div><div class="qt-stat qt-stat-blue" id="qtStatSearch">—</div></div>
-      </a>
-    </div>
 
     <!-- Dashboard grid -->
     <div class="dash-grid">
@@ -1367,10 +1286,6 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
       <!-- RIGHT COLUMN -->
       <div class="dash-right">
         <div class="card">
-          <div class="card-head"><div class="card-title">Payment Modes</div><div class="card-meta">Online vs cash mix</div></div>
-          <div class="card-body"><div class="mode-list sk" id="modeList" style="min-height:70px"></div></div>
-        </div>
-        <div class="card">
           <div class="card-head">
             <div>
               <div class="card-title">Cash Collection by Person</div>
@@ -1387,6 +1302,10 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
             </div>
           </div>
           <div class="card-body"><div class="mode-list sk" id="cashPersonList" style="min-height:70px"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Payment Modes</div><div class="card-meta">Online vs cash mix</div></div>
+          <div class="card-body"><div class="mode-list sk" id="modeList" style="min-height:70px"></div></div>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">Resident Health</div><div class="card-meta">Occupancy &amp; profiles</div></div>
@@ -1439,8 +1358,9 @@ body.dark-mode .card-sel{background:var(--surface-2);border-color:var(--line-md)
 
 <script>
 /* ── Auth ── */
-const AUTH_KEY = "society_dashboard_auth";
-if (!sessionStorage.getItem(AUTH_KEY)) sessionStorage.setItem(AUTH_KEY, "true");
+/* Auth is handled globally by auth.js (redirects to login.html if
+   there's no valid, verified Google session) — nothing page-specific
+   needed here. */
 
 /* ── Sidebar collapse ── */
 const sidebar = document.getElementById("sidebar");
@@ -1490,14 +1410,44 @@ function getBlockColor(blockName,idx=0){
 }
 
 /* ── Helpers ── */
-const parseCSV=l=>l.match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g)?.map(v=>v.replace(/(^"|"$)/g,"").trim())||[];
+const parseCSV = Utils.parseCSVLine; // shared in utils.js
 const norm=v=>String(v||"").trim().toLowerCase();
 const blockN=v=>{const d=String(v||"").replace(/[^0-9]/g,"");return d?`Block-${Number(d)}`:String(v||"").trim();};
 const fmt$=v=>`₹${Number(v||0).toLocaleString("en-IN")}`;
 const fmtN=v=>Number(v||0).toLocaleString("en-IN");
 const hiIdx=(h,inc,exc=[])=>h.findIndex(x=>{const l=norm(x);return inc.some(p=>l.includes(p))&&!exc.some(p=>l.includes(p));});
 const personI=(h,person,fb=[])=>{const i=h.findIndex(x=>{const l=norm(x);return person.some(p=>l.includes(p))&&!l.includes("contact")&&!l.includes("mobile")&&!l.includes("phone");});return i>=0?i:(fb.length?hiIdx(h,fb):-1);};
-const parseD=v=>{const p=String(v||"").trim().split(/[\/-]/).map(Number);if(p.length!==3||p.some(Number.isNaN))return null;const[dy,mo,c]=p,yr=c<100?2000+c:c,d=new Date(yr,mo-1,dy);if(dy<1||dy>31||mo<1||mo>12)return null;return Number.isNaN(d.getTime())?null:d;};
+const MONTH_ABBR={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const parseD=v=>{
+  let s=String(v||"").trim();if(!s)return null;
+  s=s.split(/T(?=\d{2}:\d{2})/)[0]; // drop a trailing ISO time, e.g. "2026-08-26T10:30:00"
+  s=s.replace(/\s+\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM|am|pm)?$/,"").trim(); // drop a trailing clock time, e.g. "8-Aug-2026 10:30 AM"
+  let m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/); // ISO-style YYYY-MM-DD
+  if(m){
+    const yr=+m[1],mo=+m[2],dy=+m[3];
+    if(mo<1||mo>12||dy<1||dy>31)return null;
+    const d=new Date(yr,mo-1,dy);return Number.isNaN(d.getTime())?null:d;
+  }
+  let m2=s.match(/^(\d{1,2})[\/\-\s]([A-Za-z]{3,9})[\/\-\s](\d{2,4})$/); // "8-Aug-2026" style, as used in the expense sheet
+  if(m2){
+    const dy=+m2[1],moKey=m2[2].slice(0,3).toLowerCase(),mo=MONTH_ABBR[moKey];
+    let yr=+m2[3];if(yr<100)yr+=2000;
+    if(mo===undefined||dy<1||dy>31)return null;
+    const d=new Date(yr,mo,dy);return Number.isNaN(d.getTime())?null:d;
+  }
+  const p=s.split(/[\/\-.]/).map(Number); // day-first DD/MM/YYYY (or DD-MM-YY), used throughout this app
+  if(p.length!==3||p.some(Number.isNaN))return null;
+  const[dy,mo,c]=p,yr=c<100?2000+c:c,d=new Date(yr,mo-1,dy);
+  if(dy<1||dy>31||mo<1||mo>12)return null;
+  return Number.isNaN(d.getTime())?null:d;
+};
+const sortByDateDesc=(arr,dateKey="date")=>[...arr].sort((a,b)=>{
+  const da=parseD(a[dateKey]),db=parseD(b[dateKey]);
+  if(da&&db)return db-da;
+  if(da)return -1;
+  if(db)return 1;
+  return 0;
+});
 const fmtDate=v=>{const d=parseD(v);if(!d)return String(v||"-");return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});};
 const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
 const rmSk=id=>{const el=document.getElementById(id);if(el)el.classList.remove("sk");};
@@ -1505,23 +1455,7 @@ const rmSkEl=el=>{if(el)el.classList.remove("sk");};
 const empty=(id,msg)=>{const el=document.getElementById(id);if(el){el.innerHTML=`<div class="empty-state">${msg}</div>`;el.classList.remove("sk");}};
 
 /* ── Fetch CSV ── */
-async function fetchCsv(sid,tab){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(tab)}`,
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab.replace(/-/g," "))}`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});
-      const csv=await r.text();
-      const p=csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("<html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
-      return csv;
-    }catch(_){}
-  }
-  return"";
-}
+const fetchCsv = Utils.fetchCsv; // shared in utils.js
 
 /* ── Active year/month ── */
 function activeYear(){
@@ -1854,9 +1788,17 @@ function renderBlocksFiltered(monthIdx){
   });
 }
 
-/* ── Recent payments ── */
-function renderRecentPay(payments){
-  const recent=[...payments].sort((a,b)=>{const da=parseD(a.date),db=parseD(b.date);if(da&&db)return db-da;return 0;}).slice(0,6);
+/* ── Recent payments ──
+   fallbackPayments (optional): the previous year's payments, used to
+   top the list back up to 6 when the active year alone falls short
+   (e.g. early in a new year). Always strictly older than the active
+   year, so it only ever fills in after the current year is exhausted. */
+function renderRecentPay(payments,fallbackPayments){
+  let recent=sortByDateDesc(payments);
+  if(recent.length<6&&fallbackPayments&&fallbackPayments.length){
+    recent=recent.concat(sortByDateDesc(fallbackPayments));
+  }
+  recent=recent.slice(0,6);
   if(!recent.length){empty("recentPay","No payments found.");return;}
   document.getElementById("recentPay").innerHTML=recent.map(p=>{
     return`<div class="act-item"><div class="act-top"><span class="act-name">${p.block} · Flat ${p.flat}</span><span class="act-amt">${fmt$(p.amount)}</span></div><div class="act-sub">${p.date?fmtDate(p.date)+" · ":""}<span style="background:${getBlockColor(p.block).light};color:${getBlockColor(p.block).hex};padding:1px 7px;border-radius:999px;font-size:0.68rem;font-weight:700">${p.mode}</span></div></div>`;
@@ -1939,36 +1881,34 @@ function renderRecentRes(rd){
 /* ── Load expenses ── */
 const EXPENSE_SHEET_ID="1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo";
 async function loadExpenses(){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`,
-    `https://docs.google.com/spreadsheets/d/${EXPENSE_SHEET_ID}/export?format=csv&sheet=Sheet1`,
-  ];
-  for(const url of urls){
-    try{
-      const r=await fetch(url,{cache:"no-cache"});const csv=await r.text();
-      const p=csv.trim().slice(0,200).toLowerCase();
-      if(!csv.trim()||p.startsWith("<!doctype html")||p.includes("google.visualization.query.setresponse")||csv.includes("File not found"))continue;
-      const lines=csv.split(/\r?\n/).filter(l=>l.trim());if(lines.length<2)continue;
-      const headerRaw=parseCSV(lines[0]).map(h=>String(h||"").trim().toLowerCase());
-      const colIdx=(pats,fallback)=>{const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));return i>=0?i:fallback;};
-      const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","txn type","payment type","type"],4),desc:colIdx(["description","desc","particulars","narration","detail"],3),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],1),paymode:colIdx(["payment mode","pay mode","mode","payment method"],2)};
-      const entries=lines.slice(1).map(line=>{
-        const cols=parseCSV(line);const rawType=String(cols[C.type]||"").trim().toUpperCase();
-        const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;
-        const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
-        const rawDate=String(cols[C.date]||"").trim();
-        return{date:rawDate,description:cols[C.desc]||"",type,amount:amt,paymode:cols[C.paymode]||""};
-      }).filter(e=>e.amount>0);
-      const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
-      const totalDebits=entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
-      return{entries,totalCredits,totalDebits};
-    }catch(_){}
-  }
+  try{
+    const csv=await Utils.fetchCsv(EXPENSE_SHEET_ID,"Sheet1");
+    if(csv){
+      const lines=csv.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length>=2){
+        const headerRaw=parseCSV(lines[0]).map(h=>String(h||"").trim().toLowerCase());
+        const colIdx=(pats,fallback)=>{const i=headerRaw.findIndex(h=>pats.some(p=>h.includes(p)));return i>=0?i:fallback;};
+        const C={date:colIdx(["transaction date","date","dt"],0),type:colIdx(["transaction type","txn type","payment type","type"],4),desc:colIdx(["description","desc","particulars","narration","detail"],3),amt:colIdx(["amount","amt","sum","inr","rs","rupee"],1),paymode:colIdx(["payment mode","pay mode","mode","payment method"],2)};
+        const entries=lines.slice(1).map(line=>{
+          const cols=parseCSV(line);const rawType=String(cols[C.type]||"").trim().toUpperCase();
+          const amt=parseFloat(String(cols[C.amt]||"").replace(/[^0-9.-]/g,""))||0;
+          const type=rawType.startsWith("C")?"CREDIT":rawType.startsWith("D")?"DEBIT":"CREDIT";
+          const rawDate=String(cols[C.date]||"").trim();
+          return{date:rawDate,description:cols[C.desc]||"",type,amount:amt,paymode:cols[C.paymode]||""};
+        }).filter(e=>e.amount>0);
+        const totalCredits=entries.filter(e=>e.type==="CREDIT").reduce((s,e)=>s+e.amount,0);
+        const totalDebits=entries.filter(e=>e.type==="DEBIT").reduce((s,e)=>s+e.amount,0);
+        return{entries,totalCredits,totalDebits};
+      }
+    }
+  }catch(_){}
   return{entries:[],totalCredits:0,totalDebits:0};
 }
 
 function renderRecentExp(entries){
-  const recent=[...entries].slice(0,6);
+  // Most recent transaction date first; entries with an unparseable
+  // date fall to the bottom rather than breaking the sort.
+  const recent=sortByDateDesc(entries).slice(0,6);
   if(!recent.length){empty("recentExp","No expense data.");return;}
   document.getElementById("recentExp").innerHTML=recent.map(e=>{
     const isCredit=e.type==="CREDIT";
@@ -2119,7 +2059,7 @@ function renderBlockCmpChart(allBlocks, blockMonthTotals){
 }
 
 /* ── Render dashboard ── */
-function renderDash({pd,rd,ec,year,expData}){
+function renderDash({pd,rd,ec,year,expData,fallbackPayments}){
   const total=pd.monthTotals.reduce((s,a)=>s+a,0);
   const compl=rd.stats.total?Math.round(((rd.stats.total-rd.stats.pending)/rd.stats.total)*100):0;
   const now=new Date();const curMonthIdx=now.getMonth();
@@ -2131,9 +2071,6 @@ function renderDash({pd,rd,ec,year,expData}){
   const curMonthName=MONTHS_FULL[curMonthIdx];
   const availBal=(expData?.totalCredits||0)-(expData?.totalDebits||0);
   const balSign=availBal>=0?"Surplus":"Deficit";
-
-  // Total known flats (used by the Flat Search quick-link stat)
-  const totalFlats=pd.allFlats.size;
 
   ["kpiTotal","kpiMonth","kpiToday","kpiEmg"].forEach(rmSk);
   setTxt("kpiTotal",fmt$(total));setTxt("kpiSub",`Year ${year}`);
@@ -2188,21 +2125,12 @@ function renderDash({pd,rd,ec,year,expData}){
   setTxt("resComplete",`${compl}% complete`);setTxt("resCars",`${fmtN(rd.stats.vehicles)} vehicles`);
   rmSkEl(document.getElementById("resGrid"));
 
-  // Quick-link tile live stats
-  setTxt("qtStatPayments",`${fmt$(monthTotal)} this month`);
-  setTxt("qtStatLedger",`${fmt$(Math.abs(availBal))} ${balSign.toLowerCase()}`);
-  setTxt("qtStatResidents",`${fmtN(rd.stats.total)} flats · ${compl}% complete`);
-  setTxt("qtStatEmergency",`${fmtN(ec)} contact${ec===1?"":"s"} listed`);
-  setTxt("qtStatVehicles",`${fmtN(rd.stats.vehicles)} registered`);
-  setTxt("qtStatHistory",`${fmtN(pd.payments.length)} entries logged`);
-  setTxt("qtStatSearch",`${fmtN(totalFlats)} flats searchable`);
-
   renderTrend(pd.monthTotals, pd.monthCounts);
   _cachedPayments=pd.payments;_cachedAllBlocks=pd.allBlocks;
   _cachedBlockTotals=pd.blockTotals;_cachedBlockMonthTotals=pd.blockMonthTotals;
   renderBlocksFiltered(_blockMonth);
   renderBlockCmpChart(pd.allBlocks, pd.blockMonthTotals);
-  renderRecentPay(pd.payments);
+  renderRecentPay(pd.payments,fallbackPayments);
   renderModes(pd.modeTotals);
   renderCashByPerson(pd.payments,_cashPersonMonth);
   renderRecentRes(rd);
@@ -2223,7 +2151,18 @@ async function loadDash(){
   try{
     const year=activeYear();
     const[pd,rd,ec,expData]=await Promise.all([loadPayments(year),loadResidents(),loadEmergency(),loadExpenses()]);
-    renderDash({pd,rd,ec,year,expData});
+    // If the active year alone doesn't have 6 payments yet (e.g. early
+    // in a new year), pull the previous year's data too so "Recent
+    // Payments" isn't left with empty space.
+    let fallbackPayments=null;
+    if(sortByDateDesc(pd.payments).length<6){
+      const prevYear=String(Number(year)-1);
+      if(SHEET_IDS[prevYear]){
+        const prevPd=await loadPayments(prevYear);
+        fallbackPayments=prevPd.payments;
+      }
+    }
+    renderDash({pd,rd,ec,year,expData,fallbackPayments});
   }catch(e){
     setTxt("trendMeta",e.message||"Unable to load data.");console.error(e);
   }finally{
@@ -2231,16 +2170,8 @@ async function loadDash(){
   }
 }
 
-/* ── Dropdown ── */
-const tog=document.getElementById("profileTogDesk"),dd=document.getElementById("pdDesk");
-tog?.addEventListener("click",e=>{e.stopPropagation();const open=dd.classList.toggle("open");tog.setAttribute("aria-expanded",open?"true":"false");});
-document.addEventListener("click",()=>{document.querySelectorAll(".profile-dropdown").forEach(d=>d.classList.remove("open"));document.querySelectorAll("[aria-expanded]").forEach(b=>b.setAttribute("aria-expanded","false"));});
-
-/* ── Logout ── */
-function doLogout(){sessionStorage.removeItem(AUTH_KEY);window.location.href="index.html";}
-document.getElementById("logoutDesk")?.addEventListener("click",doLogout);
-document.getElementById("logoutDeskMenu")?.addEventListener("click",doLogout);
-document.getElementById("drawerLogoutBtn")?.addEventListener("click",doLogout);
+/* Logout lives in the sidebar now (sidebar.js wires it to Auth.logout()
+   automatically) — no per-page dropdown or logout code needed here. */
 
 /* ── Year / Month selects ── */
 const yDesk=document.getElementById("yearDesk"),mDesk=document.getElementById("monthDesk");
@@ -2272,7 +2203,7 @@ document.getElementById("cashPersonMonth")?.addEventListener("change",e=>{
   renderCashByPerson(_cachedPayments||[],_cashPersonMonth);
 });
 
-document.getElementById("refreshBtn")?.addEventListener("click",loadDash);
+document.getElementById("refreshBtn")?.addEventListener("click",()=>{ Utils.clearAllCsvCache(); loadDash(); });
 
 /* ── Theme Toggle ── */
 (function(){
