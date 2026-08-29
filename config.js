@@ -114,9 +114,9 @@ window.CONFIG = Object.freeze({
   // the payment-year sheets that only payments.html used to write to
   // through the OTHER deployment. Confirm that access after deploying.
   appsScript: {
-    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec",
-    payments: "https://script.google.com/macros/s/AKfycbzOOKgbKaeTzmIPc6KMMtQn69ic66KSCHSWq0bD787ZUCL6dpDxaHNK0npp3VNeje320A/exec",
-    read: "https://script.google.com/macros/s/AKfycbxrVX9NFnmbY3Bf_KRYKq7eZsemHgk7AzJ8OA_94Zt-LKpCZODkYsTnNX-pB6MUjutgeA/exec",
+    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
+    payments: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
+    read: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
   },
 
   cache: {
