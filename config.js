@@ -48,6 +48,7 @@ window.CONFIG = Object.freeze({
     "deveshsahu9143@gmail.com",
     "mig1.society29@gmail.com",
     "rky07456@gmail.com",
+    "anshumannayak724@gmail.com",
   ],
 
   sheets: {
@@ -114,9 +115,9 @@ window.CONFIG = Object.freeze({
   // the payment-year sheets that only payments.html used to write to
   // through the OTHER deployment. Confirm that access after deploying.
   appsScript: {
-    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
-    payments: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
-    read: "https://script.google.com/macros/s/AKfycbzI13iq0UHCzeW87qLan0InT-zpUkguzPq_0_OpqFpmYNkeZCmIGOX4Vzdoe8vOokvxvQ/exec",
+    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
+    payments: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
+    read: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
   },
 
   cache: {
