@@ -2309,6 +2309,28 @@ function parsePaymentTab({year,tab,monthIndex,csv}){
 const mainSearch=document.getElementById("mainSearch");
 const sugWrap=document.getElementById("suggestionsWrap");
 const searchClear=document.getElementById("searchClear");
+// `currentFlatData` is the structured selected-flat state. It is kept
+// separate from this editable input, so changing 1-102 to 1-103 never
+// rewrites or parses UI labels.
+
+function compactFlatSearchValue(block,flat){
+  const blockNumber=String(block||"").match(/\d+/)?.[0]||String(block||"").replace(/^Block-?/i,"");
+  return `${blockNumber}-${String(flat||"").trim()}`;
+}
+
+// Preserve an explicitly typed flat reference (including its formatting)
+// when it identifies the selected flat. Name/mobile searches instead get a
+// useful compact reference, never the old "Block-1 · Flat 102" UI label.
+function selectedSearchDisplayValue(typedValue,block,flat){
+  const typed=String(typedValue||"").trim();
+  const canonical=compactFlatSearchValue(block,flat);
+  const normalizedTyped=typed.toLowerCase()
+    .replace(/\bblock\s*[- ]?/g,"")
+    .replace(/\bflat\s*[- ]?/g,"")
+    .replace(/^b\s*[- ]?/i,"")
+    .replace(/\s+/g,"");
+  return normalizedTyped===canonical.toLowerCase()?typed:canonical;
+}
 
 function getSearchCandidates(q){
   if(!q||q.length<2)return[];
@@ -2377,13 +2399,13 @@ mainSearch.addEventListener("keydown",e=>{
     sugWrap.classList.remove("open");
     const q=norm(mainSearch.value);
     const items=getSearchCandidates(q);
-    if(items.length===1){openProfile(items[0].bv,items[0].fv);}
+    if(items.length===1){openProfile(items[0].bv,items[0].fv,mainSearch.value);}
     else if(items.length>1){
       const exact=items.find(it=>{
         const bs=it.bv.replace("Block-","B").toLowerCase();
         return it.fv.toLowerCase()===q||`${it.bv.toLowerCase()}-${it.fv.toLowerCase()}`===q||`${bs}-${it.fv.toLowerCase()}`===q||`${bs}${it.fv.toLowerCase()}`===q;
       });
-      if(exact)openProfile(exact.bv,exact.fv);
+      if(exact)openProfile(exact.bv,exact.fv,mainSearch.value);
     }
   }
 });
@@ -2397,7 +2419,7 @@ document.getElementById("searchBtn")?.addEventListener("click",()=>{
   sugWrap.classList.remove("open");
   const q=norm(mainSearch.value);
   const items=getSearchCandidates(q);
-  if(items.length>=1)openProfile(items[0].bv,items[0].fv);
+  if(items.length>=1)openProfile(items[0].bv,items[0].fv,mainSearch.value);
 });
 
 sugWrap.addEventListener("click",e=>{
@@ -2405,7 +2427,7 @@ sugWrap.addEventListener("click",e=>{
   if(!item)return;
   const{block,flat}=item.dataset;
   sugWrap.classList.remove("open");
-  openProfile(block,flat);
+  openProfile(block,flat,mainSearch.value);
 });
 
 document.addEventListener("click",e=>{
@@ -2415,14 +2437,17 @@ document.addEventListener("click",e=>{
 /* ═══════════════════════════════════════════════
    OPEN PROFILE
 ═══════════════════════════════════════════════ */
-function openProfile(block,flat){
+function openProfile(block,flat,typedSearchValue=""){
   const bI=hiIdx(["block"]);
   const fI=hiIdx(["flat","house","apartment"]);
   const row=directoryRows.find(r=>blockDisp(r[bI]||"")===block&&String(r[fI]||"").trim()===String(flat||"").trim());
   if(!row)return;
 
+  // Keep the structured identity for profile/payment actions separate from
+  // the search field's display value. This is what lets a user directly
+  // edit a selected 1-102 into 1-103 and immediately get new suggestions.
   currentFlatData={block,flat,row};
-  mainSearch.value=`${block} · Flat ${flat}`;
+  mainSearch.value=selectedSearchDisplayValue(typedSearchValue,block,flat);
   searchClear.classList.add("visible");
 
   document.getElementById("searchPrompt").style.display="none";
