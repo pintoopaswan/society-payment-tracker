@@ -1,4 +1,13 @@
-const ALLOWED_USERS = ["pintoopaswan88@gmail.com", "deveshsahu9143@gmail.com", "mig1.society29@gmail.com","rky07456@gmail.com"];
+// Keep this in sync with CONFIG.allowedUsers in config.js. This server-side
+// list is the actual authorization boundary for every read and write.
+const ALLOWED_USERS = [
+  "pintoopaswan88@gmail.com",
+  "deveshsahu9143@gmail.com",
+  "mig1.society29@gmail.com",
+  "rky07456@gmail.com",
+  "anshumannayak724@gmail.com",
+  "lovehurtsss4@gmail.com"
+];
 
 // ── Legacy shared secret — REMOVED ───────────────────────────────────────────
 // Every page (payments.html, owner-tenant.html, vehicles.html,

@@ -939,6 +939,7 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 .details-status-chip.st-due{background:rgba(248,113,113,0.22);border-color:rgba(248,113,113,0.5)}
 .details-status-chip.st-future{background:rgba(255,255,255,0.14)}
 .details-status-chip.st-short{background:rgba(245,158,11,0.26);border-color:rgba(245,158,11,0.55)}
+.details-status-chip.st-locked{background:rgba(245,158,11,0.26);border-color:rgba(245,158,11,0.55)}
 .details-hero-flat{font-family:'Fraunces',serif;font-weight:700;font-size:1.14rem;color:#fff;letter-spacing:-0.01em;margin-top:10px}
 .details-hero-month{font-size:0.76rem;color:rgba(255,255,255,0.72);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:0.05em}
 .details-hero-amount{font-family:'DM Mono',monospace;font-weight:800;font-size:1.9rem;color:#fff;margin-top:14px;letter-spacing:-0.01em}
@@ -981,6 +982,10 @@ td.empty.has-tx .cell-amount{color:var(--red-600)}
 
 .details-footer{display:flex;justify-content:flex-end;align-items:center;gap:9px;padding:16px 22px 20px;border-top:1px solid var(--line);margin-top:12px}
 .details-footer.hidden{display:none}
+.btn-flat-lock{color:var(--amber-700);border-color:var(--amber-200);background:var(--amber-50)}
+.btn-flat-lock:hover{background:#fef3c7}
+.btn-flat-unlock{color:var(--blue-700);border-color:var(--blue-200);background:var(--blue-50)}
+.btn-flat-unlock:hover{background:#dbeafe}
 .details-confirm-footer{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:14px 18px;margin:12px 22px 20px;
@@ -1762,6 +1767,7 @@ body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blu
     <div class="modal-body details-body" id="detailsBody"></div>
     <div class="details-footer" id="detailsFooterNormal">
       <button class="btn-cancel" id="detailsCloseBtn" type="button">Close</button>
+      <button class="btn-cancel hidden" id="detailsFlatStatusBtn" type="button">Lock Flat</button>
       <button class="btn-delete hidden" id="detailsDeleteBtn" type="button">Delete</button>
       <button class="btn-save" id="detailsPrimaryBtn" type="button">Edit Payment</button>
     </div>
@@ -1770,6 +1776,29 @@ body.dark-mode .flat-year-badge{background:rgba(96,165,250,0.16);color:var(--blu
       <div class="details-confirm-actions">
         <button class="btn-cancel" id="detailsCancelDeleteBtn" type="button">Cancel</button>
         <button class="btn-delete solid" id="detailsConfirmDeleteBtn" type="button">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FLAT LOCK / UNLOCK MODAL ══ -->
+<div class="modal-overlay" id="flatStatusModalOverlay" aria-hidden="true">
+  <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="flatStatusTitle">
+    <div class="modal-head">
+      <div class="modal-head-copy">
+        <div class="modal-title" id="flatStatusTitle">Lock Flat</div>
+        <div class="modal-subtitle" id="flatStatusSubtitle">Close this month to payment entries</div>
+      </div>
+      <button class="modal-close" id="flatStatusClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label>Block</label><input id="flatStatusBlock" type="text" readonly></div>
+        <div class="form-field"><label>Flat No.</label><input id="flatStatusFlat" type="text" readonly></div>
+        <div class="form-field full"><label>Month</label><input id="flatStatusMonth" type="text" readonly></div>
+        <div class="form-field full"><label for="flatStatusReason">Justification <span class="optional-label">optional</span></label><textarea id="flatStatusReason" placeholder="Add a reason for this action…"></textarea></div>
+        <div class="form-field full"><div class="form-msg" id="flatStatusMsg"></div></div>
+        <div class="form-field full"><div class="form-actions"><button class="btn-cancel" id="flatStatusCancel" type="button">Cancel</button><button class="btn-save" id="flatStatusSave" type="button">Lock Flat</button></div></div>
       </div>
     </div>
   </div>
@@ -2293,7 +2322,9 @@ function computeCellState(row,year,mi,canEdit){
   }else{
     ownEntry=row.years?.[year]?.months?.[mi]||null;
   }
-  if(locked)return{status:"locked",entry:ownEntry,action:null,year,mi};
+  // A locked cell remains clickable so staff can inspect it and choose
+  // Unlock Flat. It is still closed to payment creation/editing.
+  if(locked)return{status:"locked",entry:ownEntry,action:canEdit?"locked":null,year,mi};
 
   if(ownEntry){
     const cellYear=year==="all"?ownEntry.txYear:Number(year);
@@ -2408,7 +2439,7 @@ function chipHtml(row,cs){
     const title=n>1?`Covered by ${n} payments — click to view, or record a new one`:"Covered by a payment recorded in another month — click to view, or record a new one";
     return`<span class="chip covered"${attrs} title="${title}">✓${n>1?`<span class="c-sub">${n}×</span>`:""}</span>`;
   }
-  if(cs.status==="locked")return`<span class="chip locked" title="Locked — closed to edits">${CHIP_ICO_LOCK}</span>`;
+  if(cs.status==="locked")return`<span class="chip locked"${attrs} title="Locked — click to unlock this flat">${CHIP_ICO_LOCK}</span>`;
   if(cs.status==="due")return`<span class="chip due"${attrs} title="Add payment for ${MONTH_SHORT[cs.mi]} ${cs.year}">Due</span>`;
   return`<span class="chip future"${attrs} title="Not yet due — click to record an advance payment">—</span>`;
 }
@@ -2850,6 +2881,11 @@ document.getElementById("blocksWrap").addEventListener("click",e=>{
   const covT=e.target.closest('[data-action="coverage"]');
   if(covT){
     openDetailsModal("covered",covT.dataset.block||"",covT.dataset.flat||"",covT.dataset.year||"",Number(covT.dataset.mi??-1));
+    return;
+  }
+  const lockedT=e.target.closest('[data-action="locked"]');
+  if(lockedT){
+    openDetailsModal("locked",lockedT.dataset.block||"",lockedT.dataset.flat||"",lockedT.dataset.year||"",Number(lockedT.dataset.mi??-1));
   }
 });
 
@@ -2982,7 +3018,8 @@ const DETAILS_STATUS_META = {
   short:  {label:"Underpaid",         chip:"st-short"},
   covered:{label:"Covered",           chip:"st-covered"},
   due:    {label:"Payment Due",       chip:"st-due"},
-  future: {label:"Not Yet Due",       chip:"st-future"}
+  future: {label:"Not Yet Due",       chip:"st-future"},
+  locked: {label:"Locked",            chip:"st-locked"}
 };
 
 let detailsCtx=null; // whatever the currently-open Details modal needs for its footer actions
@@ -3015,6 +3052,11 @@ function buildPaidDetailsHtml(ctx,status){
   </dl>${notesHtml}`;
 }
 function buildEmptyDetailsHtml(status,monthLabel){
+  if(status==="locked")return`<div class="details-empty-state">
+    <div class="details-empty-icon">${CHIP_ICO_LOCK}</div>
+    <div class="details-empty-title">Flat Locked</div>
+    <div class="details-empty-hint">${escapeHtml(monthLabel)} is closed to payment entries. Choose Unlock Flat to make it available again.</div>
+  </div>`;
   const isFuture=status==="future";
   const title=isFuture?"Not Due Yet":"No Payment Recorded";
   const hint=isFuture
@@ -3057,6 +3099,7 @@ function openDetailsModal(status,block,flat,year,mi){
   const heroAmountEl=document.getElementById("detailsHeroAmount");
   const deleteBtn=document.getElementById("detailsDeleteBtn");
   const primaryBtn=document.getElementById("detailsPrimaryBtn");
+  const flatStatusBtn=document.getElementById("detailsFlatStatusBtn");
   const modalEl=document.querySelector("#detailsModalOverlay .details-modal");
 
   let ctx=null,coverers=null;
@@ -3085,16 +3128,26 @@ function openDetailsModal(status,block,flat,year,mi){
     heroAmountEl.classList.remove("hidden");
     bodyEl.innerHTML=buildPaidDetailsHtml(ctx,status);
     deleteBtn.classList.remove("hidden");
+    flatStatusBtn.classList.add("hidden");
+    primaryBtn.classList.remove("hidden");
     primaryBtn.textContent="Edit Payment";
   }else if(status==="covered"){
     heroAmountEl.classList.add("hidden");
     bodyEl.innerHTML=buildCoveredDetailsHtml(coverers,PaymentMonths.toKey(Number(year),Number(mi)),monthLabel);
     deleteBtn.classList.add("hidden");
+    flatStatusBtn.classList.add("hidden");
+    primaryBtn.classList.remove("hidden");
     primaryBtn.textContent="+ Add Payment";
   }else{
     heroAmountEl.classList.add("hidden");
     bodyEl.innerHTML=buildEmptyDetailsHtml(status,monthLabel);
     deleteBtn.classList.add("hidden");
+    const isLocked=status==="locked";
+    flatStatusBtn.classList.toggle("hidden",!isLocked&&status!=="due");
+    flatStatusBtn.textContent=isLocked?"Unlock Flat":"Lock Flat";
+    flatStatusBtn.classList.toggle("btn-flat-lock",!isLocked);
+    flatStatusBtn.classList.toggle("btn-flat-unlock",isLocked);
+    primaryBtn.classList.toggle("hidden",isLocked);
     primaryBtn.textContent="+ Add Payment";
   }
 
@@ -3128,6 +3181,53 @@ function handleDetailsPrimaryAction(){
   if(status==="paid"||status==="review"){ if(ctx)openEditModal(ctx); }
   else if(status==="covered"){ openAddPaymentDatedIn(block,flat,year,mi); }
   else{ openAddModalForCell(block,flat,year,mi); }
+}
+
+let flatStatusCtx=null;
+function openFlatStatusModal(locked){
+  if(!detailsCtx)return;
+  const {block,flat,year,mi}=detailsCtx;
+  if(locked&&detailsCtx.status!=="due")return;
+  flatStatusCtx={block,flat,year:Number(year),mi:Number(mi),locked};
+  document.getElementById("flatStatusTitle").textContent=locked?"Lock Flat":"Unlock Flat";
+  document.getElementById("flatStatusSubtitle").textContent=locked?"Close this month to payment entries":"Make this month available for payment entries";
+  document.getElementById("flatStatusBlock").value=block;
+  document.getElementById("flatStatusFlat").value=flat;
+  document.getElementById("flatStatusMonth").value=`${MONTH_FULL[Number(mi)]} ${year}`;
+  document.getElementById("flatStatusReason").value="";
+  document.getElementById("flatStatusMsg").textContent="";
+  const saveBtn=document.getElementById("flatStatusSave");
+  saveBtn.textContent=locked?"Lock Flat":"Unlock Flat";
+  saveBtn.classList.toggle("btn-flat-lock",locked);
+  saveBtn.classList.toggle("btn-flat-unlock",!locked);
+  document.getElementById("flatStatusModalOverlay").classList.add("open");
+  document.getElementById("flatStatusModalOverlay").setAttribute("aria-hidden","false");
+}
+function closeFlatStatusModal(){
+  const overlay=document.getElementById("flatStatusModalOverlay");
+  overlay.classList.remove("open"); overlay.setAttribute("aria-hidden","true");
+  if(!document.getElementById("detailsModalOverlay").classList.contains("open")&&!document.getElementById("payModalOverlay").classList.contains("open")&&!document.getElementById("alertOverlay").classList.contains("open"))unlockScroll();
+}
+async function saveFlatStatus(){
+  if(!flatStatusCtx||!requireStaffAuth())return;
+  const {block,flat,year,mi,locked}=flatStatusCtx;
+  const reason=document.getElementById("flatStatusReason").value.trim();
+  const actionLabel=locked?"Flat locked":"Flat unlocked";
+  const payload={
+    idToken:window.Auth?.getIdToken(), actionType:"setFlatStatus", block, flatNo:flat,
+    year, monthIndex:mi, flatStatus:locked?"LOCKED":"",
+    notes:`${actionLabel} for ${MONTH_FULL[mi]} ${year}.${reason?` Reason: ${reason}`:""}${getStaffEmail()?` | Updated by: ${getStaffEmail()}`:""} | Updated on: ${todayDMY()}`
+  };
+  const saveBtn=document.getElementById("flatStatusSave");
+  saveBtn.disabled=true; document.getElementById("flatStatusMsg").textContent=locked?"Locking…":"Unlocking…";
+  try{
+    const result=await submitPayload(payload);
+    if(!result.ok)throw new Error(result.error||"Unable to update flat status.");
+    closeFlatStatusModal(); closeDetailsModal(false); flatStatusCtx=null;
+    invalidateVisibleMonthCaches(); await fetchAllMonthData();
+    showAlert(locked?"Flat locked.":"Flat unlocked.",true);
+  }catch(ex){ document.getElementById("flatStatusMsg").textContent=ex.message||"Unable to update flat status."; }
+  finally{ saveBtn.disabled=false; }
 }
 /* Deleting from this modal reuses the existing edit-form delete path
    (deletePayment()/getPayload() build the request straight from the
@@ -3509,6 +3609,11 @@ document.getElementById("detailsDeleteBtn").addEventListener("click",showDeleteC
 document.getElementById("detailsCancelDeleteBtn").addEventListener("click",exitDeleteConfirm);
 document.getElementById("detailsConfirmDeleteBtn").addEventListener("click",runConfirmedDelete);
 document.getElementById("detailsPrimaryBtn").addEventListener("click",handleDetailsPrimaryAction);
+document.getElementById("detailsFlatStatusBtn").addEventListener("click",()=>openFlatStatusModal(detailsCtx?.status==="due"));
+document.getElementById("flatStatusSave").addEventListener("click",saveFlatStatus);
+document.getElementById("flatStatusClose").addEventListener("click",closeFlatStatusModal);
+document.getElementById("flatStatusCancel").addEventListener("click",closeFlatStatusModal);
+document.getElementById("flatStatusModalOverlay").addEventListener("click",e=>{ if(e.target.id==="flatStatusModalOverlay")closeFlatStatusModal(); });
 document.getElementById("monthPickerTrigger").addEventListener("click",e=>{ e.stopPropagation();setMonthPickerOpen(!document.getElementById("monthPickerWrap").classList.contains("open")); });
 document.getElementById("monthPickerDropdown").addEventListener("click",e=>e.stopPropagation());
 document.addEventListener("click",e=>{ if(!e.target.closest("#monthPickerWrap"))setMonthPickerOpen(false); });

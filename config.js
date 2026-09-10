@@ -49,6 +49,7 @@ window.CONFIG = Object.freeze({
     "mig1.society29@gmail.com",
     "rky07456@gmail.com",
     "anshumannayak724@gmail.com",
+    "lovehurtsss4@gmail.com"
   ],
 
   sheets: {
