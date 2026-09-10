@@ -1382,8 +1382,16 @@ body.dark-mode .pay-card-chip{background:var(--surface-3);border-color:var(--lin
   .search-hero{padding:18px 16px;border-radius:var(--r-lg)}
   .pay-table-wrap{display:none}
   .pay-card-list{display:block}
+  /* Utils.renderPagination renders both variants. Keep only the pager
+     that belongs to the visible mobile card list at this breakpoint. */
+  #payDeskPagination{display:none!important}
   .info-sections{grid-template-columns:1fr;gap:10px}
   .loading-cards{grid-template-columns:1fr}
+}
+@media(min-width:701px){
+  /* The compact mobile pager is rendered for state parity, but must not
+     sit below the desktop table alongside its full pager. */
+  #payMobPagination{display:none!important}
 }
 
 </style>
