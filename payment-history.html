@@ -510,6 +510,22 @@ tr:hover td{background:var(--surface-2)}
   vertical-align:middle;
 }
 
+/* Payment administration actions */
+.actions-cell{white-space:nowrap;text-align:center}
+.row-actions{display:inline-flex;align-items:center;gap:5px}
+.act-btn{width:30px;height:30px;border-radius:var(--r-sm);border:1px solid var(--line-md);background:var(--surface);color:var(--blue-600);display:inline-flex;align-items:center;justify-content:center;transition:all .15s var(--ease-out)}
+.act-btn:hover{background:var(--blue-50);border-color:var(--blue-300);transform:translateY(-1px)}
+.act-btn.delete{color:var(--red-600)}
+.act-btn.delete:hover{background:var(--red-50);border-color:var(--red-100)}
+.hc-actions{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+.hc-actions .act-btn{width:auto;height:34px;padding:0 11px;gap:5px;font-size:.72rem;font-weight:700}
+
+/* Edit payment modal — aligned with flat-search.html */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(11,22,40,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}.modal-overlay.open{display:flex;animation:fadeIn .2s ease both}.modal-box{background:var(--surface);border:1px solid var(--line-md);border-radius:var(--r-xl);box-shadow:var(--s-lg);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;animation:scaleIn .25s var(--ease-spring) both}
+.pay-modal-head{padding:18px 22px;background:linear-gradient(135deg,var(--blue-700),var(--blue-600) 55%,var(--blue-500));display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:var(--r-xl) var(--r-xl) 0 0;position:relative;overflow:hidden}.pay-modal-head::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 60%)}.pay-modal-head-copy,.pay-modal-close{position:relative;z-index:1}.pay-modal-title{font-size:1.05rem;font-weight:700;color:#fff;letter-spacing:-.01em}.pay-modal-subtitle{font-size:.72rem;color:rgba(255,255,255,.7);margin-top:2px;font-weight:400;text-transform:uppercase;letter-spacing:.06em}.pay-modal-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:1.1rem;display:flex;align-items:center;justify-content:center}.pay-modal-close:hover{background:rgba(255,255,255,.24)}
+.modal-body{padding:20px 22px}.pay-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}.pay-form-field{display:grid;gap:5px;min-width:0}.pay-form-field.full{grid-column:1/-1}.pay-form-field label{font-size:.67rem;font-weight:700;color:var(--blue-600);text-transform:uppercase;letter-spacing:.08em}.pay-form-field input,.pay-form-field select,.pay-form-field textarea{width:100%;min-height:42px;border:1.5px solid var(--line-md);border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);font-size:.88rem;padding:9px 12px;transition:border-color .15s,box-shadow .15s}.pay-form-field input:focus,.pay-form-field select:focus,.pay-form-field textarea:focus{border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(37,99,235,.1);outline:none}.pay-form-field input[readonly]{background:var(--surface-3);color:var(--ink-3);cursor:default}.pay-form-field textarea{min-height:72px;resize:vertical;font-family:inherit}.required-mark{color:var(--red-600);margin-left:2px;font-weight:800}.readonly-badge{display:inline-flex;font-size:.6rem;font-weight:700;color:var(--ink-4);background:var(--surface-3);border:1px solid var(--line-md);border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+.paid-for-row{display:flex;gap:8px;align-items:flex-start}.pay-year-select{flex:0 0 92px;min-height:42px;border:1.5px solid var(--line-md);border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);font-size:.88rem;font-weight:600;padding:9px 10px;cursor:pointer}.pay-month-picker-wrap{flex:1;min-width:0;position:relative}.pay-month-picker-trigger{width:100%;min-height:42px;border:1.5px solid var(--line-md);border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink-2);font-size:.88rem;font-weight:500;padding:9px 36px 9px 12px;text-align:left;cursor:pointer;position:relative}.pay-month-picker-trigger::after{content:'';position:absolute;right:12px;top:50%;width:8px;height:8px;border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);transform:translateY(-65%) rotate(45deg)}.pay-month-picker-wrap.open .pay-month-picker-trigger{border-color:var(--blue-400)}.pay-month-picker-wrap.open .pay-month-picker-trigger::after{transform:translateY(-35%) rotate(-135deg)}.pay-month-picker-dropdown{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line-md);border-radius:var(--r-md);box-shadow:var(--s-lg);z-index:600;display:none}.pay-month-picker-wrap.open .pay-month-picker-dropdown{display:block}.pay-month-options-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px}.pay-month-option{padding:8px 6px;border-radius:var(--r-sm);text-align:center;cursor:pointer;font-size:.74rem;font-weight:600;color:var(--ink-2);background:var(--surface-2);border:1.5px solid transparent;transition:all .14s;position:relative}.pay-month-option:hover{background:var(--blue-50);color:var(--blue-600)}.pay-month-option.selected{background:var(--blue-600);color:#fff;border-color:var(--blue-600);box-shadow:0 3px 8px rgba(37,99,235,.25)}.pay-month-option.disabled{background:var(--surface-3);color:var(--ink-4);cursor:not-allowed;opacity:.6;pointer-events:none}.pay-month-option input{position:absolute;opacity:0;pointer-events:none}.pay-amount-months-hint,.pay-form-msg{font-size:.78rem;font-weight:600;min-height:18px;color:var(--red-600)}.pay-form-actions{display:flex;justify-content:flex-end;gap:9px;padding-top:6px}.btn-cancel,.btn-save{height:40px;padding:0 16px;border-radius:var(--r-sm);font-size:.82rem;font-weight:600}.btn-cancel{border:1.5px solid var(--line-md);background:var(--surface);color:var(--ink-2)}.btn-save{border:none;background:var(--blue-600);color:#fff;font-weight:700;box-shadow:var(--s-blue)}.btn-save:hover{background:var(--blue-700);transform:translateY(-1px)}.btn-save:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
 /* Empty state */
 .empty-state{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -671,6 +687,7 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
   .results-meta{flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:10px}
   .pagination{padding:11px 14px;gap:8px}
   .pg-btn{min-width:34px;height:34px;font-size:0.78rem}
+  .modal-overlay{align-items:flex-end;padding:0}.modal-box{max-height:96vh;border-radius:var(--r-xl) var(--r-xl) 0 0}.pay-modal-head{border-radius:var(--r-xl) var(--r-xl) 0 0}.modal-body{padding:16px}.pay-form-grid{grid-template-columns:1fr}.pay-form-field.full{grid-column:1}.pay-form-actions{flex-direction:column-reverse;gap:8px}.btn-save,.btn-cancel{width:100%;height:44px;font-size:.86rem}.pay-month-picker-dropdown{position:static;margin-top:6px;box-shadow:none}.pay-month-options-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:480px){
   .filter-grid{grid-template-columns:1fr}
@@ -955,11 +972,12 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
             <th style="width:120px">Received By</th>
             <th style="width:170px">Paid Months</th>
             <th>Remarks</th>
+            <th style="width:82px">Actions</th>
           </tr>
         </thead>
         <tbody id="tableBody">
           <tr class="loading-row">
-            <td colspan="9"><div class="spinner"></div></td>
+            <td colspan="10"><div class="spinner"></div></td>
           </tr>
         </tbody>
       </table>
@@ -979,6 +997,30 @@ body.dark-mode .mob-nav{background:rgba(15,23,42,0.97);border-color:var(--line)}
 
 </div><!-- /main -->
 </div><!-- /app-shell -->
+
+<!-- Edit payment record -->
+<div class="modal-overlay" id="paymentEditOverlay" role="dialog" aria-modal="true" aria-labelledby="paymentEditTitle" aria-hidden="true">
+  <div class="modal-box">
+    <div class="pay-modal-head">
+      <div class="pay-modal-head-copy"><div class="pay-modal-title" id="paymentEditTitle">Edit Payment Record</div><div class="pay-modal-subtitle">Update existing payment</div></div>
+      <button class="pay-modal-close" id="paymentEditClose" type="button" aria-label="Close edit payment form">×</button>
+    </div>
+    <form class="modal-body" id="paymentEditForm">
+      <div class="pay-form-grid">
+        <div class="pay-form-field"><label for="editPaymentBlock">Block <span class="readonly-badge">read-only</span></label><input id="editPaymentBlock" readonly></div>
+        <div class="pay-form-field"><label for="editPaymentFlat">Flat Number <span class="readonly-badge">read-only</span></label><input id="editPaymentFlat" readonly></div>
+        <div class="pay-form-field"><label for="editPaymentAmount">Amount (₹)<span class="required-mark">*</span></label><input id="editPaymentAmount" type="number" min="1" step="1" required></div>
+        <div class="pay-form-field"><label for="editPaymentMode">Payment Mode<span class="required-mark">*</span></label><select id="editPaymentMode"><option value="ONLINE">ONLINE</option><option value="CASH">CASH</option></select></div>
+        <div class="pay-form-field"><label for="editPaymentReceivedBy">Received By<span class="required-mark" id="editPaymentReceivedRequired" style="display:none">*</span></label><input id="editPaymentReceivedBy" type="text" placeholder="Guard/person name"></div>
+        <div class="pay-form-field"><label for="editPaymentDate">Payment Date<span class="required-mark">*</span></label><input id="editPaymentDate" type="date" required></div>
+        <div class="pay-form-field full"><label>Payment For (Months)<span class="required-mark">*</span></label><div class="paid-for-row"><select id="editPaymentYear" class="pay-year-select" aria-label="Year"></select><div class="pay-month-picker-wrap" id="editPaymentMonthPickerWrap"><button class="pay-month-picker-trigger" id="editPaymentMonthPickerTrigger" type="button" aria-expanded="false">Select months</button><div class="pay-month-picker-dropdown" id="editPaymentMonthPickerDropdown"><div class="pay-month-options-grid" id="editPaymentMonths"></div></div></div></div><div class="pay-amount-months-hint" id="paymentEditMonthsHint"></div></div>
+        <div class="pay-form-field full"><label for="editPaymentNotes">Remarks</label><textarea id="editPaymentNotes" placeholder="Add any remarks…" rows="3"></textarea></div>
+      </div>
+      <div class="pay-form-msg" id="paymentEditMsg" role="status"></div>
+      <div class="pay-form-actions"><button class="btn-cancel" id="paymentEditCancel" type="button">Cancel</button><button class="btn-save" id="paymentEditSave" type="submit">Update Payment</button></div>
+    </form>
+  </div>
+</div>
 
 <!-- Mobile bottom nav -->
 <nav class="mob-nav">
@@ -1118,7 +1160,7 @@ async function loadData(){
   if(btn) btn.classList.add("loading");
 
   document.getElementById("tableBody").innerHTML =
-    `<tr class="loading-row"><td colspan="9"><div class="spinner"></div></td></tr>`;
+    `<tr class="loading-row"><td colspan="10"><div class="spinner"></div></td></tr>`;
   document.getElementById("mobCardList").innerHTML = "";
 
   allRecords = [];
@@ -1383,7 +1425,7 @@ function updateKpis(){
 function renderTable(){
   const tbody = document.getElementById("tableBody");
   if(!filtered.length){
-    tbody.innerHTML=`<tr><td colspan="9" style="padding:0;border:none"><div class="empty-state">
+    tbody.innerHTML=`<tr><td colspan="10" style="padding:0;border:none"><div class="empty-state">
       <div class="empty-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
       <div class="empty-title">No transactions found</div>
       <div class="empty-body">Try adjusting the filters or clearing your search to see results.</div>
@@ -1406,6 +1448,7 @@ function renderTable(){
     if(r.paidMonthKeys && r.paidMonthKeys.length){
       paidChips = `<div class="months-pill">${r.paidMonthKeys.map(k=>`<span class="m-chip">${PaymentMonths.label(k)}</span>`).join("")}</div>`;
     }
+    const recordIndex=allRecords.indexOf(r);
     html += `<tr>
       <td class="td-center"><span class="row-idx">${globalIdx+1}</span></td>
       <td><span class="block-badge">${r.block}</span></td>
@@ -1416,6 +1459,7 @@ function renderTable(){
       <td class="recv-cell">${r.receivedBy||"—"}</td>
       <td>${paidChips || '<span style="color:var(--ink-4);font-size:0.74rem">—</span>'}</td>
       <td><span class="remarks-cell" title="${r.notes||""}">${r.notes||"—"}</span></td>
+      <td class="actions-cell"><span class="row-actions"><button class="act-btn" type="button" data-payment-action="edit" data-record-index="${recordIndex}" title="Edit payment" aria-label="Edit payment">✎</button><button class="act-btn delete" type="button" data-payment-action="delete" data-record-index="${recordIndex}" title="Delete payment" aria-label="Delete payment">⌫</button></span></td>
     </tr>`;
   });
   tbody.innerHTML = html;
@@ -1449,6 +1493,7 @@ function renderMobileCards(){
       paidChips = r.paidMonthKeys.map(k=>`<span class="m-chip">${PaymentMonths.label(k)}</span>`).join("");
     }
 
+    const recordIndex=allRecords.indexOf(r);
     html += `<div class="hist-card" style="animation-delay:${Math.min(idx,20)*28}ms">
       <div class="hc-head">
         <div class="hc-avatar">${blockShort}<br>${r.flat}</div>
@@ -1477,6 +1522,7 @@ function renderMobileCards(){
           <div class="hcd-val" style="font-size:0.74rem;color:var(--ink-3)">${r.notes}</div>
         </div>` : ""}
       </div>
+      <div class="hc-actions"><button class="act-btn" type="button" data-payment-action="edit" data-record-index="${recordIndex}">✎ Edit</button><button class="act-btn delete" type="button" data-payment-action="delete" data-record-index="${recordIndex}">⌫ Delete</button></div>
     </div>`;
   });
   container.innerHTML = html;
@@ -1698,8 +1744,162 @@ function goPage(p){
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
+/* ── Edit and delete payments ── */
+const PAYMENT_WRITE_URL = CONFIG.appsScript.payments;
+let editingRecord = null;
+let editingPaidMonths = new Set();
+
+function paymentDateInput(r){
+  const p=parseSheetDateParts(r?.date);
+  return p?`${p.yr}-${String(p.mo).padStart(2,"0")}-${String(p.dy).padStart(2,"0")}`:"";
+}
+function paymentSheetMonth(date){
+  const i=Number(String(date||"").split("-")[1])-1;
+  return i>=0&&i<MONTHS.length?MONTHS[i].slice(0,3):"";
+}
+function paymentSheetDate(date){
+  const [year,month,day]=String(date||"").split("-");
+  return year&&month&&day?`${day}/${month}/${year}`:"";
+}
+function paymentWriteAuth(){
+  if(window.Auth?.isSignedIn())return true;
+  Utils.showToast("Your session has expired. Please sign in again.","error");
+  window.Auth?.logout();
+  return false;
+}
+function setPaymentEditMessage(message,success=false){
+  const el=document.getElementById("paymentEditMsg");
+  el.textContent=message||"";
+  el.className=`pay-form-msg${success?" success":""}`;
+}
+function paymentCoveredMonths(record){
+  return new Set(allRecords.filter(r=>r!==record&&r.block===record.block&&r.flat===record.flat).flatMap(r=>r.paidMonthKeys||[]));
+}
+function renderPaymentEditMonths(){
+  const year=Number(document.getElementById("editPaymentYear").value);
+  const blocked=paymentCoveredMonths(editingRecord);
+  document.getElementById("editPaymentMonths").innerHTML=PaymentMonths.yearMonthKeys(year).map((key,index)=>{
+    const checked=editingPaidMonths.has(key), disabled=blocked.has(key)&&!checked;
+    return `<label class="pay-month-option${checked?" selected":""}${disabled?" disabled":""}"><input type="checkbox" value="${key}" ${checked?"checked":""} ${disabled?"disabled":""}>${PaymentMonths.MONTH_DISPLAY[index]}</label>`;
+  }).join("");
+  document.getElementById("editPaymentMonthPickerTrigger").textContent=editingPaidMonths.size?PaymentMonths.formatList([...editingPaidMonths]).join(", "):"Select months";
+  const amount=Number(document.getElementById("editPaymentAmount").value);
+  const hint=document.getElementById("paymentEditMonthsHint");
+  hint.textContent=amount?PaymentMonths.validateAmountMonths(amount,editingPaidMonths.size):"";
+}
+function setPaymentEditPickerOpen(open){
+  const wrap=document.getElementById("editPaymentMonthPickerWrap");
+  wrap.classList.toggle("open",open);
+  document.getElementById("editPaymentMonthPickerTrigger").setAttribute("aria-expanded",open?"true":"false");
+}
+function updatePaymentReceivedRequirement(){
+  document.getElementById("editPaymentReceivedRequired").style.display=document.getElementById("editPaymentMode").value==="CASH"?"":"none";
+}
+function closePaymentEdit(){
+  const overlay=document.getElementById("paymentEditOverlay");
+  overlay.classList.remove("open"); overlay.setAttribute("aria-hidden","true");
+  setPaymentEditPickerOpen(false);
+  document.body.classList.remove("modal-open");
+  editingRecord=null; editingPaidMonths.clear();
+}
+function openPaymentEdit(record){
+  if(!record||!paymentWriteAuth())return;
+  editingRecord=record;
+  editingPaidMonths=new Set(record.paidMonthKeys||[]);
+  document.getElementById("editPaymentBlock").value=record.block;
+  document.getElementById("editPaymentFlat").value=record.flat;
+  document.getElementById("editPaymentAmount").value=String(record.amount||"");
+  document.getElementById("editPaymentMode").value=record.mode==="CASH"?"CASH":"ONLINE";
+  updatePaymentReceivedRequirement();
+  document.getElementById("editPaymentDate").value=paymentDateInput(record);
+  document.getElementById("editPaymentDate").max=new Date().toISOString().slice(0,10);
+  document.getElementById("editPaymentReceivedBy").value=record.receivedBy||"";
+  document.getElementById("editPaymentNotes").value=record.notes||"";
+  const years=[...new Set([...Object.keys(SHEET_IDS_BY_YEAR).map(Number), Number(record.sheetYear)])].filter(Number.isFinite).sort((a,b)=>b-a);
+  const select=document.getElementById("editPaymentYear");
+  select.innerHTML=years.map(year=>`<option value="${year}">${year}</option>`).join("");
+  select.value=String(record.sheetYear);
+  renderPaymentEditMonths(); setPaymentEditMessage(""); setPaymentEditPickerOpen(false);
+  const overlay=document.getElementById("paymentEditOverlay");
+  overlay.classList.add("open"); overlay.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+}
+function submitPaymentWrite(payload){
+  return new Promise((resolve,reject)=>{
+    const callback=`paymentHistoryCb_${Date.now()}_${Math.floor(Math.random()*1e5)}`;
+    let script, timer;
+    const clean=()=>{delete window[callback]; script?.remove(); clearTimeout(timer);};
+    window[callback]=result=>{clean();resolve(result||{ok:false,error:"Empty response."});};
+    const query=new URLSearchParams({action:"savePayment",callback,payload:JSON.stringify(payload),_:String(Date.now())});
+    script=document.createElement("script"); script.src=`${PAYMENT_WRITE_URL}?${query}`;
+    script.onerror=()=>{clean();reject(new Error("Payment service unreachable."));};
+    timer=setTimeout(()=>{clean();reject(new Error("Payment service timed out."));},20000);
+    document.body.appendChild(script);
+  });
+}
+async function savePaymentEdit(event){
+  event.preventDefault();
+  if(!editingRecord||!paymentWriteAuth())return;
+  const amount=Number(document.getElementById("editPaymentAmount").value);
+  const paymentDate=document.getElementById("editPaymentDate").value;
+  const paymentMode=document.getElementById("editPaymentMode").value;
+  const receivedBy=document.getElementById("editPaymentReceivedBy").value.trim();
+  const paidMonths=[...editingPaidMonths];
+  if(!Number.isInteger(amount)||amount<=0)return setPaymentEditMessage("Please enter a valid whole-number amount.");
+  if(!paymentDate)return setPaymentEditMessage("Please select a payment date.");
+  if(paymentDate>new Date().toISOString().slice(0,10))return setPaymentEditMessage("Payment date cannot be in the future.");
+  if(paymentMode==="CASH"&&!receivedBy)return setPaymentEditMessage("Please enter who received the cash payment.");
+  const feeError=PaymentMonths.validateAmountMonths(amount,paidMonths.length);
+  if(feeError)return setPaymentEditMessage(feeError);
+  const conflict=[...paymentCoveredMonths(editingRecord)].find(key=>editingPaidMonths.has(key));
+  if(conflict)return setPaymentEditMessage(`${PaymentMonths.label(conflict)} is already covered by another payment for this flat.`);
+  const originalDate=paymentDateInput(editingRecord);
+  if(paymentDate.slice(0,7)!==originalDate.slice(0,7))return setPaymentEditMessage(`Payment date must remain in ${MONTHS[editingRecord.sheetMonth]} ${editingRecord.sheetYear}; move it from Payments if it belongs in another month.`);
+  const payload={idToken:window.Auth?.getIdToken(),actionType:"update",block:editingRecord.block,flatNo:editingRecord.flat,amount,paymentMode,receivedBy,paymentDate:paymentSheetDate(paymentDate),paymentDateInput:paymentDate,paymentMonthSheet:paymentSheetMonth(paymentDate),paidMonths,notes:document.getElementById("editPaymentNotes").value.replace(/\s+/g," ").trim(),paymentStatus:"DONE"};
+  const save=document.getElementById("paymentEditSave"); save.disabled=true; setPaymentEditMessage("Saving…");
+  try{const result=await submitPaymentWrite(payload);if(!result.ok)throw new Error(result.error||"Unable to update payment.");Utils.clearAllCsvCache();closePaymentEdit();await loadData();Utils.showToast("Payment updated.","success");}
+  catch(error){setPaymentEditMessage(error.message||"Unable to update payment.");}
+  finally{save.disabled=false;}
+}
+async function deleteHistoryPayment(record){
+  if(!record||!paymentWriteAuth())return;
+  if(!confirm(`Delete the ₹${record.amount} payment for ${record.block}, Flat ${record.flat}? This cannot be undone.`))return;
+  const paymentDate=paymentDateInput(record);
+  const payload={idToken:window.Auth?.getIdToken(),actionType:"delete",block:record.block,flatNo:record.flat,amount:record.amount,paymentMode:record.mode,receivedBy:record.receivedBy||"",paymentDate:paymentSheetDate(paymentDate),paymentDateInput:paymentDate,paymentMonthSheet:paymentSheetMonth(paymentDate),paidMonths:record.paidMonthKeys||[],notes:record.notes||"",paymentStatus:"DONE"};
+  try{const result=await submitPaymentWrite(payload);if(!result.ok)throw new Error(result.error||"Unable to delete payment.");Utils.clearAllCsvCache();await loadData();Utils.showToast("Payment deleted.","success");}
+  catch(error){Utils.showToast(error.message||"Unable to delete payment.","error");}
+}
+
 /* ── Wire up controls ── */
 function wireControls(){
+  /* Payment actions use delegation because table rows and mobile cards are re-rendered. */
+  document.addEventListener("click",event=>{
+    const button=event.target.closest("[data-payment-action]");
+    if(!button)return;
+    const record=allRecords[Number(button.dataset.recordIndex)];
+    if(button.dataset.paymentAction==="edit")openPaymentEdit(record);
+    if(button.dataset.paymentAction==="delete")deleteHistoryPayment(record);
+  });
+  document.getElementById("paymentEditForm")?.addEventListener("submit",savePaymentEdit);
+  document.getElementById("paymentEditCancel")?.addEventListener("click",closePaymentEdit);
+  document.getElementById("paymentEditClose")?.addEventListener("click",closePaymentEdit);
+  document.getElementById("paymentEditOverlay")?.addEventListener("click",event=>{if(event.target.id==="paymentEditOverlay")closePaymentEdit();});
+  document.getElementById("editPaymentYear")?.addEventListener("change",renderPaymentEditMonths);
+  document.getElementById("editPaymentMode")?.addEventListener("change",updatePaymentReceivedRequirement);
+  document.getElementById("editPaymentAmount")?.addEventListener("input",renderPaymentEditMonths);
+  document.getElementById("editPaymentMonthPickerTrigger")?.addEventListener("click",event=>{
+    event.stopPropagation();
+    const wrap=document.getElementById("editPaymentMonthPickerWrap");
+    setPaymentEditPickerOpen(!wrap.classList.contains("open"));
+  });
+  document.getElementById("editPaymentMonthPickerDropdown")?.addEventListener("click",event=>event.stopPropagation());
+  document.getElementById("editPaymentMonths")?.addEventListener("change",event=>{
+    if(!event.target.matches("input[type=checkbox]"))return;
+    if(event.target.checked)editingPaidMonths.add(event.target.value);else editingPaidMonths.delete(event.target.value);
+    renderPaymentEditMonths();
+  });
+  document.addEventListener("click",event=>{if(!event.target.closest("#editPaymentMonthPickerWrap"))setPaymentEditPickerOpen(false);});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&document.getElementById("paymentEditOverlay")?.classList.contains("open"))closePaymentEdit();});
   /* Year selectors — sync + reload */
   ["yearDesk","yearMob"].forEach(id=>{
     document.getElementById(id)?.addEventListener("change", e=>{
