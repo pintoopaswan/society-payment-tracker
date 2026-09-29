@@ -37,7 +37,7 @@
 window.CONFIG = Object.freeze({
 
   google: {
-    oauthClientId: "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.apps.googleusercontent.com",
+    oauthClientId: "10440747742-svjgu3c6grh36vs0r4s4kuckebd6k47p.apps.googleusercontent.com",
   },
 
   // UX-only mirror of ALLOWED_USERS in guard-payment-write-apps-script.gs.
@@ -48,8 +48,7 @@ window.CONFIG = Object.freeze({
     "deveshsahu9143@gmail.com",
     "mig1.society29@gmail.com",
     "rky07456@gmail.com",
-    "anshumannayak724@gmail.com",
-    "lovehurtsss4@gmail.com"
+    "anshumannayak724@gmail.com"
   ],
 
   sheets: {
@@ -71,6 +70,7 @@ window.CONFIG = Object.freeze({
     // payments-overview.html, flat-search.html, payment-verification.html)
     // picks it up automatically — no other file needs to change.
     paymentsByYear: {
+      "2027": "1HkTnw1smKjYKQN4eVHf3-J4TEYb6nBovv-v7V829LQk",
       "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
       "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP",
     },
@@ -82,6 +82,7 @@ window.CONFIG = Object.freeze({
     // just reuse MONTHS below if the new sheet has all twelve tabs from
     // January.
     monthTabsByYear: {
+      "2027": null, // null = use the full MONTHS list below
       "2026": null, // null = use the full MONTHS list below
       "2025": [null, null, null, null, null, "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"],
     },
@@ -116,9 +117,9 @@ window.CONFIG = Object.freeze({
   // the payment-year sheets that only payments.html used to write to
   // through the OTHER deployment. Confirm that access after deploying.
   appsScript: {
-    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
-    payments: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
-    read: "https://script.google.com/macros/s/AKfycbxvleWdwXD8BRQOLISgZYLn9bsHygh_JwMgqgt-rP6f8AIVo43kaO6xJwkz0yw4Ez7krQ/exec",
+    residentsVehiclesExpenses: "https://script.google.com/macros/s/AKfycbxMeyFMNA2Yewdl23O1PAXy6jsGdVYiwqmgvvpeyRE3YWQMMX32RBHLCUVE5nZNsuyOSw/exec",
+    payments: "https://script.google.com/macros/s/AKfycbxMeyFMNA2Yewdl23O1PAXy6jsGdVYiwqmgvvpeyRE3YWQMMX32RBHLCUVE5nZNsuyOSw/exec",
+    read: "https://script.google.com/macros/s/AKfycbxMeyFMNA2Yewdl23O1PAXy6jsGdVYiwqmgvvpeyRE3YWQMMX32RBHLCUVE5nZNsuyOSw/exec",
   },
 
   cache: {

@@ -5,8 +5,7 @@ const ALLOWED_USERS = [
   "deveshsahu9143@gmail.com",
   "mig1.society29@gmail.com",
   "rky07456@gmail.com",
-  "anshumannayak724@gmail.com",
-  "lovehurtsss4@gmail.com"
+  "anshumannayak724@gmail.com"
 ];
 
 // ── Legacy shared secret — REMOVED ───────────────────────────────────────────
@@ -24,7 +23,7 @@ const ALLOWED_USERS = [
 // Must match the client_id the frontend initializes Google Identity
 // Services with (see GOOGLE_OAUTH_CLIENT_ID in payments.html) — a token
 // issued for a different client ID will correctly fail verification below.
-const GOOGLE_OAUTH_CLIENT_ID = "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.apps.googleusercontent.com";
+const GOOGLE_OAUTH_CLIENT_ID = "10440747742-svjgu3c6grh36vs0r4s4kuckebd6k47p.apps.googleusercontent.com";
 // Each calendar year's guard-payment data lives in its OWN spreadsheet (one
 // spreadsheet only ever contains tabs for a single year). Every payment
 // write must open the spreadsheet matching the YEAR of payload.paymentDateInput
@@ -33,6 +32,7 @@ const GOOGLE_OAUTH_CLIENT_ID = "45825105036-k447e1bpus2bfvp5k48dl56lch2d28kf.app
 // instead of updating the original row. Keep this in sync with
 // SHEET_IDS_BY_YEAR in payments.html / flat-search.html.
 const SHEET_IDS_BY_YEAR = {
+  "2027": "1HkTnw1smKjYKQN4eVHf3-J4TEYb6nBovv-v7V829LQk",
   "2026": "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",
   "2025": "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP"
 };
@@ -139,6 +139,7 @@ function handlePingRequest(e) {
 ═══════════════════════════════════════════════════════════════════════ */
 const READABLE_SHEET_IDS = [
   "15iii2nw4THbf-t-TdYNfj5WW2Aw4selhvfwu64YzisE", // resident directory + vehicles + emergency contacts (config.js: sheets.directory.id)
+  "1HkTnw1smKjYKQN4eVHf3-J4TEYb6nBovv-v7V829LQk",  // payments — 2027 (config.js: sheets.paymentsByYear["2027"])
   "1sPkVonPCAwM_avBVyQuJSSKRkx5wkB1XPHY1KiEulvU",  // payments — 2026 (config.js: sheets.paymentsByYear["2026"])
   "1U8uoiXbtvzdJxjDTV_IXxAjI7pvzXTFP",              // payments — 2025 (config.js: sheets.paymentsByYear["2025"])
   "1uiD2QymMUl04uNB9N-RrJ9gbT45u2Nm7Vt69E1DJBvo",   // expenses — reads AND writes (config.js: sheets.expenses.id; EXPENSE_SPREADSHEET_ID below)
